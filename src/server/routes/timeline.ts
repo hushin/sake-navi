@@ -19,6 +19,7 @@ type TimelineItem = {
   id: number;
   userName: string;
   createdAt: string;
+  breweryId: number;
   sakeName?: string;
   breweryName?: string;
   rating?: number;
@@ -38,6 +39,7 @@ app.get("/", async (c) => {
         reviewId: schema.reviews.reviewId,
         userName: schema.users.name,
         createdAt: schema.reviews.createdAt,
+        breweryId: schema.breweries.breweryId,
         sakeName: schema.sakes.name,
         breweryName: schema.breweries.name,
         rating: schema.reviews.rating,
@@ -59,6 +61,7 @@ app.get("/", async (c) => {
         noteId: schema.breweryNotes.noteId,
         userName: schema.users.name,
         createdAt: schema.breweryNotes.createdAt,
+        breweryId: schema.breweries.breweryId,
         breweryName: schema.breweries.name,
         content: schema.breweryNotes.comment,
       })
@@ -79,6 +82,7 @@ app.get("/", async (c) => {
       id: review.reviewId,
       userName: review.userName,
       createdAt: review.createdAt,
+      breweryId: review.breweryId,
       sakeName: review.sakeName,
       breweryName: review.breweryName,
       rating: review.rating,
@@ -91,6 +95,7 @@ app.get("/", async (c) => {
       id: note.noteId,
       userName: note.userName,
       createdAt: note.createdAt,
+      breweryId: note.breweryId,
       breweryName: note.breweryName,
       content: note.content,
     }));

@@ -36,37 +36,37 @@
 - [x] `db/seed.sql` - 酒蔵マスタデータ投入
   - breweries.jsonから88蔵元を投入
 
----
-
-## 次のステップ
-
 ### Phase 2: フロントエンド実装
 
 #### 2.1 共通コンポーネント
-- [ ] `src/lib/api.ts` - APIクライアント
-- [ ] `src/lib/auth.ts` - localStorage認証ヘルパー
-- [ ] `src/components/StarRating.tsx` - 星評価コンポーネント
-- [ ] `src/components/TagSelector.tsx` - タグ選択コンポーネント
+- [x] `src/lib/api.ts` - APIクライアント
+- [x] `src/lib/auth.ts` - localStorage認証ヘルパー
+- [x] `src/components/StarRating.tsx` - 星評価コンポーネント
+- [x] `src/components/TagSelector.tsx` - タグ選択コンポーネント
 
 #### 2.2 ページ実装
-- [ ] `/` (page.tsx) - 名前入力画面
+- [x] `/` (page.tsx) - 名前入力画面
   - 名前入力フォーム
   - ユーザー登録API呼び出し
   - localStorage保存 → /map へ遷移
-- [ ] `/map` - フロアマップ画面
+- [x] `/map` - フロアマップ画面
   - 横スクロール対応マップ
   - 酒蔵バッジ（平均評価付き）
   - タイムラインへのリンク
-- [ ] `/brewery/[id]` - 酒蔵詳細画面
+- [x] `/brewery/[id]` - 酒蔵詳細画面
   - 出品酒一覧
   - 酒蔵ノート一覧
   - 酒追加・ノート投稿ボタン
-- [ ] `/brewery/[breweryId]/sake/[sakeId]/review` - レビュー投稿画面
+- [x] `/brewery/[id]/sake/[sakeId]/review` - レビュー投稿画面
   - 星評価（1-5）
   - タグ選択
   - コメント入力
-- [ ] `/timeline` - タイムライン画面
+- [x] `/timeline` - タイムライン画面
   - レビュー・ノートのカード表示
+
+---
+
+## 次のステップ
 
 ### Phase 3: デプロイ準備
 
