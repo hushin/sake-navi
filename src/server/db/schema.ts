@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { sql, relations } from "drizzle-orm";
 import { sqliteTable, text, integer, real, index } from "drizzle-orm/sqlite-core";
 
 // ユーザー
@@ -87,6 +87,52 @@ export const breweryNotes = sqliteTable(
     index("idx_brewery_notes_created").on(table.createdAt),
   ]
 );
+
+// リレーション定義
+export const usersRelations = relations(users, ({ many }) => ({
+  sakes: many(sakes),
+  reviews: many(reviews),
+  breweryNotes: many(breweryNotes),
+}));
+
+export const breweriesRelations = relations(breweries, ({ many }) => ({
+  sakes: many(sakes),
+  breweryNotes: many(breweryNotes),
+}));
+
+export const sakesRelations = relations(sakes, ({ one, many }) => ({
+  brewery: one(breweries, {
+    fields: [sakes.breweryId],
+    references: [breweries.breweryId],
+  }),
+  addedByUser: one(users, {
+    fields: [sakes.addedBy],
+    references: [users.userId],
+  }),
+  reviews: many(reviews),
+}));
+
+export const reviewsRelations = relations(reviews, ({ one }) => ({
+  user: one(users, {
+    fields: [reviews.userId],
+    references: [users.userId],
+  }),
+  sake: one(sakes, {
+    fields: [reviews.sakeId],
+    references: [sakes.sakeId],
+  }),
+}));
+
+export const breweryNotesRelations = relations(breweryNotes, ({ one }) => ({
+  user: one(users, {
+    fields: [breweryNotes.userId],
+    references: [users.userId],
+  }),
+  brewery: one(breweries, {
+    fields: [breweryNotes.breweryId],
+    references: [breweries.breweryId],
+  }),
+}));
 
 // 型エクスポート
 export type User = typeof users.$inferSelect;

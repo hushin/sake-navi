@@ -10,35 +10,35 @@
 - [x] wrangler.jsonc D1バインディング設定
 - [x] 既存ファイル移動（floor-map.png, breweries.json）
 
----
-
-## 次のステップ
-
 ### Phase 1: バックエンドAPI実装
 
 #### 1.1 APIルート実装
-- [ ] `src/server/routes/users.ts` - ユーザー登録API
+- [x] `src/server/routes/users.ts` - ユーザー登録API
   - POST /api/users - 名前でユーザー作成
-- [ ] `src/server/routes/breweries.ts` - 酒蔵API
+- [x] `src/server/routes/breweries.ts` - 酒蔵API
   - GET /api/breweries - 酒蔵一覧（マップ座標・平均評価付き）
   - GET /api/breweries/:id - 酒蔵詳細＋出品酒一覧
   - GET /api/breweries/:id/notes - 酒蔵ノート一覧
   - POST /api/breweries/:id/notes - 酒蔵ノート投稿
   - POST /api/breweries/:id/sakes - お酒追加（自由入力）
-- [ ] `src/server/routes/sakes.ts` - お酒API
+- [x] `src/server/routes/sakes.ts` - お酒API
   - GET /api/sakes/:id - お酒詳細＋レビュー一覧
   - POST /api/sakes/:id/reviews - レビュー投稿
-- [ ] `src/server/routes/timeline.ts` - タイムラインAPI
+- [x] `src/server/routes/timeline.ts` - タイムラインAPI
   - GET /api/timeline - 全投稿を新しい順に取得
 
 #### 1.2 Discord通知
-- [ ] `src/server/services/discord.ts` - Webhook通知サービス
+- [x] `src/server/services/discord.ts` - Webhook通知サービス
   - レビュー投稿通知
   - 酒蔵ノート投稿通知
 
 #### 1.3 シードデータ
-- [ ] `db/seed.sql` - 酒蔵マスタデータ投入
+- [x] `db/seed.sql` - 酒蔵マスタデータ投入
   - breweries.jsonから88蔵元を投入
+
+---
+
+## 次のステップ
 
 ### Phase 2: フロントエンド実装
 

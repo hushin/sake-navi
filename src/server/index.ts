@@ -1,6 +1,10 @@
 import { Hono } from "hono";
 import { drizzle } from "drizzle-orm/d1";
 import * as schema from "./db/schema";
+import usersRoute from "./routes/users";
+import breweriesRoute from "./routes/breweries";
+import sakesRoute from "./routes/sakes";
+import timelineRoute from "./routes/timeline";
 
 type Bindings = {
   DB: D1Database;
@@ -25,11 +29,11 @@ app.get("/api/health", (c) => {
   return c.json({ status: "ok" });
 });
 
-// TODO: ルートを追加
-// app.route("/api/users", usersRoute);
-// app.route("/api/breweries", breweriesRoute);
-// app.route("/api/sakes", sakesRoute);
-// app.route("/api/timeline", timelineRoute);
+// ルート登録
+app.route("/api/users", usersRoute);
+app.route("/api/breweries", breweriesRoute);
+app.route("/api/sakes", sakesRoute);
+app.route("/api/timeline", timelineRoute);
 
 export default app;
 export type AppType = typeof app;
