@@ -1,6 +1,8 @@
 # 酒ナビ機能拡張 実装計画
 
-## 実装順序（作業しやすさ重視）
+各フェーズで並列で作業できるものはサブエージェント(モデルは Sonnet 4.5)で実行する
+
+## 実装順序
 
 | フェーズ                  | タスク                         | 状態 |
 | ------------------------- | ------------------------------ | ---- |
@@ -348,6 +350,9 @@ INSERT INTO reviews (user_id, sake_id, rating, tags, comment) VALUES
   ('demo_user_001', 1, 5, '["甘口","濃醇"]', 'とても美味しい！'),
   ('demo_user_002', 1, 4, '["辛口","淡麗"]', 'すっきりしていて飲みやすい'),
   -- ... 残り18件
+
+
+-- 酒蔵ノート5件
 ```
 
 2. `package.json` - スクリプト追加:
@@ -365,17 +370,18 @@ INSERT INTO reviews (user_id, sake_id, rating, tags, comment) VALUES
 
 ## 検証方法
 
-各タスク完了後:
+各タスク完了後 サブエージェント(モデルは Sonnet 4.5)で実行する
+
+メインセッションで`pnpm dev` でサーバーを起動しておく
 
 1. `pnpm typecheck` - 型エラーなし確認
 2. `pnpm lint` - リントエラーなし確認
-3. `pnpm dev` で動作確認
-4. 該当機能の手動テスト
+3. ブラウザで該当機能の手動テスト http://localhost:3000/
+4. git commit
 
 全タスク完了後:
 
 1. `pnpm db:migrate:local && pnpm db:seed-demo:local`
-2. 全機能の統合テスト
 
 ---
 
