@@ -100,8 +100,6 @@ export default function Home() {
           <div className="mt-8 pt-6 border-t border-slate-200">
             <p className="text-xs text-slate-500 text-center">
               入力した名前は他の参加者にも表示されます。
-              <br />
-              名前は重複できません。
             </p>
           </div>
         </div>

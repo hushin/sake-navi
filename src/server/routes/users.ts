@@ -24,16 +24,24 @@ app.post('/', async (c) => {
 
   const { name } = parseResult.data;
 
-  // ユニーク制約チェック（重複確認）
+  // 既存ユーザーの確認
   const existingUser = await db.query.users.findFirst({
     where: eq(schema.users.name, name),
   });
 
   if (existingUser) {
-    return c.json({ error: 'この名前は既に使用されています' }, 409);
+    // 既存ユーザーがあればその情報を返す
+    return c.json(
+      {
+        id: existingUser.userId,
+        name: existingUser.name,
+        createdAt: existingUser.createdAt,
+      },
+      200,
+    );
   }
 
-  // ユーザー作成
+  // 新規ユーザー作成
   const newUser = await db.insert(schema.users).values({ name }).returning();
 
   if (!newUser[0]) {
