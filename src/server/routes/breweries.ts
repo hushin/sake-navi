@@ -50,23 +50,47 @@ app.get('/:id', async (c) => {
 
   const brewery = await findBreweryOrThrow(db, breweryId);
 
-  // 出品酒一覧と各酒の平均評価を取得
-  const sakesWithRatings = await db
-    .select({
-      sakeId: sakes.sakeId,
-      name: sakes.name,
-      type: sakes.type,
-      isCustom: sakes.isCustom,
-      addedBy: sakes.addedBy,
-      createdAt: sakes.createdAt,
-      averageRating: sql<
-        number | null
-      >`AVG(CASE WHEN ${reviews.rating} IS NOT NULL THEN CAST(${reviews.rating} AS REAL) ELSE NULL END)`,
-    })
-    .from(sakes)
-    .leftJoin(reviews, eq(reviews.sakeId, sakes.sakeId))
-    .where(eq(sakes.breweryId, breweryId))
-    .groupBy(sakes.sakeId, sakes.name, sakes.type, sakes.isCustom, sakes.addedBy, sakes.createdAt);
+  // 出品酒一覧と各酒のレビューを取得
+  const sakesData = await db.query.sakes.findMany({
+    where: eq(sakes.breweryId, breweryId),
+    with: {
+      reviews: {
+        with: {
+          user: true,
+        },
+        orderBy: [desc(reviews.createdAt)],
+      },
+    },
+  });
+
+  // 各お酒の平均評価を計算
+  const sakesWithReviews = sakesData.map((sake) => {
+    const avgRating =
+      sake.reviews.length > 0
+        ? sake.reviews.reduce((sum, r) => sum + r.rating, 0) / sake.reviews.length
+        : null;
+
+    return {
+      sakeId: sake.sakeId,
+      name: sake.name,
+      type: sake.type,
+      isCustom: sake.isCustom,
+      addedBy: sake.addedBy,
+      createdAt: sake.createdAt,
+      averageRating: avgRating,
+      reviews: sake.reviews.map((r) => ({
+        id: r.reviewId,
+        rating: r.rating,
+        tags: r.tags,
+        comment: r.comment,
+        createdAt: r.createdAt,
+        user: {
+          id: r.user.userId,
+          name: r.user.name,
+        },
+      })),
+    };
+  });
 
   return c.json({
     brewery: {
@@ -77,15 +101,7 @@ app.get('/:id', async (c) => {
       mapPositionY: brewery.mapPositionY,
       area: brewery.area,
     },
-    sakes: sakesWithRatings.map((sake) => ({
-      sakeId: sake.sakeId,
-      name: sake.name,
-      type: sake.type,
-      isCustom: sake.isCustom,
-      addedBy: sake.addedBy,
-      createdAt: sake.createdAt,
-      averageRating: sake.averageRating ?? null,
-    })),
+    sakes: sakesWithReviews,
   });
 });
 

@@ -101,6 +101,7 @@ export type Sake = {
   addedBy: string | null;
   createdAt: string;
   averageRating: number | null;
+  reviews: Review[];
 };
 
 export type BreweryDetail = {
