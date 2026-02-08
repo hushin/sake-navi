@@ -101,40 +101,29 @@ export default function MapPage() {
               href={`/brewery/${brewery.breweryId}`}
               className="absolute transform -translate-x-1/2 -translate-y-1/2 group"
               style={{
-                left: `${brewery.mapPositionX}%`,
-                top: `${brewery.mapPositionY}%`,
+                left: `${brewery.mapPositionX * 93 - 1}%`,
+                top: `${brewery.mapPositionY * 59 + 6}%`,
               }}
             >
-              <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-200 p-3 min-w-[120px] border-2 border-transparent hover:border-blue-500 group-hover:scale-110">
+              <div className="bg-white rounded-lg w-[80px] h-[60px] border-2 border-transparent hover:border-blue-500 group-hover:scale-110">
                 {/* 酒蔵名 */}
-                <div className="font-semibold text-sm text-gray-900 mb-1 text-center truncate">
+                <div className="font-semibold text-sm text-gray-900 mb-1 text-center">
                   {brewery.name}
                 </div>
 
                 {/* 平均評価 */}
                 {brewery.averageRating !== null ? (
-                  <div className="flex items-center justify-center gap-1">
-                    <div className="flex text-yellow-500">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <span key={star} className="text-base">
-                          {star <= Math.round(brewery.averageRating!) ? '★' : '☆'}
-                        </span>
-                      ))}
+                  <div className="flex items-center justify-center gap-1 text-xs">
+                    <div className="flex items-center gap-1">
+                      <span className="text-yellow-500">★</span>
+                      <span className="font-semibold text-slate-800">
+                        {brewery.averageRating.toFixed(1)}
+                      </span>
                     </div>
-                    <span className="text-xs text-gray-600 font-medium">
-                      {brewery.averageRating.toFixed(1)}
-                    </span>
                   </div>
                 ) : (
                   <div className="text-xs text-gray-400 text-center">未評価</div>
                 )}
-              </div>
-
-              {/* ホバー時のツールチップ */}
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-                <div className="bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap">
-                  クリックして詳細を見る
-                </div>
               </div>
             </Link>
           ))}
