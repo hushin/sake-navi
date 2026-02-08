@@ -1,22 +1,12 @@
 import { Hono } from 'hono';
-import { drizzle } from 'drizzle-orm/d1';
-import * as schema from './db/schema';
 import { getDb } from '@/lib/db';
+import type { AppEnv } from './types';
 import usersRoute from './routes/users';
 import breweriesRoute from './routes/breweries';
 import sakesRoute from './routes/sakes';
 import timelineRoute from './routes/timeline';
 
-type Bindings = {
-  DB: D1Database;
-  DISCORD_WEBHOOK_URL?: string;
-};
-
-type Variables = {
-  db: ReturnType<typeof drizzle<typeof schema>>;
-};
-
-const app = new Hono<{ Bindings: Bindings; Variables: Variables }>().basePath(
+const app = new Hono<AppEnv>().basePath(
   '/api',
 );
 

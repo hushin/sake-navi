@@ -1,18 +1,9 @@
 import { Hono } from "hono";
-import { drizzle } from "drizzle-orm/d1";
 import { desc, eq } from "drizzle-orm";
 import * as schema from "../db/schema";
+import type { AppEnv } from "../types";
 
-type Bindings = {
-  DB: D1Database;
-  DISCORD_WEBHOOK_URL?: string;
-};
-
-type Variables = {
-  db: ReturnType<typeof drizzle<typeof schema>>;
-};
-
-const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
+const app = new Hono<AppEnv>();
 
 type TimelineItem = {
   type: "review" | "brewery_note";

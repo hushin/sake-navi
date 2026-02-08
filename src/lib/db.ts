@@ -2,9 +2,10 @@ import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { drizzle } from 'drizzle-orm/d1';
 import { cache } from 'react';
 import * as schema from '@/server/db/schema';
+import type { Bindings } from '@/server/types';
 
 // Cloudflare contextを取得
-export const getCloudflareEnv = cache(async () => {
+export const getCloudflareEnv = cache(async (): Promise<Bindings> => {
   const ctx = await getCloudflareContext({ async: true });
 
   if (!ctx || !ctx.env) {
@@ -14,7 +15,7 @@ export const getCloudflareEnv = cache(async () => {
     );
   }
 
-  return ctx.env;
+  return ctx.env as Bindings;
 });
 
 // Next.jsのリクエスト毎に1回だけ実行されるようにキャッシュ(メモ化)します

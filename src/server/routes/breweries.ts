@@ -1,20 +1,11 @@
 import { Hono } from "hono";
 import { eq, sql, desc } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/d1";
 import * as schema from "../db/schema";
 import { breweries, sakes, reviews, breweryNotes } from "../db/schema";
 import { getCloudflareEnv } from "@/lib/db";
+import type { AppEnv } from "../types";
 
-type Bindings = {
-  DB: D1Database;
-  DISCORD_WEBHOOK_URL?: string;
-};
-
-type Variables = {
-  db: ReturnType<typeof drizzle<typeof schema>>;
-};
-
-const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
+const app = new Hono<AppEnv>();
 
 // GET /api/breweries - 酒蔵一覧（マップ表示用）
 app.get("/", async (c) => {
