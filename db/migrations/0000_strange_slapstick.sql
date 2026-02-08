@@ -1,7 +1,6 @@
 CREATE TABLE `breweries` (
-	`brewery_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`brewery_id` integer PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
-	`booth_number` integer,
 	`map_position_x` real DEFAULT 0 NOT NULL,
 	`map_position_y` real DEFAULT 0 NOT NULL,
 	`area` text

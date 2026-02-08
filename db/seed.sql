@@ -1,6 +1,6 @@
 -- 酒蔵マスタデータ
 -- map_position_x, map_position_y は マップ内の列、行
-INSERT INTO breweries (booth_number, name, map_position_x, map_position_y, area) VALUES
+INSERT INTO breweries (brewery_id, name, map_position_x, map_position_y, area) VALUES
 -- ■ 最下段 (緑エリア)
 -- 6行目 (No.14 - No.1)
 (14, '阿部酒造', 1, 6, 'Lower Green'),

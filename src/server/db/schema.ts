@@ -14,9 +14,8 @@ export const users = sqliteTable('users', {
 
 // 酒蔵
 export const breweries = sqliteTable('breweries', {
-  breweryId: integer('brewery_id').primaryKey({ autoIncrement: true }),
+  breweryId: integer('brewery_id').primaryKey(),
   name: text('name').notNull(),
-  boothNumber: integer('booth_number'),
   mapPositionX: real('map_position_x').notNull().default(0),
   mapPositionY: real('map_position_y').notNull().default(0),
   area: text('area'),
