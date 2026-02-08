@@ -14,6 +14,7 @@ import {
 } from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
 import { StarRating } from '@/components/StarRating';
+import { UserMenu } from '@/components/UserMenu';
 
 export default function BreweryDetailPage() {
   const router = useRouter();
@@ -209,6 +210,7 @@ export default function BreweryDetailPage() {
             </svg>
             <span className="text-sm font-medium">マップで開く</span>
           </Link>
+          <UserMenu />
         </div>
       </header>
 

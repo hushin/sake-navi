@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { getBreweries, type BreweryWithRating } from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
+import { UserMenu } from '@/components/UserMenu';
 
 /**
  * フロアマップページのメインコンテンツ
@@ -127,6 +128,7 @@ function MapPageContent() {
             >
               タイムライン
             </Link>
+            <UserMenu />
           </div>
         </div>
       </header>

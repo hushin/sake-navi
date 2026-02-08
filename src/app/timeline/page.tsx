@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { getTimeline, type TimelineItem } from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
 import { StarRating } from '@/components/StarRating';
+import { UserMenu } from '@/components/UserMenu';
 
 export default function TimelinePage() {
   const router = useRouter();
@@ -83,7 +84,7 @@ export default function TimelinePage() {
             マップへ戻る
           </Link>
           <h1 className="text-xl font-bold text-slate-800">タイムライン</h1>
-          <div className="w-20"></div>
+          <UserMenu />
         </div>
       </header>
 

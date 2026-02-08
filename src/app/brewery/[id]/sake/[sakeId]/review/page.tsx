@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { StarRating } from '@/components/StarRating';
 import { TagSelector } from '@/components/TagSelector';
+import { UserMenu } from '@/components/UserMenu';
 import { getBreweryDetail, createReview, ApiError } from '@/lib/api';
 import { getAuth } from '@/lib/auth';
 
@@ -123,13 +124,16 @@ export default function ReviewPage() {
       <div className="container mx-auto px-4 py-6 max-w-2xl">
         {/* ヘッダー */}
         <header className="mb-6">
-          <button
-            onClick={() => router.back()}
-            className="text-blue-600 hover:text-blue-800 font-medium mb-4 flex items-center gap-2 transition-colors"
-          >
-            <span className="text-xl">←</span>
-            戻る
-          </button>
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={() => router.back()}
+              className="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-2 transition-colors"
+            >
+              <span className="text-xl">←</span>
+              戻る
+            </button>
+            <UserMenu />
+          </div>
           <h1 className="text-3xl font-bold text-gray-800 mb-2">レビューを投稿</h1>
         </header>
 
