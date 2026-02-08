@@ -3,6 +3,7 @@ import { drizzle } from "drizzle-orm/d1";
 import { eq, desc, sql } from "drizzle-orm";
 import { z } from "zod";
 import * as schema from "../db/schema";
+import { getCloudflareEnv } from "@/lib/db";
 
 type Bindings = {
   DB: D1Database;
@@ -206,7 +207,8 @@ app.post("/:id/reviews", async (c) => {
     }
 
     // Discord通知（非同期）
-    const webhookUrl = c.env.DISCORD_WEBHOOK_URL;
+    const env = await getCloudflareEnv();
+    const webhookUrl = env.DISCORD_WEBHOOK_URL;
     if (webhookUrl) {
       const discordMessage = {
         embeds: [
@@ -259,15 +261,31 @@ app.post("/:id/reviews", async (c) => {
       };
 
       // 非同期でDiscord通知を送信
-      c.executionCtx.waitUntil(
-        fetch(webhookUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(discordMessage),
-        }).catch((error) => {
-          console.error("Discord通知エラー:", error);
-        })
-      );
+      // 開発環境では executionCtx が存在しない場合があるため、try-catch で囲む
+      try {
+        if (c.executionCtx) {
+          c.executionCtx.waitUntil(
+            fetch(webhookUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(discordMessage),
+            }).catch((error) => {
+              console.error("Discord通知エラー:", error);
+            })
+          );
+        } else {
+          // 開発環境では通常の fetch を使用
+          fetch(webhookUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(discordMessage),
+          }).catch((error) => {
+            console.error("Discord通知エラー:", error);
+          });
+        }
+      } catch (error) {
+        console.error("Discord通知の送信時にエラーが発生しました:", error);
+      }
     }
 
     // レスポンス（camelCaseに変換）

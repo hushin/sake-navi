@@ -3,6 +3,7 @@ import { eq, sql, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import * as schema from "../db/schema";
 import { breweries, sakes, reviews, breweryNotes } from "../db/schema";
+import { getCloudflareEnv } from "@/lib/db";
 
 type Bindings = {
   DB: D1Database;
@@ -27,10 +28,10 @@ app.get("/", async (c) => {
       mapPositionX: breweries.mapPositionX,
       mapPositionY: breweries.mapPositionY,
       averageRating: sql<number | null>`(
-        SELECT AVG(CAST(${reviews.rating} AS REAL))
-        FROM ${reviews}
-        INNER JOIN ${sakes} ON ${sakes.sakeId} = ${reviews.sakeId}
-        WHERE ${sakes.breweryId} = ${breweries.breweryId}
+        SELECT AVG(CAST(r.rating AS REAL))
+        FROM ${reviews} r
+        INNER JOIN ${sakes} s ON s.sake_id = r.sake_id
+        WHERE s.brewery_id = ${breweries.breweryId}
       )`,
     })
     .from(breweries);
@@ -74,9 +75,9 @@ app.get("/:id", async (c) => {
       addedBy: sakes.addedBy,
       createdAt: sakes.createdAt,
       averageRating: sql<number | null>`(
-        SELECT AVG(CAST(${reviews.rating} AS REAL))
-        FROM ${reviews}
-        WHERE ${reviews.sakeId} = ${sakes.sakeId}
+        SELECT AVG(CAST(r.rating AS REAL))
+        FROM ${reviews} r
+        WHERE r.sake_id = ${sakes.sakeId}
       )`,
     })
     .from(sakes)
@@ -193,19 +194,38 @@ app.post("/:id/notes", async (c) => {
     .returning();
 
   // Discord通知を送信（非同期）
-  const webhookUrl = c.env.DISCORD_WEBHOOK_URL;
+  const env = await getCloudflareEnv();
+  const webhookUrl = env.DISCORD_WEBHOOK_URL;
   if (webhookUrl) {
-    c.executionCtx.waitUntil(
-      fetch(webhookUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          content: `**${user.name}** さんが **${brewery.name}** にノートを投稿しました\n\n${content.trim()}`,
-        }),
-      }).catch((err) => {
-        console.error("Discord通知の送信に失敗しました:", err);
-      })
-    );
+    // 開発環境では executionCtx が存在しない場合があるため、try-catch で囲む
+    try {
+      if (c.executionCtx) {
+        c.executionCtx.waitUntil(
+          fetch(webhookUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              content: `**${user.name}** さんが **${brewery.name}** にノートを投稿しました\n\n${content.trim()}`,
+            }),
+          }).catch((err) => {
+            console.error("Discord通知の送信に失敗しました:", err);
+          })
+        );
+      } else {
+        // 開発環境では通常の fetch を使用
+        fetch(webhookUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            content: `**${user.name}** さんが **${brewery.name}** にノートを投稿しました\n\n${content.trim()}`,
+          }),
+        }).catch((err) => {
+          console.error("Discord通知の送信に失敗しました:", err);
+        });
+      }
+    } catch (err) {
+      console.error("Discord通知の送信時にエラーが発生しました:", err);
+    }
   }
 
   return c.json(
