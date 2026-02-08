@@ -191,7 +191,9 @@ function MapPageContent() {
                     }
                   }}
                   href={`/brewery/${brewery.breweryId}`}
-                  className="absolute transform -translate-x-1/2 -translate-y-1/2 group pointer-events-auto"
+                  className={`absolute transform -translate-x-1/2 -translate-y-1/2 group pointer-events-auto hover:z-50 ${
+                    isFocused ? 'z-50' : 'z-0'
+                  }`}
                   style={{
                     left: `${left}px`,
                     top: `${top}px`,
