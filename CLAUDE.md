@@ -29,7 +29,7 @@ pnpm db:seed:remote         # リモートD1に初期データ投入
 
 # デプロイ
 pnpm build                  # Next.js ビルド
-pnpm deploy                 # Cloudflare Workers にデプロイ
+pnpm run deploy                 # Cloudflare Workers にデプロイ
 
 # リント・フォーマット
 pnpm lint

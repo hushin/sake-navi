@@ -67,7 +67,7 @@ wrangler secret put DISCORD_WEBHOOK_URL
 
 # デプロイ
 pnpm build
-pnpm deploy
+pnpm run deploy
 ```
 
 ## 使い方

@@ -33,7 +33,7 @@
     {
       "binding": "DB",
       "database_name": "sake-navi-db",
-      "database_id": "",
+      "database_id": "0ce152c7-e6ca-447f-94ce-9b803722b0af",
       "migrations_dir": "db/migrations",
     },
   ],

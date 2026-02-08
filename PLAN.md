@@ -76,16 +76,16 @@
 
 ### Phase 3: デプロイ準備
 
-- [ ] Cloudflare D1データベース作成
+- [x] Cloudflare D1データベース作成
   ```bash
   wrangler d1 create sake-navi-db
   ```
-- [ ] wrangler.jsonc の database_id 設定
-- [ ] リモートD1にマイグレーション適用
-- [ ] Discord Webhook URL設定
-- [ ] デプロイ実行
+- [x] wrangler.jsonc の database_id 設定
+- [x] リモートD1にマイグレーション適用
+- [x] Discord Webhook URL設定
+- [x] デプロイ実行
   ```bash
-  pnpm deploy
+  pnpm run deploy
   ```
 
 ---
