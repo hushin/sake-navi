@@ -45,7 +45,7 @@ INSERT INTO breweries (booth_number, name, map_position_x, map_position_y, area)
 (35, '千代の光酒造', 7, 4, 'Lower Blue'),
 -- 8列目は「おちょこ洗浄コーナー」のためスキップ
 (34, '新潟第一酒造', 9, 4, 'Lower Blue'),
-(33, '(資)竹田酒造店', 10, 4, 'Lower Blue'),
+(33, '竹田酒造店', 10, 4, 'Lower Blue'),
 (32, '上越酒造', 11, 4, 'Lower Blue'),
 (31, '武蔵野酒造', 12, 4, 'Lower Blue'),
 (30, '雪と里山醸造所', 13, 4, 'Lower Blue'),
@@ -63,7 +63,7 @@ INSERT INTO breweries (booth_number, name, map_position_x, map_position_y, area)
 (47, '猪又酒造', 9, 3, 'Upper Blue'),
 (46, '逸見酒造', 10, 3, 'Upper Blue'),
 (45, '頚城酒造', 11, 3, 'Upper Blue'),
-(44, '(有)加藤酒造店', 12, 3, 'Upper Blue'),
+(44, '加藤酒造店', 12, 3, 'Upper Blue'),
 (43, '栃倉酒造', 13, 3, 'Upper Blue'),
 (42, '葵酒造', 14, 3, 'Upper Blue'),
 

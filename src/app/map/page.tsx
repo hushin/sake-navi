@@ -141,7 +141,7 @@ export default function MapPage() {
                   }}
                 >
                   <div
-                    className="bg-white rounded-lg border-2 border-transparent hover:border-blue-500 group-hover:scale-110 transition-transform"
+                    className="bg-white rounded-lg border-2 border-gray-300 hover:border-blue-500 group-hover:scale-110 transition-transform"
                     style={{
                       width: CELL_W,
                       height: CELL_H,
