@@ -251,11 +251,8 @@ function MapPageContent() {
       {/* 凡例 */}
       <div className="bg-white border-t border-gray-200 p-4">
         <div className="max-w-7xl mx-auto">
+          <h2>凡例</h2>
           <div className="flex items-center justify-center gap-6 text-sm text-gray-600">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-white border-2 border-blue-500 rounded"></div>
-              <span>酒蔵ブース</span>
-            </div>
             <div className="flex items-center gap-2">
               <span className="text-yellow-500">★</span>
               <span>平均評価</span>
