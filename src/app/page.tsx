@@ -72,10 +72,11 @@ export default function Home() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="例: たかし"
+                placeholder="例: たなか"
                 disabled={isLoading}
                 className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-slate-100 disabled:cursor-not-allowed transition-colors"
                 maxLength={20}
+                data-1p-ignore
               />
             </div>
 
