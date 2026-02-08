@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { getTimeline, type TimelineItem } from "@/lib/api";
-import { isAuthenticated } from "@/lib/auth";
-import { StarRating } from "@/components/StarRating";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { getTimeline, type TimelineItem } from '@/lib/api';
+import { isAuthenticated } from '@/lib/auth';
+import { StarRating } from '@/components/StarRating';
 
 export default function TimelinePage() {
   const router = useRouter();
@@ -16,7 +16,7 @@ export default function TimelinePage() {
   useEffect(() => {
     // 未認証の場合は / へリダイレクト
     if (!isAuthenticated()) {
-      router.push("/");
+      router.push('/');
       return;
     }
 
@@ -30,9 +30,7 @@ export default function TimelinePage() {
       const response = await getTimeline();
       setItems(response.items);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "タイムラインの取得に失敗しました"
-      );
+      setError(err instanceof Error ? err.message : 'タイムラインの取得に失敗しました');
     } finally {
       setIsLoading(false);
     }
@@ -44,7 +42,7 @@ export default function TimelinePage() {
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
 
-    if (diffMins < 1) return "たった今";
+    if (diffMins < 1) return 'たった今';
     if (diffMins < 60) return `${diffMins}分前`;
 
     const diffHours = Math.floor(diffMins / 60);
@@ -53,11 +51,11 @@ export default function TimelinePage() {
     const diffDays = Math.floor(diffHours / 24);
     if (diffDays < 7) return `${diffDays}日前`;
 
-    return date.toLocaleDateString("ja-JP", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
+    return date.toLocaleDateString('ja-JP', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
 
@@ -101,9 +99,7 @@ export default function TimelinePage() {
           </div>
         ) : items.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-slate-500 text-lg mb-4">
-              まだ投稿がありません
-            </p>
+            <p className="text-slate-500 text-lg mb-4">まだ投稿がありません</p>
             <Link
               href="/map"
               className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
@@ -114,11 +110,11 @@ export default function TimelinePage() {
         ) : (
           <div className="space-y-4">
             {items.map((item) =>
-              item.type === "review" ? (
+              item.type === 'review' ? (
                 <ReviewCard key={`review-${item.id}`} item={item} formatDate={formatDate} />
               ) : (
                 <NoteCard key={`note-${item.id}`} item={item} formatDate={formatDate} />
-              )
+              ),
             )}
           </div>
         )}
@@ -132,7 +128,7 @@ function ReviewCard({
   item,
   formatDate,
 }: {
-  item: Extract<TimelineItem, { type: "review" }>;
+  item: Extract<TimelineItem, { type: 'review' }>;
   formatDate: (dateStr: string) => string;
 }) {
   return (
@@ -208,7 +204,7 @@ function NoteCard({
   item,
   formatDate,
 }: {
-  item: Extract<TimelineItem, { type: "brewery_note" }>;
+  item: Extract<TimelineItem, { type: 'brewery_note' }>;
   formatDate: (dateStr: string) => string;
 }) {
   return (
@@ -249,9 +245,7 @@ function NoteCard({
 
       {/* コメント */}
       <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
-        <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">
-          {item.content}
-        </p>
+        <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">{item.content}</p>
       </div>
     </div>
   );

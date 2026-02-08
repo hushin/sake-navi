@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
 /**
  * localStorage認証ヘルパー
  * ブラウザ環境でのみ動作する
  */
 
-const USER_ID_KEY = "sake-navi-user-id";
-const USER_NAME_KEY = "sake-navi-user-name";
+const USER_ID_KEY = 'sake-navi-user-id';
+const USER_NAME_KEY = 'sake-navi-user-name';
 
 /**
  * 認証情報の型
@@ -20,11 +20,11 @@ export type AuthInfo = {
  * localStorageが利用可能かチェック
  */
 function isLocalStorageAvailable(): boolean {
-  if (typeof window === "undefined") {
+  if (typeof window === 'undefined') {
     return false;
   }
   try {
-    const test = "__test__";
+    const test = '__test__';
     localStorage.setItem(test, test);
     localStorage.removeItem(test);
     return true;
@@ -38,7 +38,7 @@ function isLocalStorageAvailable(): boolean {
  */
 export function saveUserId(userId: string): void {
   if (!isLocalStorageAvailable()) {
-    console.warn("localStorage is not available");
+    console.warn('localStorage is not available');
     return;
   }
   localStorage.setItem(USER_ID_KEY, userId);
@@ -59,7 +59,7 @@ export function getUserId(): string | null {
  */
 export function saveUserName(userName: string): void {
   if (!isLocalStorageAvailable()) {
-    console.warn("localStorage is not available");
+    console.warn('localStorage is not available');
     return;
   }
   localStorage.setItem(USER_NAME_KEY, userName);

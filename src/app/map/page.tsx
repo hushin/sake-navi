@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { getBreweries, type BreweryWithRating } from "@/lib/api";
-import { isAuthenticated } from "@/lib/auth";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { getBreweries, type BreweryWithRating } from '@/lib/api';
+import { isAuthenticated } from '@/lib/auth';
 
 /**
  * フロアマップページ
@@ -22,7 +22,7 @@ export default function MapPage() {
   useEffect(() => {
     // 未認証の場合はトップページへリダイレクト
     if (!isAuthenticated()) {
-      router.push("/");
+      router.push('/');
       return;
     }
 
@@ -32,7 +32,7 @@ export default function MapPage() {
         const data = await getBreweries();
         setBreweries(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "酒蔵データの取得に失敗しました");
+        setError(err instanceof Error ? err.message : '酒蔵データの取得に失敗しました');
       } finally {
         setLoading(false);
       }
@@ -85,13 +85,13 @@ export default function MapPage() {
 
       {/* フロアマップ */}
       <main className="overflow-x-auto">
-        <div className="relative inline-block min-w-full" style={{ minHeight: "600px" }}>
+        <div className="relative inline-block min-w-full" style={{ minHeight: '600px' }}>
           {/* マップ画像 */}
           <img
             src="/floor-map.png"
             alt="会場フロアマップ"
             className="w-full h-auto"
-            style={{ minWidth: "1200px" }}
+            style={{ minWidth: '1200px' }}
           />
 
           {/* 酒蔵バッジオーバーレイ */}
@@ -117,7 +117,7 @@ export default function MapPage() {
                     <div className="flex text-yellow-500">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <span key={star} className="text-base">
-                          {star <= Math.round(brewery.averageRating!) ? "★" : "☆"}
+                          {star <= Math.round(brewery.averageRating!) ? '★' : '☆'}
                         </span>
                       ))}
                     </div>

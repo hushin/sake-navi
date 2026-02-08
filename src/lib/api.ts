@@ -1,9 +1,9 @@
-import { getAuth } from "./auth";
+import { getAuth } from './auth';
 
 const baseUrl =
-  typeof window !== "undefined"
+  typeof window !== 'undefined'
     ? window.location.origin
-    : process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+    : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 /**
  * APIリクエストのヘッダーにX-User-Idを自動付与
@@ -11,11 +11,11 @@ const baseUrl =
 function getHeaders(): HeadersInit {
   const auth = getAuth();
   const headers: HeadersInit = {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   };
 
   if (auth) {
-    headers["X-User-Id"] = auth.userId;
+    headers['X-User-Id'] = auth.userId;
   }
 
   return headers;
@@ -27,10 +27,10 @@ function getHeaders(): HeadersInit {
 export class ApiError extends Error {
   constructor(
     public status: number,
-    public message: string
+    public message: string,
   ) {
     super(message);
-    this.name = "ApiError";
+    this.name = 'ApiError';
   }
 }
 
@@ -44,7 +44,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
     };
     throw new ApiError(
       response.status,
-      errorData.error || `リクエストエラー: ${response.statusText}`
+      errorData.error || `リクエストエラー: ${response.statusText}`,
     );
   }
   return response.json();
@@ -65,7 +65,7 @@ export type User = {
  */
 export async function createUser(name: string): Promise<User> {
   const response = await fetch(`${baseUrl}/api/users`, {
-    method: "POST",
+    method: 'POST',
     headers: getHeaders(),
     body: JSON.stringify({ name }),
   });
@@ -113,7 +113,7 @@ export type BreweryDetail = {
  */
 export async function getBreweries(): Promise<BreweryWithRating[]> {
   const response = await fetch(`${baseUrl}/api/breweries`, {
-    method: "GET",
+    method: 'GET',
   });
   return handleResponse<BreweryWithRating[]>(response);
 }
@@ -123,7 +123,7 @@ export async function getBreweries(): Promise<BreweryWithRating[]> {
  */
 export async function getBreweryDetail(breweryId: number): Promise<BreweryDetail> {
   const response = await fetch(`${baseUrl}/api/breweries/${breweryId}`, {
-    method: "GET",
+    method: 'GET',
   });
   return handleResponse<BreweryDetail>(response);
 }
@@ -146,7 +146,7 @@ export type BreweryNote = {
  */
 export async function getBreweryNotes(breweryId: number): Promise<BreweryNote[]> {
   const response = await fetch(`${baseUrl}/api/breweries/${breweryId}/notes`, {
-    method: "GET",
+    method: 'GET',
   });
   return handleResponse<BreweryNote[]>(response);
 }
@@ -154,12 +154,9 @@ export async function getBreweryNotes(breweryId: number): Promise<BreweryNote[]>
 /**
  * 酒蔵ノート投稿
  */
-export async function createBreweryNote(
-  breweryId: number,
-  content: string
-): Promise<BreweryNote> {
+export async function createBreweryNote(breweryId: number, content: string): Promise<BreweryNote> {
   const response = await fetch(`${baseUrl}/api/breweries/${breweryId}/notes`, {
-    method: "POST",
+    method: 'POST',
     headers: getHeaders(),
     body: JSON.stringify({ content }),
   });
@@ -169,12 +166,9 @@ export async function createBreweryNote(
 /**
  * お酒を追加（自由入力）
  */
-export async function addCustomSake(
-  breweryId: number,
-  name: string
-): Promise<Sake> {
+export async function addCustomSake(breweryId: number, name: string): Promise<Sake> {
   const response = await fetch(`${baseUrl}/api/breweries/${breweryId}/sakes`, {
-    method: "POST",
+    method: 'POST',
     headers: getHeaders(),
     body: JSON.stringify({ name }),
   });
@@ -214,7 +208,7 @@ export type SakeDetail = {
  */
 export async function getSakeDetail(sakeId: number): Promise<SakeDetail> {
   const response = await fetch(`${baseUrl}/api/sakes/${sakeId}`, {
-    method: "GET",
+    method: 'GET',
   });
   return handleResponse<SakeDetail>(response);
 }
@@ -228,10 +222,10 @@ export async function createReview(
     rating: number;
     tags?: string[];
     comment?: string;
-  }
+  },
 ): Promise<Review> {
   const response = await fetch(`${baseUrl}/api/sakes/${sakeId}/reviews`, {
-    method: "POST",
+    method: 'POST',
     headers: getHeaders(),
     body: JSON.stringify(data),
   });
@@ -243,7 +237,7 @@ export async function createReview(
 // ========================================
 
 export type TimelineReviewItem = {
-  type: "review";
+  type: 'review';
   id: number;
   userName: string;
   createdAt: string;
@@ -256,7 +250,7 @@ export type TimelineReviewItem = {
 };
 
 export type TimelineNoteItem = {
-  type: "brewery_note";
+  type: 'brewery_note';
   id: number;
   userName: string;
   createdAt: string;
@@ -276,7 +270,7 @@ export type TimelineResponse = {
  */
 export async function getTimeline(): Promise<TimelineResponse> {
   const response = await fetch(`${baseUrl}/api/timeline`, {
-    method: "GET",
+    method: 'GET',
   });
   return handleResponse<TimelineResponse>(response);
 }

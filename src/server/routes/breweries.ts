@@ -169,9 +169,7 @@ app.post('/:id/notes', async (c) => {
     // 開発環境では executionCtx が存在しない場合があるため、try-catch で囲む
     try {
       if (c.executionCtx) {
-        c.executionCtx.waitUntil(
-          sendBreweryNoteNotification(notificationData, webhookUrl),
-        );
+        c.executionCtx.waitUntil(sendBreweryNoteNotification(notificationData, webhookUrl));
       } else {
         // 開発環境では通常の呼び出し
         sendBreweryNoteNotification(notificationData, webhookUrl);

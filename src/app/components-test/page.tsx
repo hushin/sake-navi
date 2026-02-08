@@ -12,9 +12,7 @@ export default function ComponentsTestPage() {
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-4xl mx-auto space-y-12">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            共通UIコンポーネント テスト
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">共通UIコンポーネント テスト</h1>
           <p className="text-gray-600">
             StarRating と TagSelector コンポーネントの動作確認用ページ
           </p>
@@ -40,9 +38,7 @@ export default function ComponentsTestPage() {
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                サイズバリエーション
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">サイズバリエーション</h3>
               <div className="space-y-3">
                 <div>
                   <p className="text-sm text-gray-600 mb-1">small</p>
@@ -64,15 +60,11 @@ export default function ComponentsTestPage() {
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                全評価パターン
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">全評価パターン</h3>
               <div className="space-y-2">
                 {[0, 1, 2, 3, 4, 5].map((value) => (
                   <div key={value} className="flex items-center gap-4">
-                    <span className="text-sm text-gray-600 w-16">
-                      {value}星:
-                    </span>
+                    <span className="text-sm text-gray-600 w-16">{value}星:</span>
                     <StarRating value={value} readonly />
                   </div>
                 ))}
@@ -87,19 +79,12 @@ export default function ComponentsTestPage() {
 
           <div className="space-y-4">
             <div>
-              <h3 className="text-lg font-semibold text-gray-700 mb-3">
-                タグ選択（複数選択可能）
-              </h3>
-              <TagSelector
-                selectedTags={selectedTags}
-                onTagsChange={setSelectedTags}
-              />
+              <h3 className="text-lg font-semibold text-gray-700 mb-3">タグ選択（複数選択可能）</h3>
+              <TagSelector selectedTags={selectedTags} onTagsChange={setSelectedTags} />
             </div>
 
             <div className="border-t pt-4">
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                選択されたタグ
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">選択されたタグ</h3>
               {selectedTags.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
                   {selectedTags.map((tag) => (
@@ -112,16 +97,12 @@ export default function ComponentsTestPage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500 text-sm">
-                  タグが選択されていません
-                </p>
+                <p className="text-gray-500 text-sm">タグが選択されていません</p>
               )}
             </div>
 
             <div className="border-t pt-4">
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                JSON形式（API送信用）
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">JSON形式（API送信用）</h3>
               <pre className="bg-gray-100 p-4 rounded text-sm overflow-x-auto">
                 {JSON.stringify(selectedTags, null, 2)}
               </pre>
@@ -131,15 +112,11 @@ export default function ComponentsTestPage() {
 
         {/* 統合デモ */}
         <section className="bg-white rounded-lg shadow-md p-6 space-y-6">
-          <h2 className="text-2xl font-bold text-gray-800">
-            統合デモ: レビュー投稿フォーム風
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-800">統合デモ: レビュー投稿フォーム風</h2>
 
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                評価 *
-              </label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">評価 *</label>
               <StarRating value={rating} onChange={setRating} size="lg" />
             </div>
 
@@ -147,17 +124,11 @@ export default function ComponentsTestPage() {
               <label className="block text-sm font-semibold text-gray-700 mb-3">
                 タグ（複数選択可）
               </label>
-              <TagSelector
-                selectedTags={selectedTags}
-                onTagsChange={setSelectedTags}
-              />
+              <TagSelector selectedTags={selectedTags} onTagsChange={setSelectedTags} />
             </div>
 
             <div>
-              <label
-                htmlFor="comment"
-                className="block text-sm font-semibold text-gray-700 mb-2"
-              >
+              <label htmlFor="comment" className="block text-sm font-semibold text-gray-700 mb-2">
                 コメント
               </label>
               <textarea

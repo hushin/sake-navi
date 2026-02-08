@@ -16,7 +16,7 @@ interface ReviewNotificationData {
  */
 export async function sendReviewNotification(
   data: ReviewNotificationData,
-  webhookUrl?: string
+  webhookUrl?: string,
 ): Promise<void> {
   if (!webhookUrl) {
     return;
@@ -26,29 +26,29 @@ export async function sendReviewNotification(
     const discordMessage = {
       embeds: [
         {
-          title: "🍶 新しいレビューが投稿されました",
+          title: '🍶 新しいレビューが投稿されました',
           color: 0x3b82f6, // blue-500
           fields: [
             {
-              name: "お酒",
+              name: 'お酒',
               value: data.sakeName,
               inline: true,
             },
             {
-              name: "酒蔵",
-              value: data.breweryName || "不明",
+              name: '酒蔵',
+              value: data.breweryName || '不明',
               inline: true,
             },
             {
-              name: "評価",
-              value: "⭐".repeat(data.rating),
+              name: '評価',
+              value: '⭐'.repeat(data.rating),
               inline: false,
             },
             ...(data.tags.length > 0
               ? [
                   {
-                    name: "タグ",
-                    value: data.tags.join(", "),
+                    name: 'タグ',
+                    value: data.tags.join(', '),
                     inline: false,
                   },
                 ]
@@ -56,14 +56,14 @@ export async function sendReviewNotification(
             ...(data.comment
               ? [
                   {
-                    name: "コメント",
+                    name: 'コメント',
                     value: data.comment,
                     inline: false,
                   },
                 ]
               : []),
             {
-              name: "投稿者",
+              name: '投稿者',
               value: data.userName,
               inline: true,
             },
@@ -74,14 +74,14 @@ export async function sendReviewNotification(
     };
 
     await fetch(webhookUrl, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(discordMessage),
     });
   } catch (error) {
-    console.error("Discord通知送信エラー:", error);
+    console.error('Discord通知送信エラー:', error);
   }
 }
 
@@ -96,7 +96,7 @@ interface BreweryNoteNotificationData {
  */
 export async function sendBreweryNoteNotification(
   data: BreweryNoteNotificationData,
-  webhookUrl?: string
+  webhookUrl?: string,
 ): Promise<void> {
   if (!webhookUrl) {
     return;
@@ -106,15 +106,15 @@ export async function sendBreweryNoteNotification(
     const message = `**${data.userName}** さんが **${data.breweryName}** にノートを投稿しました\n\n${data.comment}`;
 
     await fetch(webhookUrl, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         content: message,
       }),
     });
   } catch (error) {
-    console.error("Discord通知送信エラー:", error);
+    console.error('Discord通知送信エラー:', error);
   }
 }

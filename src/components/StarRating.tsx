@@ -25,12 +25,7 @@ const sizeClasses = {
  * - 1-5の星評価を表示・選択できる
  * - 表示専用モードと選択可能モードの両方に対応
  */
-export function StarRating({
-  value,
-  onChange,
-  readonly = false,
-  size = 'md',
-}: StarRatingProps) {
+export function StarRating({ value, onChange, readonly = false, size = 'md' }: StarRatingProps) {
   const [hoverRating, setHoverRating] = useState<number | null>(null);
 
   const isInteractive = !readonly && onChange !== undefined;

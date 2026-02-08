@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { createUser } from "@/lib/api";
-import { saveAuth, isAuthenticated } from "@/lib/auth";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { createUser } from '@/lib/api';
+import { saveAuth, isAuthenticated } from '@/lib/auth';
 
 export default function Home() {
   const router = useRouter();
-  const [name, setName] = useState("");
+  const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // すでにログイン済みの場合は自動的に/mapへリダイレクト
   useEffect(() => {
     if (isAuthenticated()) {
-      router.push("/map");
+      router.push('/map');
     }
   }, [router]);
 
@@ -23,7 +23,7 @@ export default function Home() {
 
     // バリデーション
     if (!name.trim()) {
-      setError("名前を入力してください");
+      setError('名前を入力してください');
       return;
     }
 
@@ -38,13 +38,13 @@ export default function Home() {
       saveAuth(user.id, user.name);
 
       // /mapへ遷移
-      router.push("/map");
+      router.push('/map');
     } catch (err) {
       // エラーハンドリング
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError("登録に失敗しました。もう一度お試しください。");
+        setError('登録に失敗しました。もう一度お試しください。');
       }
     } finally {
       setIsLoading(false);
@@ -57,21 +57,14 @@ export default function Home() {
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {/* ヘッダー */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-slate-800 mb-2">
-              酒ナビ
-            </h1>
-            <p className="text-slate-600 text-sm">
-              にいがた酒の陣 レビュー共有アプリ
-            </p>
+            <h1 className="text-3xl font-bold text-slate-800 mb-2">酒ナビ</h1>
+            <p className="text-slate-600 text-sm">にいがた酒の陣 レビュー共有アプリ</p>
           </div>
 
           {/* 名前入力フォーム */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-slate-700 mb-2"
-              >
+              <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-2">
                 お名前を入力してください
               </label>
               <input
@@ -99,7 +92,7 @@ export default function Home() {
               disabled={isLoading || !name.trim()}
               className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
             >
-              {isLoading ? "登録中..." : "はじめる"}
+              {isLoading ? '登録中...' : 'はじめる'}
             </button>
           </form>
 

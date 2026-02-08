@@ -1,5 +1,5 @@
-import type { drizzle } from "drizzle-orm/d1";
-import type * as schema from "./db/schema";
+import type { drizzle } from 'drizzle-orm/d1';
+import type * as schema from './db/schema';
 
 export type Bindings = {
   DB: D1Database;

@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
-import Link from "next/link";
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import Link from 'next/link';
 import {
   getBreweryDetail,
   getBreweryNotes,
@@ -11,45 +11,43 @@ import {
   type BreweryDetail,
   type BreweryNote,
   type Sake,
-} from "@/lib/api";
-import { isAuthenticated } from "@/lib/auth";
-import { StarRating } from "@/components/StarRating";
+} from '@/lib/api';
+import { isAuthenticated } from '@/lib/auth';
+import { StarRating } from '@/components/StarRating';
 
 export default function BreweryDetailPage() {
   const router = useRouter();
   const params = useParams();
   const breweryId = Number(params.id);
 
-  const [breweryDetail, setBreweryDetail] = useState<BreweryDetail | null>(
-    null
-  );
+  const [breweryDetail, setBreweryDetail] = useState<BreweryDetail | null>(null);
   const [breweryNotes, setBreweryNotes] = useState<BreweryNote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // お酒追加モーダル用のstate
   const [showAddSakeModal, setShowAddSakeModal] = useState(false);
-  const [newSakeName, setNewSakeName] = useState("");
+  const [newSakeName, setNewSakeName] = useState('');
   const [isAddingSake, setIsAddingSake] = useState(false);
   const [addSakeError, setAddSakeError] = useState<string | null>(null);
 
   // ノート投稿モーダル用のstate
   const [showAddNoteModal, setShowAddNoteModal] = useState(false);
-  const [newNoteContent, setNewNoteContent] = useState("");
+  const [newNoteContent, setNewNoteContent] = useState('');
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [addNoteError, setAddNoteError] = useState<string | null>(null);
 
   // 未認証の場合はトップページへリダイレクト
   useEffect(() => {
     if (!isAuthenticated()) {
-      router.push("/");
+      router.push('/');
     }
   }, [router]);
 
   // 酒蔵詳細とノートを取得
   useEffect(() => {
     if (!breweryId || isNaN(breweryId)) {
-      setError("無効な酒蔵IDです");
+      setError('無効な酒蔵IDです');
       setIsLoading(false);
       return;
     }
@@ -67,7 +65,7 @@ export default function BreweryDetailPage() {
         if (err instanceof Error) {
           setError(err.message);
         } else {
-          setError("データの取得に失敗しました");
+          setError('データの取得に失敗しました');
         }
       } finally {
         setIsLoading(false);
@@ -82,7 +80,7 @@ export default function BreweryDetailPage() {
     e.preventDefault();
 
     if (!newSakeName.trim()) {
-      setAddSakeError("お酒の名前を入力してください");
+      setAddSakeError('お酒の名前を入力してください');
       return;
     }
 
@@ -98,12 +96,12 @@ export default function BreweryDetailPage() {
 
       // モーダルを閉じる
       setShowAddSakeModal(false);
-      setNewSakeName("");
+      setNewSakeName('');
     } catch (err) {
       if (err instanceof Error) {
         setAddSakeError(err.message);
       } else {
-        setAddSakeError("お酒の追加に失敗しました");
+        setAddSakeError('お酒の追加に失敗しました');
       }
     } finally {
       setIsAddingSake(false);
@@ -115,7 +113,7 @@ export default function BreweryDetailPage() {
     e.preventDefault();
 
     if (!newNoteContent.trim()) {
-      setAddNoteError("ノート内容を入力してください");
+      setAddNoteError('ノート内容を入力してください');
       return;
     }
 
@@ -123,22 +121,19 @@ export default function BreweryDetailPage() {
     setAddNoteError(null);
 
     try {
-      const newNote = await createBreweryNote(
-        breweryId,
-        newNoteContent.trim()
-      );
+      const newNote = await createBreweryNote(breweryId, newNoteContent.trim());
 
       // ノート一覧を更新（新しいノートを先頭に追加）
       setBreweryNotes([newNote, ...breweryNotes]);
 
       // モーダルを閉じる
       setShowAddNoteModal(false);
-      setNewNoteContent("");
+      setNewNoteContent('');
     } catch (err) {
       if (err instanceof Error) {
         setAddNoteError(err.message);
       } else {
-        setAddNoteError("ノートの投稿に失敗しました");
+        setAddNoteError('ノートの投稿に失敗しました');
       }
     } finally {
       setIsAddingNote(false);
@@ -148,11 +143,11 @@ export default function BreweryDetailPage() {
   // 日時フォーマット関数
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleString("ja-JP", {
-      month: "numeric",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
+    return date.toLocaleString('ja-JP', {
+      month: 'numeric',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
 
@@ -170,11 +165,8 @@ export default function BreweryDetailPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center">
-          <p className="text-red-600 mb-4">{error || "データが見つかりません"}</p>
-          <Link
-            href="/map"
-            className="text-blue-600 hover:underline"
-          >
+          <p className="text-red-600 mb-4">{error || 'データが見つかりません'}</p>
+          <Link href="/map" className="text-blue-600 hover:underline">
             マップに戻る
           </Link>
         </div>
@@ -187,16 +179,11 @@ export default function BreweryDetailPage() {
       {/* ヘッダー */}
       <header className="bg-white shadow-sm sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
-          <Link
-            href="/map"
-            className="text-blue-600 hover:text-blue-700 transition-colors"
-          >
+          <Link href="/map" className="text-blue-600 hover:text-blue-700 transition-colors">
             ← マップ
           </Link>
           <div className="flex-1">
-            <h1 className="text-xl font-bold text-slate-800">
-              {breweryDetail.brewery.name}
-            </h1>
+            <h1 className="text-xl font-bold text-slate-800">{breweryDetail.brewery.name}</h1>
             {breweryDetail.brewery.boothNumber && (
               <p className="text-sm text-slate-600">
                 ブース番号: {breweryDetail.brewery.boothNumber}
@@ -233,18 +220,10 @@ export default function BreweryDetailPage() {
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-slate-800 truncate">
-                        {sake.name}
-                      </h3>
-                      {sake.type && (
-                        <p className="text-sm text-slate-600 mt-1">
-                          {sake.type}
-                        </p>
-                      )}
+                      <h3 className="font-semibold text-slate-800 truncate">{sake.name}</h3>
+                      {sake.type && <p className="text-sm text-slate-600 mt-1">{sake.type}</p>}
                       {sake.isCustom && sake.addedBy && (
-                        <p className="text-xs text-slate-500 mt-1">
-                          ユーザー追加
-                        </p>
+                        <p className="text-xs text-slate-500 mt-1">ユーザー追加</p>
                       )}
                     </div>
                     <div className="flex flex-col items-end gap-1">
@@ -287,21 +266,12 @@ export default function BreweryDetailPage() {
           ) : (
             <div className="space-y-3">
               {breweryNotes.map((note) => (
-                <div
-                  key={note.noteId}
-                  className="bg-white rounded-xl p-4 border border-slate-200"
-                >
+                <div key={note.noteId} className="bg-white rounded-xl p-4 border border-slate-200">
                   <div className="flex items-start justify-between mb-2">
-                    <span className="font-semibold text-slate-800">
-                      {note.userName}
-                    </span>
-                    <span className="text-xs text-slate-500">
-                      {formatDate(note.createdAt)}
-                    </span>
+                    <span className="font-semibold text-slate-800">{note.userName}</span>
+                    <span className="text-xs text-slate-500">{formatDate(note.createdAt)}</span>
                   </div>
-                  <p className="text-slate-700 whitespace-pre-wrap">
-                    {note.comment}
-                  </p>
+                  <p className="text-slate-700 whitespace-pre-wrap">{note.comment}</p>
                 </div>
               ))}
             </div>
@@ -313,9 +283,7 @@ export default function BreweryDetailPage() {
       {showAddSakeModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
-            <h3 className="text-xl font-bold text-slate-800 mb-4">
-              お酒を追加
-            </h3>
+            <h3 className="text-xl font-bold text-slate-800 mb-4">お酒を追加</h3>
             <form onSubmit={handleAddSake} className="space-y-4">
               <div>
                 <label
@@ -348,7 +316,7 @@ export default function BreweryDetailPage() {
                   type="button"
                   onClick={() => {
                     setShowAddSakeModal(false);
-                    setNewSakeName("");
+                    setNewSakeName('');
                     setAddSakeError(null);
                   }}
                   disabled={isAddingSake}
@@ -361,7 +329,7 @@ export default function BreweryDetailPage() {
                   disabled={isAddingSake || !newSakeName.trim()}
                   className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
                 >
-                  {isAddingSake ? "追加中..." : "追加"}
+                  {isAddingSake ? '追加中...' : '追加'}
                 </button>
               </div>
             </form>
@@ -373,9 +341,7 @@ export default function BreweryDetailPage() {
       {showAddNoteModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
-            <h3 className="text-xl font-bold text-slate-800 mb-4">
-              酒蔵ノートを投稿
-            </h3>
+            <h3 className="text-xl font-bold text-slate-800 mb-4">酒蔵ノートを投稿</h3>
             <form onSubmit={handleAddNote} className="space-y-4">
               <div>
                 <label
@@ -411,7 +377,7 @@ export default function BreweryDetailPage() {
                   type="button"
                   onClick={() => {
                     setShowAddNoteModal(false);
-                    setNewNoteContent("");
+                    setNewNoteContent('');
                     setAddNoteError(null);
                   }}
                   disabled={isAddingNote}
@@ -424,7 +390,7 @@ export default function BreweryDetailPage() {
                   disabled={isAddingNote || !newNoteContent.trim()}
                   className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
                 >
-                  {isAddingNote ? "投稿中..." : "投稿"}
+                  {isAddingNote ? '投稿中...' : '投稿'}
                 </button>
               </div>
             </form>

@@ -130,9 +130,7 @@ export default function ReviewPage() {
             <span className="text-xl">←</span>
             戻る
           </button>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            レビューを投稿
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">レビューを投稿</h1>
         </header>
 
         {/* ローディング状態 */}
@@ -162,12 +160,8 @@ export default function ReviewPage() {
             {/* お酒情報 */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <div className="space-y-2">
-                {breweryName && (
-                  <p className="text-sm text-gray-600">{breweryName}</p>
-                )}
-                <h2 className="text-2xl font-bold text-gray-800">
-                  {sakeName}
-                </h2>
+                {breweryName && <p className="text-sm text-gray-600">{breweryName}</p>}
+                <h2 className="text-2xl font-bold text-gray-800">{sakeName}</h2>
               </div>
             </div>
 
@@ -178,44 +172,29 @@ export default function ReviewPage() {
                   評価
                   <span className="text-red-500">*</span>
                 </span>
-                <span className="text-sm text-gray-600">
-                  タップして評価してください
-                </span>
+                <span className="text-sm text-gray-600">タップして評価してください</span>
               </label>
               <div className="flex justify-center py-4">
-                <StarRating
-                  value={rating}
-                  onChange={setRating}
-                  size="xl"
-                />
+                <StarRating value={rating} onChange={setRating} size="xl" />
               </div>
             </div>
 
             {/* タグ選択 */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <label className="block mb-4">
-                <span className="text-lg font-semibold text-gray-800 mb-2 block">
-                  タグ
-                </span>
+                <span className="text-lg font-semibold text-gray-800 mb-2 block">タグ</span>
                 <span className="text-sm text-gray-600">
                   お酒の特徴を選んでください（複数選択可）
                 </span>
               </label>
-              <TagSelector
-                selectedTags={selectedTags}
-                onTagsChange={setSelectedTags}
-              />
+              <TagSelector selectedTags={selectedTags} onTagsChange={setSelectedTags} />
             </div>
 
             {/* コメント入力 */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <label className="block">
-                <span className="text-lg font-semibold text-gray-800 mb-2 block">
-                  コメント
-                </span>
-                <span className="text-sm text-gray-600 mb-3 block">
-                  感想を自由に書いてください
-                </span>
+                <span className="text-lg font-semibold text-gray-800 mb-2 block">コメント</span>
+                <span className="text-sm text-gray-600 mb-3 block">感想を自由に書いてください</span>
                 <textarea
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
@@ -223,9 +202,7 @@ export default function ReviewPage() {
                   rows={5}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                 />
-                <div className="mt-2 text-right text-sm text-gray-500">
-                  {comment.length} 文字
-                </div>
+                <div className="mt-2 text-right text-sm text-gray-500">{comment.length} 文字</div>
               </label>
             </div>
 

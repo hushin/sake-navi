@@ -23,30 +23,30 @@ const AVAILABLE_TAGS = [
 
 // タグごとの色設定（視覚的な区別のため）
 const tagColors: Record<string, string> = {
-  '甘口': 'bg-pink-100 text-pink-800 border-pink-300 hover:bg-pink-200',
-  '辛口': 'bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200',
-  '濃醇': 'bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200',
-  '淡麗': 'bg-sky-100 text-sky-800 border-sky-300 hover:bg-sky-200',
-  'にごり': 'bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200',
-  '酸': 'bg-lime-100 text-lime-800 border-lime-300 hover:bg-lime-200',
-  '旨味': 'bg-orange-100 text-orange-800 border-orange-300 hover:bg-orange-200',
-  '熟成': 'bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200',
-  '苦味': 'bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200',
-  '発泡': 'bg-cyan-100 text-cyan-800 border-cyan-300 hover:bg-cyan-200',
+  甘口: 'bg-pink-100 text-pink-800 border-pink-300 hover:bg-pink-200',
+  辛口: 'bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200',
+  濃醇: 'bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200',
+  淡麗: 'bg-sky-100 text-sky-800 border-sky-300 hover:bg-sky-200',
+  にごり: 'bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200',
+  酸: 'bg-lime-100 text-lime-800 border-lime-300 hover:bg-lime-200',
+  旨味: 'bg-orange-100 text-orange-800 border-orange-300 hover:bg-orange-200',
+  熟成: 'bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200',
+  苦味: 'bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200',
+  発泡: 'bg-cyan-100 text-cyan-800 border-cyan-300 hover:bg-cyan-200',
 };
 
 // 選択時の色設定
 const selectedTagColors: Record<string, string> = {
-  '甘口': 'bg-pink-500 text-white border-pink-600',
-  '辛口': 'bg-blue-500 text-white border-blue-600',
-  '濃醇': 'bg-amber-500 text-white border-amber-600',
-  '淡麗': 'bg-sky-500 text-white border-sky-600',
-  'にごり': 'bg-gray-500 text-white border-gray-600',
-  '酸': 'bg-lime-500 text-white border-lime-600',
-  '旨味': 'bg-orange-500 text-white border-orange-600',
-  '熟成': 'bg-yellow-500 text-white border-yellow-600',
-  '苦味': 'bg-emerald-500 text-white border-emerald-600',
-  '発泡': 'bg-cyan-500 text-white border-cyan-600',
+  甘口: 'bg-pink-500 text-white border-pink-600',
+  辛口: 'bg-blue-500 text-white border-blue-600',
+  濃醇: 'bg-amber-500 text-white border-amber-600',
+  淡麗: 'bg-sky-500 text-white border-sky-600',
+  にごり: 'bg-gray-500 text-white border-gray-600',
+  酸: 'bg-lime-500 text-white border-lime-600',
+  旨味: 'bg-orange-500 text-white border-orange-600',
+  熟成: 'bg-yellow-500 text-white border-yellow-600',
+  苦味: 'bg-emerald-500 text-white border-emerald-600',
+  発泡: 'bg-cyan-500 text-white border-cyan-600',
 };
 
 /**
@@ -70,9 +70,7 @@ export function TagSelector({ selectedTags, onTagsChange }: TagSelectorProps) {
       <div className="flex flex-wrap gap-2">
         {AVAILABLE_TAGS.map((tag) => {
           const isSelected = selectedTags.includes(tag);
-          const colorClass = isSelected
-            ? selectedTagColors[tag]
-            : tagColors[tag];
+          const colorClass = isSelected ? selectedTagColors[tag] : tagColors[tag];
 
           return (
             <button
@@ -99,9 +97,7 @@ export function TagSelector({ selectedTags, onTagsChange }: TagSelectorProps) {
         })}
       </div>
       {selectedTags.length > 0 && (
-        <div className="text-sm text-gray-600">
-          選択中: {selectedTags.length}個のタグ
-        </div>
+        <div className="text-sm text-gray-600">選択中: {selectedTags.length}個のタグ</div>
       )}
     </div>
   );

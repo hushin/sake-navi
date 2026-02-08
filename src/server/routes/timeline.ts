@@ -39,10 +39,7 @@ app.get('/', async (c) => {
     .from(schema.reviews)
     .innerJoin(schema.users, eq(schema.users.userId, schema.reviews.userId))
     .innerJoin(schema.sakes, eq(schema.sakes.sakeId, schema.reviews.sakeId))
-    .innerJoin(
-      schema.breweries,
-      eq(schema.breweries.breweryId, schema.sakes.breweryId),
-    )
+    .innerJoin(schema.breweries, eq(schema.breweries.breweryId, schema.sakes.breweryId))
     .orderBy(desc(schema.reviews.createdAt));
 
   // 酒蔵ノート取得（JOIN: users, breweries）
@@ -56,14 +53,8 @@ app.get('/', async (c) => {
       content: schema.breweryNotes.comment,
     })
     .from(schema.breweryNotes)
-    .innerJoin(
-      schema.users,
-      eq(schema.users.userId, schema.breweryNotes.userId),
-    )
-    .innerJoin(
-      schema.breweries,
-      eq(schema.breweries.breweryId, schema.breweryNotes.breweryId),
-    )
+    .innerJoin(schema.users, eq(schema.users.userId, schema.breweryNotes.userId))
+    .innerJoin(schema.breweries, eq(schema.breweries.breweryId, schema.breweryNotes.breweryId))
     .orderBy(desc(schema.breweryNotes.createdAt));
 
   // タイムラインアイテムに変換

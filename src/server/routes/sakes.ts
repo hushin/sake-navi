@@ -52,8 +52,7 @@ app.get('/:id', async (c) => {
     .from(schema.reviews)
     .where(eq(schema.reviews.sakeId, sakeId));
 
-  const avgRating =
-    reviewsData.length > 0 ? (avgRatingResult[0]?.avgRating ?? null) : null;
+  const avgRating = reviewsData.length > 0 ? (avgRatingResult[0]?.avgRating ?? null) : null;
 
   // レスポンス（camelCaseに変換）
   return c.json({
@@ -106,10 +105,7 @@ app.post('/:id/reviews', async (c) => {
   // タグのバリデーション
   const invalidTags = tags.filter((tag) => !VALID_TAGS.includes(tag));
   if (invalidTags.length > 0) {
-    return c.json(
-      { error: `無効なタグが含まれています: ${invalidTags.join(', ')}` },
-      400,
-    );
+    return c.json({ error: `無効なタグが含まれています: ${invalidTags.join(', ')}` }, 400);
   }
 
   const user = await findUserOrThrow(db, userId);
@@ -122,10 +118,7 @@ app.post('/:id/reviews', async (c) => {
       breweryName: schema.breweries.name,
     })
     .from(schema.sakes)
-    .innerJoin(
-      schema.breweries,
-      eq(schema.sakes.breweryId, schema.breweries.breweryId),
-    )
+    .innerJoin(schema.breweries, eq(schema.sakes.breweryId, schema.breweries.breweryId))
     .where(eq(schema.sakes.sakeId, sakeId))
     .limit(1)
     .then((rows) => rows[0]);
@@ -166,9 +159,7 @@ app.post('/:id/reviews', async (c) => {
     // 開発環境では executionCtx が存在しない場合がある
     try {
       if (c.executionCtx) {
-        c.executionCtx.waitUntil(
-          sendReviewNotification(notificationData, webhookUrl),
-        );
+        c.executionCtx.waitUntil(sendReviewNotification(notificationData, webhookUrl));
       } else {
         sendReviewNotification(notificationData, webhookUrl);
       }

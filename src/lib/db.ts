@@ -10,9 +10,7 @@ export const getCloudflareEnv = cache(async (): Promise<Bindings> => {
 
   if (!ctx || !ctx.env) {
     // ローカル開発等でenvが取得できない場合のガード
-    throw new Error(
-      "Cloudflare Context not found. Are you running with 'npm run dev'?",
-    );
+    throw new Error("Cloudflare Context not found. Are you running with 'npm run dev'?");
   }
 
   return ctx.env as Bindings;

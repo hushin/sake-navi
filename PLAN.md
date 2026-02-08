@@ -3,6 +3,7 @@
 ## 完了済み
 
 ### 技術スタック構築
+
 - [x] Next.js 16 + TypeScript セットアップ
 - [x] Hono バックエンドAPI エントリポイント作成
 - [x] Drizzle ORM スキーマ定義（5テーブル）
@@ -13,6 +14,7 @@
 ### Phase 1: バックエンドAPI実装
 
 #### 1.1 APIルート実装
+
 - [x] `src/server/routes/users.ts` - ユーザー登録API
   - POST /api/users - 名前でユーザー作成
 - [x] `src/server/routes/breweries.ts` - 酒蔵API
@@ -28,23 +30,27 @@
   - GET /api/timeline - 全投稿を新しい順に取得
 
 #### 1.2 Discord通知
+
 - [x] `src/server/services/discord.ts` - Webhook通知サービス
   - レビュー投稿通知
   - 酒蔵ノート投稿通知
 
 #### 1.3 シードデータ
+
 - [x] `db/seed.sql` - 酒蔵マスタデータ投入
   - breweries.jsonから88蔵元を投入
 
 ### Phase 2: フロントエンド実装
 
 #### 2.1 共通コンポーネント
+
 - [x] `src/lib/api.ts` - APIクライアント
 - [x] `src/lib/auth.ts` - localStorage認証ヘルパー
 - [x] `src/components/StarRating.tsx` - 星評価コンポーネント
 - [x] `src/components/TagSelector.tsx` - タグ選択コンポーネント
 
 #### 2.2 ページ実装
+
 - [x] `/` (page.tsx) - 名前入力画面
   - 名前入力フォーム
   - ユーザー登録API呼び出し
@@ -86,14 +92,14 @@
 
 ## 主要ファイルパス
 
-| ファイル | 概要 |
-|---------|------|
-| `src/server/index.ts` | Honoアプリ エントリポイント |
-| `src/server/db/schema.ts` | Drizzle ORMスキーマ |
-| `src/data/breweries.json` | 酒蔵マスタデータ（88蔵元） |
-| `public/floor-map.png` | 会場フロアマップ画像 |
-| `DESIGN.md` | 詳細設計書（API仕様、画面設計） |
-| `CLAUDE.md` | プロジェクト概要・コマンド |
+| ファイル                  | 概要                            |
+| ------------------------- | ------------------------------- |
+| `src/server/index.ts`     | Honoアプリ エントリポイント     |
+| `src/server/db/schema.ts` | Drizzle ORMスキーマ             |
+| `src/data/breweries.json` | 酒蔵マスタデータ（88蔵元）      |
+| `public/floor-map.png`    | 会場フロアマップ画像            |
+| `DESIGN.md`               | 詳細設計書（API仕様、画面設計） |
+| `CLAUDE.md`               | プロジェクト概要・コマンド      |
 
 ---
 
