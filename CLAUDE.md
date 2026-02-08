@@ -123,10 +123,10 @@ src/
 
 ## 環境変数
 
-| 変数名                | 説明                                      | 設定場所                                               |
-| --------------------- | ----------------------------------------- | ------------------------------------------------------ |
-| `DISCORD_WEBHOOK_URL` | Discord Webhook URL                       | wrangler.toml (vars) or Cloudflare Dashboard (secrets) |
-| `BASE_URL`            | アプリのベースURL（Discord通知のリンク用）| wrangler.jsonc (vars) or Cloudflare Dashboard          |
+| 変数名                | 説明                                       | 設定場所                                               |
+| --------------------- | ------------------------------------------ | ------------------------------------------------------ |
+| `DISCORD_WEBHOOK_URL` | Discord Webhook URL                        | wrangler.toml (vars) or Cloudflare Dashboard (secrets) |
+| `BASE_URL`            | アプリのベースURL（Discord通知のリンク用） | wrangler.jsonc (vars) or Cloudflare Dashboard          |
 
 ## 注意点
 
