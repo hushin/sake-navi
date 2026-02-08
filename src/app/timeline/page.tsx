@@ -134,15 +134,10 @@ function ReviewCard({
   return (
     <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6">
       {/* ヘッダー */}
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-            {item.userName.charAt(0)}
-          </div>
-          <div>
-            <p className="font-semibold text-slate-800">{item.userName}</p>
-            <p className="text-sm text-slate-500">{formatDate(item.createdAt)}</p>
-          </div>
+          <p className="font-semibold text-slate-800">{item.userName}</p>
+          <p className="text-sm text-slate-500">{formatDate(item.createdAt)}</p>
         </div>
         <div className="flex items-center gap-2 bg-blue-50 px-3 py-1 rounded-full">
           <svg
@@ -158,34 +153,33 @@ function ReviewCard({
       </div>
 
       {/* お酒情報 */}
-      <div className="mb-4">
-        <h3 className="text-lg font-bold text-slate-800 mb-1">{item.sakeName}</h3>
+      <div className="mb-2 flex items-start gap-4">
         <Link
           href={`/brewery/${item.breweryId}`}
-          className="text-sm text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+          className="text-lg text-blue-600 hover:text-blue-700 hover:underline transition-colors"
         >
           No.{item.breweryId}: {item.breweryName}
         </Link>
+        <h3 className="text-lg font-bold text-slate-800 mb-1">{item.sakeName}</h3>
       </div>
 
       {/* 星評価 */}
-      <div className="mb-3">
+      <div className="flex items-start gap-4 mb-4">
         <StarRating value={item.rating} readonly size="sm" />
+        {/* タグ */}
+        {item.tags && item.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {item.tags.map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
-
-      {/* タグ */}
-      {item.tags && item.tags.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-4">
-          {item.tags.map((tag) => (
-            <span
-              key={tag}
-              className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-      )}
 
       {/* コメント */}
       {item.comment && (
@@ -212,13 +206,8 @@ function NoteCard({
       {/* ヘッダー */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-bold">
-            {item.userName.charAt(0)}
-          </div>
-          <div>
-            <p className="font-semibold text-slate-800">{item.userName}</p>
-            <p className="text-sm text-slate-500">{formatDate(item.createdAt)}</p>
-          </div>
+          <p className="font-semibold text-slate-800">{item.userName}</p>
+          <p className="text-sm text-slate-500">{formatDate(item.createdAt)}</p>
         </div>
         <div className="flex items-center gap-2 bg-green-50 px-3 py-1 rounded-full">
           <svg
