@@ -174,7 +174,7 @@ export default function ReviewPage() {
                 </span>
                 <span className="text-sm text-gray-600">タップして評価してください</span>
               </label>
-              <div className="flex justify-center py-4">
+              <div className="flex py-4">
                 <StarRating value={rating} onChange={setRating} size="xl" />
               </div>
             </div>
