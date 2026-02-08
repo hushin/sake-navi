@@ -37,7 +37,7 @@ export async function sendReviewNotification(
             },
             {
               name: '酒蔵',
-              value: `${data.breweryName || '不明'} (${data.breweryId})`,
+              value: `No.${data.breweryId}: ${data.breweryName || '不明'}`,
               inline: true,
             },
             {
@@ -105,7 +105,7 @@ export async function sendBreweryNoteNotification(
   }
 
   try {
-    const message = `**${data.userName}** さんが **${data.breweryName} (${data.breweryId})** にノートを投稿しました\n\n${data.comment}`;
+    const message = `**${data.userName}** さんが **No.${data.breweryId}: ${data.breweryName}** にノートを投稿しました\n\n${data.comment}`;
 
     await fetch(webhookUrl, {
       method: 'POST',
