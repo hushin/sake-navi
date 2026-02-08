@@ -57,5 +57,7 @@
    * Note: Use secrets to store sensitive data.
    * https://developers.cloudflare.com/workers/configuration/secrets/
    */
-  // "vars": {  "MY_VARIABLE": "production_value" }
+  // "vars": {
+  //   "BASE_URL": "https://your-domain.com"  // Discord通知のマップURLに使用
+  // }
 }

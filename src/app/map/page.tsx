@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { getBreweries, type BreweryWithRating } from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
@@ -15,9 +15,12 @@ import { isAuthenticated } from '@/lib/auth';
  */
 export default function MapPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [breweries, setBreweries] = useState<BreweryWithRating[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [focusedBreweryId, setFocusedBreweryId] = useState<number | null>(null);
+  const breweryRefs = useRef<Map<number, HTMLAnchorElement>>(new Map());
 
   useEffect(() => {
     // 未認証の場合はトップページへリダイレクト
@@ -40,6 +43,36 @@ export default function MapPage() {
 
     fetchBreweries();
   }, [router]);
+
+  // URLパラメータから酒蔵IDを取得してフォーカス
+  useEffect(() => {
+    const breweryParam = searchParams.get('brewery');
+    if (breweryParam) {
+      const breweryId = Number(breweryParam);
+      if (!isNaN(breweryId)) {
+        setFocusedBreweryId(breweryId);
+      }
+    }
+  }, [searchParams]);
+
+  // フォーカス対象の酒蔵にスクロール
+  useEffect(() => {
+    if (focusedBreweryId && breweries.length > 0) {
+      // データ読み込み完了後、少し遅延させてからスクロール
+      const timer = setTimeout(() => {
+        const element = breweryRefs.current.get(focusedBreweryId);
+        if (element) {
+          element.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+            inline: 'center',
+          });
+        }
+      }, 100);
+
+      return () => clearTimeout(timer);
+    }
+  }, [focusedBreweryId, breweries]);
 
   if (loading) {
     return (
@@ -68,18 +101,33 @@ export default function MapPage() {
     );
   }
 
+  const handleClearFocus = () => {
+    setFocusedBreweryId(null);
+    router.replace('/map');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ヘッダー */}
       <header className="bg-white shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold text-gray-900">会場マップ</h1>
-          <Link
-            href="/timeline"
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-          >
-            タイムライン
-          </Link>
+          <div className="flex items-center gap-2">
+            {focusedBreweryId && (
+              <button
+                onClick={handleClearFocus}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium"
+              >
+                フォーカス解除
+              </button>
+            )}
+            <Link
+              href="/timeline"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+            >
+              タイムライン
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -130,9 +178,18 @@ export default function MapPage() {
               const left = (col - 1) * CELL_W + extraX + START_X;
               const top = (row - 1) * CELL_H + extraY + START_Y;
 
+              const isFocused = focusedBreweryId === brewery.breweryId;
+
               return (
                 <Link
                   key={brewery.breweryId}
+                  ref={(el) => {
+                    if (el) {
+                      breweryRefs.current.set(brewery.breweryId, el);
+                    } else {
+                      breweryRefs.current.delete(brewery.breweryId);
+                    }
+                  }}
                   href={`/brewery/${brewery.breweryId}`}
                   className="absolute transform -translate-x-1/2 -translate-y-1/2 group pointer-events-auto"
                   style={{
@@ -140,31 +197,49 @@ export default function MapPage() {
                     top: `${top}px`,
                   }}
                 >
-                  <div
-                    className="bg-white rounded-lg border-2 border-gray-300 hover:border-blue-500 group-hover:scale-110 transition-transform"
-                    style={{
-                      width: CELL_W,
-                      height: CELL_H,
-                    }}
-                  >
-                    {/* 酒蔵名 */}
-                    <div className="font-semibold text-sm text-gray-900 mb-1 text-center">
-                      {brewery.name}
-                    </div>
-
-                    {/* 平均評価 */}
-                    {brewery.averageRating !== null ? (
-                      <div className="flex items-center justify-center gap-1 text-xs">
-                        <div className="flex items-center gap-1">
-                          <span className="text-yellow-500">★</span>
-                          <span className="font-semibold text-slate-800">
-                            {brewery.averageRating.toFixed(1)}
-                          </span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-xs text-gray-400 text-center">未評価</div>
+                  <div className="relative">
+                    {/* フォーカス時のアニメーション枠線 */}
+                    {isFocused && (
+                      <div
+                        className="absolute inset-0 rounded-lg border-2 border-green-500 animate-ping opacity-75"
+                        style={{
+                          width: CELL_W,
+                          height: CELL_H,
+                        }}
+                      />
                     )}
+
+                    {/* 実際のコンテンツ */}
+                    <div
+                      className={`relative bg-white rounded-lg border-2 hover:border-blue-500 group-hover:scale-110 transition-all ${
+                        isFocused
+                          ? 'border-green-500 shadow-lg shadow-green-200 scale-110'
+                          : 'border-gray-300'
+                      }`}
+                      style={{
+                        width: CELL_W,
+                        height: CELL_H,
+                      }}
+                    >
+                      {/* 酒蔵名 */}
+                      <div className="font-semibold text-sm text-gray-900 mb-1 text-center">
+                        {brewery.name}
+                      </div>
+
+                      {/* 平均評価 */}
+                      {brewery.averageRating !== null ? (
+                        <div className="flex items-center justify-center gap-1 text-xs">
+                          <div className="flex items-center gap-1">
+                            <span className="text-yellow-500">★</span>
+                            <span className="font-semibold text-slate-800">
+                              {brewery.averageRating.toFixed(1)}
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-xs text-gray-400 text-center">未評価</div>
+                      )}
+                    </div>
                   </div>
                 </Link>
               );

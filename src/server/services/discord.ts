@@ -18,12 +18,15 @@ interface ReviewNotificationData {
 export async function sendReviewNotification(
   data: ReviewNotificationData,
   webhookUrl?: string,
+  baseUrl?: string,
 ): Promise<void> {
   if (!webhookUrl) {
     return;
   }
 
   try {
+    const mapUrl = baseUrl ? `${baseUrl}/map?brewery=${data.breweryId}` : undefined;
+
     const discordMessage = {
       embeds: [
         {
@@ -68,6 +71,15 @@ export async function sendReviewNotification(
                   },
                 ]
               : []),
+            ...(mapUrl
+              ? [
+                  {
+                    name: '📍 マップで見る',
+                    value: mapUrl,
+                    inline: false,
+                  },
+                ]
+              : []),
           ],
           timestamp: new Date().toISOString(),
         },
@@ -99,13 +111,15 @@ interface BreweryNoteNotificationData {
 export async function sendBreweryNoteNotification(
   data: BreweryNoteNotificationData,
   webhookUrl?: string,
+  baseUrl?: string,
 ): Promise<void> {
   if (!webhookUrl) {
     return;
   }
 
   try {
-    const message = `**${data.userName}** さんが **No.${data.breweryId}: ${data.breweryName}** にノートを投稿しました\n\n${data.comment}`;
+    const mapUrl = baseUrl ? `${baseUrl}/map?brewery=${data.breweryId}` : '';
+    const message = `**${data.userName}** さんが **No.${data.breweryId}: ${data.breweryName}** にノートを投稿しました\n\n${data.comment}${mapUrl ? `\n\n📍 **マップで見る:** ${mapUrl}` : ''}`;
 
     await fetch(webhookUrl, {
       method: 'POST',

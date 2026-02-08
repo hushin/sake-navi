@@ -4,6 +4,7 @@ import type * as schema from './db/schema';
 export type Bindings = {
   DB: D1Database;
   DISCORD_WEBHOOK_URL?: string;
+  BASE_URL?: string;
 };
 
 export type Variables = {

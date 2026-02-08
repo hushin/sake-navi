@@ -175,6 +175,7 @@ app.post('/:id/notes', async (c) => {
   // Discord通知を送信（非同期）
   const env = await getCloudflareEnv();
   const webhookUrl = env.DISCORD_WEBHOOK_URL;
+  const baseUrl = env.BASE_URL;
   if (webhookUrl) {
     const notificationData = {
       breweryName: brewery.name,
@@ -183,7 +184,7 @@ app.post('/:id/notes', async (c) => {
       userName: user.name,
     };
 
-    await sendBreweryNoteNotification(notificationData, webhookUrl);
+    await sendBreweryNoteNotification(notificationData, webhookUrl, baseUrl);
   }
 
   return c.json(

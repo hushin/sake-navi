@@ -147,6 +147,7 @@ app.post('/:id/reviews', async (c) => {
   // Discord通知（非同期）
   const env = await getCloudflareEnv();
   const webhookUrl = env.DISCORD_WEBHOOK_URL;
+  const baseUrl = env.BASE_URL;
   if (webhookUrl) {
     const notificationData = {
       sakeName: sakeWithBrewery.name,
@@ -158,7 +159,7 @@ app.post('/:id/reviews', async (c) => {
       userName: user.name,
     };
 
-    await sendReviewNotification(notificationData, webhookUrl);
+    await sendReviewNotification(notificationData, webhookUrl, baseUrl);
   }
 
   return c.json(
