@@ -1,19 +1,19 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { getBreweries, type BreweryWithRating } from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
 
 /**
- * フロアマップページ
+ * フロアマップページのメインコンテンツ
  * - 横スクロール対応のフロアマップ表示
  * - 酒蔵バッジを position: absolute でオーバーレイ
  * - 各酒蔵バッジに平均評価を表示（★表示）
  * - 未認証の場合は / へリダイレクト
  */
-export default function MapPage() {
+function MapPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [breweries, setBreweries] = useState<BreweryWithRating[]>([]);
@@ -264,5 +264,26 @@ export default function MapPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * フロアマップページ
+ * - useSearchParams()を使用するため、Suspense境界でラップ
+ */
+export default function MapPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="inline-block w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            <p className="mt-4 text-gray-600">読み込み中...</p>
+          </div>
+        </div>
+      }
+    >
+      <MapPageContent />
+    </Suspense>
   );
 }
