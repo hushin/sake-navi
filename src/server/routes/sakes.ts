@@ -4,6 +4,7 @@ import { z } from "zod";
 import * as schema from "../db/schema";
 import { getCloudflareEnv } from "@/lib/db";
 import { sendReviewNotification } from "../services/discord";
+import { VALID_TAGS } from "../constants";
 import type { AppEnv } from "../types";
 
 const app = new Hono<AppEnv>();
@@ -14,20 +15,6 @@ const createReviewSchema = z.object({
   tags: z.array(z.string()).default([]),
   comment: z.string().optional(),
 });
-
-// タグ一覧（バリデーション用）
-const VALID_TAGS = [
-  "甘口",
-  "辛口",
-  "濃醇",
-  "淡麗",
-  "にごり",
-  "酸",
-  "旨味",
-  "熟成",
-  "苦味",
-  "発泡",
-];
 
 // GET /api/sakes/:id - お酒詳細
 app.get("/:id", async (c) => {
