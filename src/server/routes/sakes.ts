@@ -158,14 +158,9 @@ app.post('/:id/reviews', async (c) => {
       userName: user.name,
     };
 
-    try {
-      sendReviewNotification(notificationData, webhookUrl);
-    } catch (err) {
-      console.error('Discord通知の送信時にエラーが発生しました:', err);
-    }
+    await sendReviewNotification(notificationData, webhookUrl);
   }
 
-  // レスポンス（camelCaseに変換）
   return c.json(
     {
       id: newReview[0].reviewId,

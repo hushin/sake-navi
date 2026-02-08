@@ -167,11 +167,7 @@ app.post('/:id/notes', async (c) => {
       userName: user.name,
     };
 
-    try {
-      sendBreweryNoteNotification(notificationData, webhookUrl);
-    } catch (err) {
-      console.error('Discord通知の送信時にエラーが発生しました:', err);
-    }
+    await sendBreweryNoteNotification(notificationData, webhookUrl);
   }
 
   return c.json(
