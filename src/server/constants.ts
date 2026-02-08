@@ -8,9 +8,10 @@ export const VALID_TAGS: readonly string[] = [
   '濃醇',
   '淡麗',
   'にごり',
-  '酸',
+  '酸味',
   '旨味',
   '熟成',
   '苦味',
+  '渋味',
   '発泡',
 ];

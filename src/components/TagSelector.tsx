@@ -1,5 +1,7 @@
 'use client';
 
+import { TAG_COLORS, SELECTED_TAG_COLORS, TAG_HOVER_COLORS } from '@/lib/tagColors';
+
 interface TagSelectorProps {
   /** 選択中のタグ一覧 */
   selectedTags: string[];
@@ -15,36 +17,6 @@ const EXCLUSIVE_GROUPS: Array<{ label: string; tags: string[] }> = [
 
 // その他のタグ（複数選択可）
 const OTHER_TAGS: string[] = ['にごり', '酸味', '旨味', '熟成', '苦味', '渋味', '発泡'];
-
-// タグごとの色設定（視覚的な区別のため）
-const tagColors: Record<string, string> = {
-  甘口: 'bg-pink-100 text-pink-800 border-pink-300 hover:bg-pink-200',
-  辛口: 'bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200',
-  濃醇: 'bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200',
-  淡麗: 'bg-sky-100 text-sky-800 border-sky-300 hover:bg-sky-200',
-  にごり: 'bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200',
-  酸味: 'bg-lime-100 text-lime-800 border-lime-300 hover:bg-lime-200',
-  旨味: 'bg-orange-100 text-orange-800 border-orange-300 hover:bg-orange-200',
-  熟成: 'bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200',
-  苦味: 'bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200',
-  渋味: 'bg-purple-100 text-purple-800 border-purple-300 hover:bg-purple-200',
-  発泡: 'bg-cyan-100 text-cyan-800 border-cyan-300 hover:bg-cyan-200',
-};
-
-// 選択時の色設定
-const selectedTagColors: Record<string, string> = {
-  甘口: 'bg-pink-500 text-white border-pink-600',
-  辛口: 'bg-blue-500 text-white border-blue-600',
-  濃醇: 'bg-amber-500 text-white border-amber-600',
-  淡麗: 'bg-sky-500 text-white border-sky-600',
-  にごり: 'bg-gray-500 text-white border-gray-600',
-  酸味: 'bg-lime-500 text-white border-lime-600',
-  旨味: 'bg-orange-500 text-white border-orange-600',
-  熟成: 'bg-yellow-500 text-white border-yellow-600',
-  苦味: 'bg-emerald-500 text-white border-emerald-600',
-  渋味: 'bg-purple-500 text-white border-purple-600',
-  発泡: 'bg-cyan-500 text-white border-cyan-600',
-};
 
 /**
  * タグ選択コンポーネント
@@ -89,7 +61,10 @@ export function TagSelector({ selectedTags, onTagsChange }: TagSelectorProps) {
           <div className="flex flex-wrap gap-2">
             {group.tags.map((tag) => {
               const isSelected = selectedTags.includes(tag);
-              const colorClass = isSelected ? selectedTagColors[tag] : tagColors[tag];
+              const baseColor = TAG_COLORS[tag] || 'bg-slate-100 text-slate-800 border-slate-300';
+              const selectedColor =
+                SELECTED_TAG_COLORS[tag] || 'bg-slate-500 text-white border-slate-600';
+              const hoverColor = TAG_HOVER_COLORS[tag] || 'hover:bg-slate-200';
 
               return (
                 <button
@@ -100,7 +75,7 @@ export function TagSelector({ selectedTags, onTagsChange }: TagSelectorProps) {
                     px-4 py-2 rounded-full border-2 font-medium text-sm
                     transition-all duration-150 ease-in-out
                     hover:scale-105 active:scale-95
-                    ${colorClass}
+                    ${isSelected ? selectedColor : `${baseColor} ${hoverColor}`}
                     ${isSelected ? 'shadow-md' : 'shadow-sm'}
                   `}
                   aria-pressed={isSelected}
@@ -126,7 +101,10 @@ export function TagSelector({ selectedTags, onTagsChange }: TagSelectorProps) {
         <div className="flex flex-wrap gap-2">
           {OTHER_TAGS.map((tag) => {
             const isSelected = selectedTags.includes(tag);
-            const colorClass = isSelected ? selectedTagColors[tag] : tagColors[tag];
+            const baseColor = TAG_COLORS[tag] || 'bg-slate-100 text-slate-800 border-slate-300';
+            const selectedColor =
+              SELECTED_TAG_COLORS[tag] || 'bg-slate-500 text-white border-slate-600';
+            const hoverColor = TAG_HOVER_COLORS[tag] || 'hover:bg-slate-200';
 
             return (
               <button
@@ -137,7 +115,7 @@ export function TagSelector({ selectedTags, onTagsChange }: TagSelectorProps) {
                   px-4 py-2 rounded-full border-2 font-medium text-sm
                   transition-all duration-150 ease-in-out
                   hover:scale-105 active:scale-95
-                  ${colorClass}
+                  ${isSelected ? selectedColor : `${baseColor} ${hoverColor}`}
                   ${isSelected ? 'shadow-md' : 'shadow-sm'}
                 `}
                 aria-pressed={isSelected}

@@ -7,6 +7,7 @@ import { getTimeline, type TimelineItem } from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
 import { StarRating } from '@/components/StarRating';
 import { UserMenu } from '@/components/UserMenu';
+import { getTagColorClass } from '@/lib/tagColors';
 
 export default function TimelinePage() {
   const router = useRouter();
@@ -193,7 +194,7 @@ function ReviewCard({
             {item.tags.map((tag) => (
               <span
                 key={tag}
-                className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700"
+                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getTagColorClass(tag)}`}
               >
                 {tag}
               </span>

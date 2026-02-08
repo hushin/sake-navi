@@ -15,6 +15,7 @@ import {
 import { isAuthenticated } from '@/lib/auth';
 import { StarRating } from '@/components/StarRating';
 import { UserMenu } from '@/components/UserMenu';
+import { getTagColorClass } from '@/lib/tagColors';
 
 export default function BreweryDetailPage() {
   const router = useRouter();
@@ -296,7 +297,7 @@ export default function BreweryDetailPage() {
                                 {review.tags.map((tag, idx) => (
                                   <span
                                     key={idx}
-                                    className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full"
+                                    className={`px-2 py-0.5 text-xs rounded-full border ${getTagColorClass(tag)}`}
                                   >
                                     {tag}
                                   </span>
