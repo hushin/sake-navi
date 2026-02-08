@@ -85,48 +85,91 @@ export default function MapPage() {
 
       {/* フロアマップ */}
       <main className="overflow-x-auto">
-        <div className="relative inline-block min-w-full" style={{ minHeight: '600px' }}>
+        <div className="relative w-[1640px] min-h-[500px] mx-auto my-10">
           {/* マップ画像 */}
-          <img
-            src="/floor-map.png"
-            alt="会場フロアマップ"
-            className="w-full h-auto"
-            style={{ minWidth: '1200px' }}
-          />
+          <img src="/floor-map.png" alt="会場フロアマップ" className="block w-full h-auto" />
 
-          {/* 酒蔵バッジオーバーレイ */}
-          {breweries.map((brewery) => (
-            <Link
-              key={brewery.breweryId}
-              href={`/brewery/${brewery.breweryId}`}
-              className="absolute transform -translate-x-1/2 -translate-y-1/2 group"
-              style={{
-                left: `${brewery.mapPositionX * 93 - 1}%`,
-                top: `${brewery.mapPositionY * 59 + 6}%`,
-              }}
-            >
-              <div className="bg-white rounded-lg w-[80px] h-[60px] border-2 border-transparent hover:border-blue-500 group-hover:scale-110">
-                {/* 酒蔵名 */}
-                <div className="font-semibold text-sm text-gray-900 mb-1 text-center">
-                  {brewery.name}
-                </div>
+          {/* 酒蔵バッジオーバーレイレイヤー（画像と同サイズ） */}
+          <div className="absolute inset-0 pointer-events-none">
+            {breweries.map((brewery) => {
+              const START_X = 90;
+              const START_Y = 53;
+              const CELL_W = 80;
+              const CELL_H = 64;
+              const GAP_X = 55;
+              const GAP_X_LARGE = 105;
+              const GAP_Y = 20;
 
-                {/* 平均評価 */}
-                {brewery.averageRating !== null ? (
-                  <div className="flex items-center justify-center gap-1 text-xs">
-                    <div className="flex items-center gap-1">
-                      <span className="text-yellow-500">★</span>
-                      <span className="font-semibold text-slate-800">
-                        {brewery.averageRating.toFixed(1)}
-                      </span>
+              const col = brewery.mapPositionX; // 1-based
+              const row = brewery.mapPositionY; // 1-based
+
+              const COL_GAPS = [
+                { after: 2, size: GAP_X }, // 2-3 の間
+                { after: 4, size: GAP_X_LARGE }, // 4-5 の間（広い）
+                { after: 6, size: GAP_X },
+                { after: 8, size: GAP_X },
+                { after: 10, size: GAP_X_LARGE },
+                { after: 12, size: GAP_X },
+              ];
+
+              const ROW_GAPS = [
+                { after: 2, size: GAP_Y },
+                { after: 4, size: GAP_Y },
+              ];
+
+              const extraX = COL_GAPS.filter((g) => col > g.after).reduce(
+                (sum, g) => sum + g.size,
+                0,
+              );
+
+              const extraY = ROW_GAPS.filter((g) => row > g.after).reduce(
+                (sum, g) => sum + g.size,
+                0,
+              );
+
+              const left = (col - 1) * CELL_W + extraX + START_X;
+              const top = (row - 1) * CELL_H + extraY + START_Y;
+
+              return (
+                <Link
+                  key={brewery.breweryId}
+                  href={`/brewery/${brewery.breweryId}`}
+                  className="absolute transform -translate-x-1/2 -translate-y-1/2 group pointer-events-auto"
+                  style={{
+                    left: `${left}px`,
+                    top: `${top}px`,
+                  }}
+                >
+                  <div
+                    className="bg-white rounded-lg border-2 border-transparent hover:border-blue-500 group-hover:scale-110 transition-transform"
+                    style={{
+                      width: CELL_W,
+                      height: CELL_H,
+                    }}
+                  >
+                    {/* 酒蔵名 */}
+                    <div className="font-semibold text-sm text-gray-900 mb-1 text-center">
+                      {brewery.name}
                     </div>
+
+                    {/* 平均評価 */}
+                    {brewery.averageRating !== null ? (
+                      <div className="flex items-center justify-center gap-1 text-xs">
+                        <div className="flex items-center gap-1">
+                          <span className="text-yellow-500">★</span>
+                          <span className="font-semibold text-slate-800">
+                            {brewery.averageRating.toFixed(1)}
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-xs text-gray-400 text-center">未評価</div>
+                    )}
                   </div>
-                ) : (
-                  <div className="text-xs text-gray-400 text-center">未評価</div>
-                )}
-              </div>
-            </Link>
-          ))}
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </main>
 
@@ -139,7 +182,7 @@ export default function MapPage() {
               <span>酒蔵ブース</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-yellow-500">★★★★★</span>
+              <span className="text-yellow-500">★</span>
               <span>平均評価</span>
             </div>
           </div>
