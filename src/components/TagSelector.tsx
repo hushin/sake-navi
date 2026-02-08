@@ -16,7 +16,7 @@ const EXCLUSIVE_GROUPS: Array<{ label: string; tags: string[] }> = [
 ];
 
 // その他のタグ（複数選択可）
-const OTHER_TAGS: string[] = ['にごり', '酸味', '旨味', '熟成', '苦味', '渋味', '発泡'];
+const OTHER_TAGS: string[] = ['酸味', '旨味', '熟成', '苦味', '渋味', 'にごり', '発泡'];
 
 /**
  * タグ選択コンポーネント
@@ -75,6 +75,7 @@ export function TagSelector({ selectedTags, onTagsChange }: TagSelectorProps) {
                     px-4 py-2 rounded-full border-2 font-medium text-sm
                     transition-all duration-150 ease-in-out
                     hover:scale-105 active:scale-95
+                    cursor-pointer
                     ${isSelected ? selectedColor : `${baseColor} ${hoverColor}`}
                     ${isSelected ? 'shadow-md' : 'shadow-sm'}
                   `}
@@ -115,6 +116,7 @@ export function TagSelector({ selectedTags, onTagsChange }: TagSelectorProps) {
                   px-4 py-2 rounded-full border-2 font-medium text-sm
                   transition-all duration-150 ease-in-out
                   hover:scale-105 active:scale-95
+                    cursor-pointer
                   ${isSelected ? selectedColor : `${baseColor} ${hoverColor}`}
                   ${isSelected ? 'shadow-md' : 'shadow-sm'}
                 `}

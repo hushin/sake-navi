@@ -222,7 +222,7 @@ export default function ReviewPage() {
               <button
                 type="button"
                 onClick={() => router.back()}
-                className="flex-1 px-6 py-4 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg transition-colors"
+                className="flex-1 px-6 py-4 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg transition-colors cursor-pointer"
                 disabled={isSubmitting}
               >
                 キャンセル
@@ -235,7 +235,7 @@ export default function ReviewPage() {
                   ${
                     isSubmitting || rating === 0
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-blue-500 to-pink-500 hover:from-blue-600 hover:to-pink-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
+                      : 'bg-gradient-to-r from-blue-500 to-pink-500 hover:from-blue-600 hover:to-pink-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer'
                   }
                 `}
               >

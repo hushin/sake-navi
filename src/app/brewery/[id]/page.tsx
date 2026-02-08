@@ -250,9 +250,21 @@ export default function BreweryDetailPage() {
                     </div>
                     <div className="flex items-center gap-3">
                       {sake.isCustom && sake.addedBy && (
-                        <span className="text-xs text-slate-400 whitespace-nowrap">
-                          ユーザーによる追加
-                        </span>
+                        <div className="relative group">
+                          <button
+                            type="button"
+                            className="flex items-center justify-center w-5 h-5 bg-slate-100 text-slate-500 text-xs font-semibold rounded border border-slate-300 hover:bg-slate-200 focus:bg-slate-200 focus:outline-none transition-colors cursor-pointer"
+                            title="ユーザーによる追加"
+                          >
+                            U
+                          </button>
+                          <div className="invisible group-hover:visible group-focus-within:visible absolute top-full left-1/2 -translate-x-1/2 mt-1 z-10 pointer-events-none">
+                            <div className="bg-slate-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap shadow-lg">
+                              ユーザーによる追加
+                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 w-0 h-0 border-4 border-transparent border-b-slate-800"></div>
+                            </div>
+                          </div>
+                        </div>
                       )}
                       {sake.averageRating !== null ? (
                         <div className="flex items-center gap-1">
