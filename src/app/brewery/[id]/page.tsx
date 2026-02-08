@@ -241,7 +241,7 @@ export default function BreweryDetailPage() {
                       <h3 className="font-semibold text-slate-800 truncate">{sake.name}</h3>
                       {sake.type && <p className="text-sm text-slate-600 mt-1">{sake.type}</p>}
                       {sake.isCustom && sake.addedBy && (
-                        <p className="text-xs text-slate-500 mt-1">ユーザー追加</p>
+                        <p className="text-xs text-slate-400 mt-1">ユーザーによる追加</p>
                       )}
                     </div>
                     <div className="flex flex-col items-end gap-2">
@@ -302,9 +302,7 @@ export default function BreweryDetailPage() {
                               </div>
                             )}
                             {review.comment && (
-                              <p className="text-slate-700 whitespace-pre-wrap">
-                                {review.comment}
-                              </p>
+                              <p className="text-slate-700 whitespace-pre-wrap">{review.comment}</p>
                             )}
                           </div>
                         ))}
