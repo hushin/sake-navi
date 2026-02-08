@@ -134,14 +134,11 @@ function MapPageContent() {
       {/* フロアマップ */}
       <main className="overflow-x-auto">
         <div className="relative w-[1640px] min-h-[500px] mx-auto my-10">
-          {/* マップ画像 */}
-          <img src="/floor-map.png" alt="会場フロアマップ" className="block w-full h-auto" />
-
-          {/* 酒蔵バッジオーバーレイレイヤー（画像と同サイズ） */}
+          {/* 酒蔵バッジオーバーレイレイヤー */}
           <div className="absolute inset-0 pointer-events-none">
             {breweries.map((brewery) => {
               const START_X = 90;
-              const START_Y = 53;
+              const START_Y = 50;
               const CELL_W = 80;
               const CELL_H = 64;
               const GAP_X = 55;
@@ -200,6 +197,15 @@ function MapPageContent() {
                   }}
                 >
                   <div className="relative">
+                    {/* breweryId 表示（奇数列は左、偶数列は右） */}
+                    <div
+                      className={`absolute top-1/2 -translate-y-1/2 text-xs font-mono text-gray-700 ${
+                        col % 2 === 1 ? 'right-full mr-2' : 'left-full ml-2'
+                      }`}
+                    >
+                      {brewery.breweryId}
+                    </div>
+
                     {/* フォーカス時のアニメーション枠線 */}
                     {isFocused && (
                       <div
