@@ -166,14 +166,8 @@ app.post('/:id/notes', async (c) => {
       userName: user.name,
     };
 
-    // 開発環境では executionCtx が存在しない場合があるため、try-catch で囲む
     try {
-      if (c.executionCtx) {
-        c.executionCtx.waitUntil(sendBreweryNoteNotification(notificationData, webhookUrl));
-      } else {
-        // 開発環境では通常の呼び出し
-        sendBreweryNoteNotification(notificationData, webhookUrl);
-      }
+      sendBreweryNoteNotification(notificationData, webhookUrl);
     } catch (err) {
       console.error('Discord通知の送信時にエラーが発生しました:', err);
     }
