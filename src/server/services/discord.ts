@@ -5,6 +5,7 @@
 interface ReviewNotificationData {
   sakeName: string;
   breweryName: string;
+  breweryId: number;
   rating: number;
   tags: string[];
   comment?: string | null;
@@ -30,13 +31,18 @@ export async function sendReviewNotification(
           color: 0x3b82f6, // blue-500
           fields: [
             {
-              name: 'お酒',
-              value: data.sakeName,
+              name: '投稿者',
+              value: data.userName,
               inline: true,
             },
             {
               name: '酒蔵',
-              value: data.breweryName || '不明',
+              value: `${data.breweryName || '不明'} (${data.breweryId})`,
+              inline: true,
+            },
+            {
+              name: 'お酒',
+              value: data.sakeName,
               inline: true,
             },
             {
@@ -62,11 +68,6 @@ export async function sendReviewNotification(
                   },
                 ]
               : []),
-            {
-              name: '投稿者',
-              value: data.userName,
-              inline: true,
-            },
           ],
           timestamp: new Date().toISOString(),
         },
@@ -87,6 +88,7 @@ export async function sendReviewNotification(
 
 interface BreweryNoteNotificationData {
   breweryName: string;
+  breweryId: number;
   comment: string;
   userName: string;
 }
@@ -103,7 +105,7 @@ export async function sendBreweryNoteNotification(
   }
 
   try {
-    const message = `**${data.userName}** さんが **${data.breweryName}** にノートを投稿しました\n\n${data.comment}`;
+    const message = `**${data.userName}** さんが **${data.breweryName} (${data.breweryId})** にノートを投稿しました\n\n${data.comment}`;
 
     await fetch(webhookUrl, {
       method: 'POST',

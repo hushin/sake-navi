@@ -162,6 +162,7 @@ app.post('/:id/notes', async (c) => {
   if (webhookUrl) {
     const notificationData = {
       breweryName: brewery.name,
+      breweryId: brewery.breweryId,
       comment: content.trim(),
       userName: user.name,
     };

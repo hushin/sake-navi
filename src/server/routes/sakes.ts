@@ -110,12 +110,13 @@ app.post('/:id/reviews', async (c) => {
 
   const user = await findUserOrThrow(db, userId);
 
-  // お酒と酒蔵情報を取得（通知用に酒蔵名も必要）
+  // お酒と酒蔵情報を取得（通知用に酒蔵名とIDも必要）
   const sakeWithBrewery = await db
     .select({
       sakeId: schema.sakes.sakeId,
       name: schema.sakes.name,
       breweryName: schema.breweries.name,
+      breweryId: schema.breweries.breweryId,
     })
     .from(schema.sakes)
     .innerJoin(schema.breweries, eq(schema.sakes.breweryId, schema.breweries.breweryId))
@@ -150,6 +151,7 @@ app.post('/:id/reviews', async (c) => {
     const notificationData = {
       sakeName: sakeWithBrewery.name,
       breweryName: sakeWithBrewery.breweryName || '不明',
+      breweryId: sakeWithBrewery.breweryId,
       rating,
       tags,
       comment,

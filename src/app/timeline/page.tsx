@@ -164,7 +164,7 @@ function ReviewCard({
           href={`/brewery/${item.breweryId}`}
           className="text-sm text-blue-600 hover:text-blue-700 hover:underline transition-colors"
         >
-          {item.breweryName}
+          {item.breweryName} ({item.breweryId})
         </Link>
       </div>
 
@@ -239,7 +239,7 @@ function NoteCard({
           href={`/brewery/${item.breweryId}`}
           className="text-lg font-bold text-slate-800 hover:text-blue-600 transition-colors"
         >
-          {item.breweryName}
+          {item.breweryName} ({item.breweryId})
         </Link>
       </div>
 
