@@ -3,6 +3,7 @@ import { eq, sql, desc } from "drizzle-orm";
 import * as schema from "../db/schema";
 import { breweries, sakes, reviews, breweryNotes } from "../db/schema";
 import { getCloudflareEnv } from "@/lib/db";
+import { sendBreweryNoteNotification } from "../services/discord";
 import type { AppEnv } from "../types";
 
 const app = new Hono<AppEnv>();
@@ -188,31 +189,21 @@ app.post("/:id/notes", async (c) => {
   const env = await getCloudflareEnv();
   const webhookUrl = env.DISCORD_WEBHOOK_URL;
   if (webhookUrl) {
+    const notificationData = {
+      breweryName: brewery.name,
+      comment: content.trim(),
+      userName: user.name,
+    };
+
     // 開発環境では executionCtx が存在しない場合があるため、try-catch で囲む
     try {
       if (c.executionCtx) {
         c.executionCtx.waitUntil(
-          fetch(webhookUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              content: `**${user.name}** さんが **${brewery.name}** にノートを投稿しました\n\n${content.trim()}`,
-            }),
-          }).catch((err) => {
-            console.error("Discord通知の送信に失敗しました:", err);
-          })
+          sendBreweryNoteNotification(notificationData, webhookUrl)
         );
       } else {
-        // 開発環境では通常の fetch を使用
-        fetch(webhookUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            content: `**${user.name}** さんが **${brewery.name}** にノートを投稿しました\n\n${content.trim()}`,
-          }),
-        }).catch((err) => {
-          console.error("Discord通知の送信に失敗しました:", err);
-        });
+        // 開発環境では通常の呼び出し
+        sendBreweryNoteNotification(notificationData, webhookUrl);
       }
     } catch (err) {
       console.error("Discord通知の送信時にエラーが発生しました:", err);

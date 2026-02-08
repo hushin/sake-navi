@@ -3,6 +3,7 @@ import { eq, desc, sql } from "drizzle-orm";
 import { z } from "zod";
 import * as schema from "../db/schema";
 import { getCloudflareEnv } from "@/lib/db";
+import { sendReviewNotification } from "../services/discord";
 import type { AppEnv } from "../types";
 
 const app = new Hono<AppEnv>();
@@ -201,78 +202,24 @@ app.post("/:id/reviews", async (c) => {
     const env = await getCloudflareEnv();
     const webhookUrl = env.DISCORD_WEBHOOK_URL;
     if (webhookUrl) {
-      const discordMessage = {
-        embeds: [
-          {
-            title: "🍶 新しいレビューが投稿されました",
-            color: 0x3b82f6, // blue-500
-            fields: [
-              {
-                name: "お酒",
-                value: sake.name,
-                inline: true,
-              },
-              {
-                name: "酒蔵",
-                value: sake.breweryName || "不明",
-                inline: true,
-              },
-              {
-                name: "評価",
-                value: "⭐".repeat(rating),
-                inline: false,
-              },
-              ...(tags.length > 0
-                ? [
-                    {
-                      name: "タグ",
-                      value: tags.join(", "),
-                      inline: false,
-                    },
-                  ]
-                : []),
-              ...(comment
-                ? [
-                    {
-                      name: "コメント",
-                      value: comment,
-                      inline: false,
-                    },
-                  ]
-                : []),
-              {
-                name: "投稿者",
-                value: user.name,
-                inline: true,
-              },
-            ],
-            timestamp: new Date().toISOString(),
-          },
-        ],
+      const notificationData = {
+        sakeName: sake.name,
+        breweryName: sake.breweryName || "不明",
+        rating,
+        tags,
+        comment,
+        userName: user.name,
       };
 
-      // 非同期でDiscord通知を送信
       // 開発環境では executionCtx が存在しない場合があるため、try-catch で囲む
       try {
         if (c.executionCtx) {
           c.executionCtx.waitUntil(
-            fetch(webhookUrl, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(discordMessage),
-            }).catch((error) => {
-              console.error("Discord通知エラー:", error);
-            })
+            sendReviewNotification(notificationData, webhookUrl)
           );
         } else {
-          // 開発環境では通常の fetch を使用
-          fetch(webhookUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(discordMessage),
-          }).catch((error) => {
-            console.error("Discord通知エラー:", error);
-          });
+          // 開発環境では通常の呼び出し
+          sendReviewNotification(notificationData, webhookUrl);
         }
       } catch (error) {
         console.error("Discord通知の送信時にエラーが発生しました:", error);
