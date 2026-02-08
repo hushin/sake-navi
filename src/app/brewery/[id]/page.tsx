@@ -233,34 +233,40 @@ export default function BreweryDetailPage() {
               まだお酒が登録されていません
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {breweryDetail.sakes.map((sake) => (
                 <div
                   key={sake.sakeId}
-                  className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm"
+                  className="bg-white rounded-xl p-3 border border-slate-200 shadow-sm"
                 >
-                  <div className="flex items-start justify-between gap-4 mb-3">
-                    <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-3 mb-3">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
                       <h3 className="font-semibold text-slate-800 truncate">{sake.name}</h3>
-                      {sake.type && <p className="text-sm text-slate-600 mt-1">{sake.type}</p>}
-                      {sake.isCustom && sake.addedBy && (
-                        <p className="text-xs text-slate-400 mt-1">ユーザーによる追加</p>
+                      {sake.type && (
+                        <span className="text-sm text-slate-600 whitespace-nowrap">
+                          {sake.type}
+                        </span>
                       )}
                     </div>
-                    <div className="flex flex-col items-end gap-2">
+                    <div className="flex items-center gap-3">
+                      {sake.isCustom && sake.addedBy && (
+                        <span className="text-xs text-slate-400 whitespace-nowrap">
+                          ユーザーによる追加
+                        </span>
+                      )}
                       {sake.averageRating !== null ? (
                         <div className="flex items-center gap-1">
-                          <span className="text-yellow-500 text-lg">★</span>
+                          <span className="text-yellow-500">★</span>
                           <span className="font-semibold text-slate-800">
                             {sake.averageRating.toFixed(1)}
                           </span>
                         </div>
                       ) : (
-                        <span className="text-sm text-slate-400">未評価</span>
+                        <span className="text-sm text-slate-400 whitespace-nowrap">未評価</span>
                       )}
                       <Link
                         href={`/brewery/${breweryId}/sake/${sake.sakeId}/review`}
-                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors"
+                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors whitespace-nowrap"
                       >
                         レビュー投稿
                       </Link>
@@ -277,33 +283,33 @@ export default function BreweryDetailPage() {
                         {sake.reviews.map((review) => (
                           <div
                             key={review.id}
-                            className="bg-slate-50 rounded-lg p-3 text-sm border border-slate-100"
+                            className="bg-slate-50 rounded-lg p-2.5 text-sm border border-slate-100"
                           >
-                            <div className="flex items-start justify-between mb-2">
-                              <div className="flex items-center gap-2">
-                                <span className="font-semibold text-slate-800">
+                            <div className="flex items-center justify-between gap-2 mb-1.5">
+                              <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
+                                <span className="font-semibold text-slate-800 whitespace-nowrap">
                                   {review.user.name}
                                 </span>
                                 <div className="flex items-center gap-0.5">
                                   <StarRating value={review.rating} size="sm" readonly />
                                 </div>
+                                {review.tags.length > 0 && (
+                                  <div className="flex flex-wrap gap-1">
+                                    {review.tags.map((tag, idx) => (
+                                      <span
+                                        key={idx}
+                                        className={`px-2 py-0.5 text-xs rounded-full border ${getTagColorClass(tag)}`}
+                                      >
+                                        {tag}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
-                              <span className="text-xs text-slate-500">
+                              <span className="text-xs text-slate-500 whitespace-nowrap">
                                 {formatDate(review.createdAt)}
                               </span>
                             </div>
-                            {review.tags.length > 0 && (
-                              <div className="flex flex-wrap gap-1 mb-2">
-                                {review.tags.map((tag, idx) => (
-                                  <span
-                                    key={idx}
-                                    className={`px-2 py-0.5 text-xs rounded-full border ${getTagColorClass(tag)}`}
-                                  >
-                                    {tag}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
                             {review.comment && (
                               <p className="text-slate-700 whitespace-pre-wrap">{review.comment}</p>
                             )}
