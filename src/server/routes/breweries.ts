@@ -1,19 +1,16 @@
-import { Hono } from "hono";
-import { eq, sql, desc } from "drizzle-orm";
-import { breweries, sakes, reviews, breweryNotes } from "../db/schema";
-import { getCloudflareEnv } from "@/lib/db";
-import { sendBreweryNoteNotification } from "../services/discord";
-import {
-  findUserOrThrow,
-  findBreweryOrThrow,
-} from "../helpers/validation";
-import type { AppEnv } from "../types";
+import { Hono } from 'hono';
+import { eq, sql, desc } from 'drizzle-orm';
+import { breweries, sakes, reviews, breweryNotes } from '../db/schema';
+import { getCloudflareEnv } from '@/lib/db';
+import { sendBreweryNoteNotification } from '../services/discord';
+import { findUserOrThrow, findBreweryOrThrow } from '../helpers/validation';
+import type { AppEnv } from '../types';
 
 const app = new Hono<AppEnv>();
 
 // GET /api/breweries - 酒蔵一覧（マップ表示用）
-app.get("/", async (c) => {
-  const db = c.get("db");
+app.get('/', async (c) => {
+  const db = c.var.db;
 
   // 各酒蔵の平均評価を計算するため、サブクエリを使用
   const result = await db
@@ -38,17 +35,17 @@ app.get("/", async (c) => {
       mapPositionX: row.mapPositionX,
       mapPositionY: row.mapPositionY,
       averageRating: row.averageRating ?? null,
-    }))
+    })),
   );
 });
 
 // GET /api/breweries/:id - 酒蔵詳細
-app.get("/:id", async (c) => {
-  const db = c.get("db");
-  const breweryId = parseInt(c.req.param("id"), 10);
+app.get('/:id', async (c) => {
+  const db = c.var.db;
+  const breweryId = parseInt(c.req.param('id'), 10);
 
   if (isNaN(breweryId)) {
-    return c.json({ error: "無効な酒蔵IDです" }, 400);
+    return c.json({ error: '無効な酒蔵IDです' }, 400);
   }
 
   const brewery = await findBreweryOrThrow(db, breweryId);
@@ -93,12 +90,12 @@ app.get("/:id", async (c) => {
 });
 
 // GET /api/breweries/:id/notes - 酒蔵ノート一覧
-app.get("/:id/notes", async (c) => {
-  const db = c.get("db");
-  const breweryId = parseInt(c.req.param("id"), 10);
+app.get('/:id/notes', async (c) => {
+  const db = c.var.db;
+  const breweryId = parseInt(c.req.param('id'), 10);
 
   if (isNaN(breweryId)) {
-    return c.json({ error: "無効な酒蔵IDです" }, 400);
+    return c.json({ error: '無効な酒蔵IDです' }, 400);
   }
 
   await findBreweryOrThrow(db, breweryId);
@@ -120,30 +117,30 @@ app.get("/:id/notes", async (c) => {
       breweryId: note.breweryId,
       comment: note.comment,
       createdAt: note.createdAt,
-    }))
+    })),
   );
 });
 
 // POST /api/breweries/:id/notes - 酒蔵ノート投稿
-app.post("/:id/notes", async (c) => {
-  const db = c.get("db");
-  const breweryId = parseInt(c.req.param("id"), 10);
-  const userId = c.req.header("X-User-Id");
+app.post('/:id/notes', async (c) => {
+  const db = c.var.db;
+  const breweryId = parseInt(c.req.param('id'), 10);
+  const userId = c.req.header('X-User-Id');
 
   if (isNaN(breweryId)) {
-    return c.json({ error: "無効な酒蔵IDです" }, 400);
+    return c.json({ error: '無効な酒蔵IDです' }, 400);
   }
 
   if (!userId) {
-    return c.json({ error: "ユーザーIDが必要です" }, 401);
+    return c.json({ error: 'ユーザーIDが必要です' }, 401);
   }
 
   // リクエストボディの検証
   const body = await c.req.json();
   const { content } = body;
 
-  if (!content || typeof content !== "string" || content.trim().length === 0) {
-    return c.json({ error: "コメントを入力してください" }, 400);
+  if (!content || typeof content !== 'string' || content.trim().length === 0) {
+    return c.json({ error: 'コメントを入力してください' }, 400);
   }
 
   const brewery = await findBreweryOrThrow(db, breweryId);
@@ -173,14 +170,14 @@ app.post("/:id/notes", async (c) => {
     try {
       if (c.executionCtx) {
         c.executionCtx.waitUntil(
-          sendBreweryNoteNotification(notificationData, webhookUrl)
+          sendBreweryNoteNotification(notificationData, webhookUrl),
         );
       } else {
         // 開発環境では通常の呼び出し
         sendBreweryNoteNotification(notificationData, webhookUrl);
       }
     } catch (err) {
-      console.error("Discord通知の送信時にエラーが発生しました:", err);
+      console.error('Discord通知の送信時にエラーが発生しました:', err);
     }
   }
 
@@ -193,30 +190,30 @@ app.post("/:id/notes", async (c) => {
       comment: newNote.comment,
       createdAt: newNote.createdAt,
     },
-    201
+    201,
   );
 });
 
 // POST /api/breweries/:id/sakes - お酒追加（ユーザー自由入力）
-app.post("/:id/sakes", async (c) => {
-  const db = c.get("db");
-  const breweryId = parseInt(c.req.param("id"), 10);
-  const userId = c.req.header("X-User-Id");
+app.post('/:id/sakes', async (c) => {
+  const db = c.var.db;
+  const breweryId = parseInt(c.req.param('id'), 10);
+  const userId = c.req.header('X-User-Id');
 
   if (isNaN(breweryId)) {
-    return c.json({ error: "無効な酒蔵IDです" }, 400);
+    return c.json({ error: '無効な酒蔵IDです' }, 400);
   }
 
   if (!userId) {
-    return c.json({ error: "ユーザーIDが必要です" }, 401);
+    return c.json({ error: 'ユーザーIDが必要です' }, 401);
   }
 
   // リクエストボディの検証
   const body = await c.req.json();
   const { name } = body;
 
-  if (!name || typeof name !== "string" || name.trim().length === 0) {
-    return c.json({ error: "お酒の名前を入力してください" }, 400);
+  if (!name || typeof name !== 'string' || name.trim().length === 0) {
+    return c.json({ error: 'お酒の名前を入力してください' }, 400);
   }
 
   await findBreweryOrThrow(db, breweryId);
@@ -243,7 +240,7 @@ app.post("/:id/sakes", async (c) => {
       addedBy: newSake.addedBy,
       createdAt: newSake.createdAt,
     },
-    201
+    201,
   );
 });
 

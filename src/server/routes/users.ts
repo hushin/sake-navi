@@ -1,19 +1,19 @@
-import { Hono } from "hono";
-import { eq } from "drizzle-orm";
-import { z } from "zod";
-import * as schema from "../db/schema";
-import type { AppEnv } from "../types";
+import { Hono } from 'hono';
+import { eq } from 'drizzle-orm';
+import { z } from 'zod';
+import * as schema from '../db/schema';
+import type { AppEnv } from '../types';
 
 const app = new Hono<AppEnv>();
 
 // リクエストボディのバリデーションスキーマ
 const createUserSchema = z.object({
-  name: z.string().min(1, "名前を入力してください"),
+  name: z.string().min(1, '名前を入力してください'),
 });
 
 // POST /api/users - ユーザー登録
-app.post("/", async (c) => {
-  const db = c.get("db");
+app.post('/', async (c) => {
+  const db = c.var.db;
   const body = await c.req.json();
 
   // バリデーション
@@ -30,14 +30,14 @@ app.post("/", async (c) => {
   });
 
   if (existingUser) {
-    return c.json({ error: "この名前は既に使用されています" }, 409);
+    return c.json({ error: 'この名前は既に使用されています' }, 409);
   }
 
   // ユーザー作成
   const newUser = await db.insert(schema.users).values({ name }).returning();
 
   if (!newUser[0]) {
-    return c.json({ error: "ユーザーの作成に失敗しました" }, 500);
+    return c.json({ error: 'ユーザーの作成に失敗しました' }, 500);
   }
 
   // レスポンス（camelCaseに変換）
@@ -47,7 +47,7 @@ app.post("/", async (c) => {
       name: newUser[0].name,
       createdAt: newUser[0].createdAt,
     },
-    201
+    201,
   );
 });
 

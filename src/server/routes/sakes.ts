@@ -1,29 +1,29 @@
-import { Hono } from "hono";
-import { eq, desc, sql } from "drizzle-orm";
-import { z } from "zod";
-import * as schema from "../db/schema";
-import { getCloudflareEnv } from "@/lib/db";
-import { sendReviewNotification } from "../services/discord";
-import { findUserOrThrow, findSakeOrThrow } from "../helpers/validation";
-import { VALID_TAGS } from "../constants";
-import type { AppEnv } from "../types";
+import { Hono } from 'hono';
+import { eq, desc, sql } from 'drizzle-orm';
+import { z } from 'zod';
+import * as schema from '../db/schema';
+import { getCloudflareEnv } from '@/lib/db';
+import { sendReviewNotification } from '../services/discord';
+import { findUserOrThrow, findSakeOrThrow } from '../helpers/validation';
+import { VALID_TAGS } from '../constants';
+import type { AppEnv } from '../types';
 
 const app = new Hono<AppEnv>();
 
 // リクエストボディのバリデーションスキーマ
 const createReviewSchema = z.object({
-  rating: z.number().int().min(1).max(5, "評価は1-5の範囲で指定してください"),
+  rating: z.number().int().min(1).max(5, '評価は1-5の範囲で指定してください'),
   tags: z.array(z.string()).default([]),
   comment: z.string().optional(),
 });
 
 // GET /api/sakes/:id - お酒詳細
-app.get("/:id", async (c) => {
-  const db = c.get("db");
-  const sakeId = parseInt(c.req.param("id"));
+app.get('/:id', async (c) => {
+  const db = c.var.db;
+  const sakeId = parseInt(c.req.param('id'));
 
   if (isNaN(sakeId)) {
-    return c.json({ error: "無効なお酒IDです" }, 400);
+    return c.json({ error: '無効なお酒IDです' }, 400);
   }
 
   const sake = await findSakeOrThrow(db, sakeId);
@@ -80,17 +80,17 @@ app.get("/:id", async (c) => {
 });
 
 // POST /api/sakes/:id/reviews - レビュー投稿
-app.post("/:id/reviews", async (c) => {
-  const db = c.get("db");
-  const sakeId = parseInt(c.req.param("id"));
-  const userId = c.req.header("X-User-Id");
+app.post('/:id/reviews', async (c) => {
+  const db = c.var.db;
+  const sakeId = parseInt(c.req.param('id'));
+  const userId = c.req.header('X-User-Id');
 
   if (isNaN(sakeId)) {
-    return c.json({ error: "無効なお酒IDです" }, 400);
+    return c.json({ error: '無効なお酒IDです' }, 400);
   }
 
   if (!userId) {
-    return c.json({ error: "ユーザーIDが指定されていません" }, 401);
+    return c.json({ error: 'ユーザーIDが指定されていません' }, 401);
   }
 
   const body = await c.req.json();
@@ -107,8 +107,8 @@ app.post("/:id/reviews", async (c) => {
   const invalidTags = tags.filter((tag) => !VALID_TAGS.includes(tag));
   if (invalidTags.length > 0) {
     return c.json(
-      { error: `無効なタグが含まれています: ${invalidTags.join(", ")}` },
-      400
+      { error: `無効なタグが含まれています: ${invalidTags.join(', ')}` },
+      400,
     );
   }
 
@@ -124,14 +124,14 @@ app.post("/:id/reviews", async (c) => {
     .from(schema.sakes)
     .innerJoin(
       schema.breweries,
-      eq(schema.sakes.breweryId, schema.breweries.breweryId)
+      eq(schema.sakes.breweryId, schema.breweries.breweryId),
     )
     .where(eq(schema.sakes.sakeId, sakeId))
     .limit(1)
     .then((rows) => rows[0]);
 
   if (!sakeWithBrewery) {
-    return c.json({ error: "お酒が見つかりません" }, 404);
+    return c.json({ error: 'お酒が見つかりません' }, 404);
   }
 
   // レビュー作成
@@ -147,7 +147,7 @@ app.post("/:id/reviews", async (c) => {
     .returning();
 
   if (!newReview[0]) {
-    return c.json({ error: "レビューの作成に失敗しました" }, 500);
+    return c.json({ error: 'レビューの作成に失敗しました' }, 500);
   }
 
   // Discord通知（非同期）
@@ -156,7 +156,7 @@ app.post("/:id/reviews", async (c) => {
   if (webhookUrl) {
     const notificationData = {
       sakeName: sakeWithBrewery.name,
-      breweryName: sakeWithBrewery.breweryName || "不明",
+      breweryName: sakeWithBrewery.breweryName || '不明',
       rating,
       tags,
       comment,
@@ -167,13 +167,13 @@ app.post("/:id/reviews", async (c) => {
     try {
       if (c.executionCtx) {
         c.executionCtx.waitUntil(
-          sendReviewNotification(notificationData, webhookUrl)
+          sendReviewNotification(notificationData, webhookUrl),
         );
       } else {
         sendReviewNotification(notificationData, webhookUrl);
       }
     } catch (err) {
-      console.error("Discord通知の送信時にエラーが発生しました:", err);
+      console.error('Discord通知の送信時にエラーが発生しました:', err);
     }
   }
 
@@ -188,7 +188,7 @@ app.post("/:id/reviews", async (c) => {
       comment: newReview[0].comment,
       createdAt: newReview[0].createdAt,
     },
-    201
+    201,
   );
 });
 

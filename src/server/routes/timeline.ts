@@ -1,12 +1,12 @@
-import { Hono } from "hono";
-import { desc, eq } from "drizzle-orm";
-import * as schema from "../db/schema";
-import type { AppEnv } from "../types";
+import { Hono } from 'hono';
+import { desc, eq } from 'drizzle-orm';
+import * as schema from '../db/schema';
+import type { AppEnv } from '../types';
 
 const app = new Hono<AppEnv>();
 
 type TimelineItem = {
-  type: "review" | "brewery_note";
+  type: 'review' | 'brewery_note';
   id: number;
   userName: string;
   createdAt: string;
@@ -20,8 +20,8 @@ type TimelineItem = {
 };
 
 // GET /api/timeline - 全投稿を新しい順に取得
-app.get("/", async (c) => {
-  const db = c.get("db");
+app.get('/', async (c) => {
+  const db = c.var.db;
 
   // レビュー取得（JOIN: users, sakes, breweries）
   const reviewsData = await db
@@ -41,7 +41,7 @@ app.get("/", async (c) => {
     .innerJoin(schema.sakes, eq(schema.sakes.sakeId, schema.reviews.sakeId))
     .innerJoin(
       schema.breweries,
-      eq(schema.breweries.breweryId, schema.sakes.breweryId)
+      eq(schema.breweries.breweryId, schema.sakes.breweryId),
     )
     .orderBy(desc(schema.reviews.createdAt));
 
@@ -58,17 +58,17 @@ app.get("/", async (c) => {
     .from(schema.breweryNotes)
     .innerJoin(
       schema.users,
-      eq(schema.users.userId, schema.breweryNotes.userId)
+      eq(schema.users.userId, schema.breweryNotes.userId),
     )
     .innerJoin(
       schema.breweries,
-      eq(schema.breweries.breweryId, schema.breweryNotes.breweryId)
+      eq(schema.breweries.breweryId, schema.breweryNotes.breweryId),
     )
     .orderBy(desc(schema.breweryNotes.createdAt));
 
   // タイムラインアイテムに変換
   const reviewItems: TimelineItem[] = reviewsData.map((review) => ({
-    type: "review" as const,
+    type: 'review' as const,
     id: review.reviewId,
     userName: review.userName,
     createdAt: review.createdAt,
@@ -81,7 +81,7 @@ app.get("/", async (c) => {
   }));
 
   const noteItems: TimelineItem[] = notesData.map((note) => ({
-    type: "brewery_note" as const,
+    type: 'brewery_note' as const,
     id: note.noteId,
     userName: note.userName,
     createdAt: note.createdAt,
