@@ -12,21 +12,21 @@ const app = new Hono<AppEnv>();
 app.get('/', async (c) => {
   const db = c.var.db;
 
-  // 各酒蔵の平均評価を計算するため、サブクエリを使用
+  // 各酒蔵の平均評価を計算するため、LEFT JOIN を使用
   const result = await db
     .select({
       breweryId: breweries.breweryId,
       name: breweries.name,
       mapPositionX: breweries.mapPositionX,
       mapPositionY: breweries.mapPositionY,
-      averageRating: sql<number | null>`(
-        SELECT AVG(CAST(r.rating AS REAL))
-        FROM ${reviews} r
-        INNER JOIN ${sakes} s ON s.sake_id = r.sake_id
-        WHERE s.brewery_id = ${breweries.breweryId}
-      )`,
+      averageRating: sql<
+        number | null
+      >`AVG(CASE WHEN ${reviews.rating} IS NOT NULL THEN CAST(${reviews.rating} AS REAL) ELSE NULL END)`,
     })
-    .from(breweries);
+    .from(breweries)
+    .leftJoin(sakes, eq(sakes.breweryId, breweries.breweryId))
+    .leftJoin(reviews, eq(reviews.sakeId, sakes.sakeId))
+    .groupBy(breweries.breweryId, breweries.name, breweries.mapPositionX, breweries.mapPositionY);
 
   return c.json(
     result.map((row) => ({
@@ -59,14 +59,14 @@ app.get('/:id', async (c) => {
       isCustom: sakes.isCustom,
       addedBy: sakes.addedBy,
       createdAt: sakes.createdAt,
-      averageRating: sql<number | null>`(
-        SELECT AVG(CAST(r.rating AS REAL))
-        FROM ${reviews} r
-        WHERE r.sake_id = ${sakes.sakeId}
-      )`,
+      averageRating: sql<
+        number | null
+      >`AVG(CASE WHEN ${reviews.rating} IS NOT NULL THEN CAST(${reviews.rating} AS REAL) ELSE NULL END)`,
     })
     .from(sakes)
-    .where(eq(sakes.breweryId, breweryId));
+    .leftJoin(reviews, eq(reviews.sakeId, sakes.sakeId))
+    .where(eq(sakes.breweryId, breweryId))
+    .groupBy(sakes.sakeId, sakes.name, sakes.type, sakes.isCustom, sakes.addedBy, sakes.createdAt);
 
   return c.json({
     brewery: {
