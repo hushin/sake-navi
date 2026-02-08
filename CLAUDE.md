@@ -78,7 +78,7 @@ src/
 - Next.js の API Routes ではなく Hono を使用
 - Hono は `src/server/index.ts` でアプリを定義
 - OpenNext 経由で Cloudflare Workers にデプロイ時、Hono を統合
-- D1バインディングは Hono の `c.env.DB` で参照
+- D1バインディングは Hono の `c.var.db` で参照
 
 ### Discord通知
 
