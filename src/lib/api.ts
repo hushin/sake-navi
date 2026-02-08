@@ -91,6 +91,7 @@ export type BreweryWithRating = {
   mapPositionX: number;
   mapPositionY: number;
   averageRating: number | null;
+  hasUserReviewed: boolean;
 };
 
 export type Sake = {
@@ -115,6 +116,7 @@ export type BreweryDetail = {
 export async function getBreweries(): Promise<BreweryWithRating[]> {
   const response = await fetch(`${baseUrl}/api/breweries`, {
     method: 'GET',
+    headers: getHeaders(),
   });
   return handleResponse<BreweryWithRating[]>(response);
 }

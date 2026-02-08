@@ -11,6 +11,7 @@ const app = new Hono<AppEnv>();
 // GET /api/breweries - 酒蔵一覧（マップ表示用）
 app.get('/', async (c) => {
   const db = c.var.db;
+  const userId = c.req.header('X-User-Id');
 
   // 各酒蔵の平均評価を計算するため、LEFT JOIN を使用
   const result = await db
@@ -28,6 +29,21 @@ app.get('/', async (c) => {
     .leftJoin(reviews, eq(reviews.sakeId, sakes.sakeId))
     .groupBy(breweries.breweryId, breweries.name, breweries.mapPositionX, breweries.mapPositionY);
 
+  // ユーザーがログインしている場合、レビュー済みの酒蔵を判定
+  let userReviewedBreweryIds = new Set<number>();
+  if (userId) {
+    const userReviews = await db
+      .select({
+        breweryId: sakes.breweryId,
+      })
+      .from(reviews)
+      .innerJoin(sakes, eq(reviews.sakeId, sakes.sakeId))
+      .where(eq(reviews.userId, userId))
+      .groupBy(sakes.breweryId);
+
+    userReviewedBreweryIds = new Set(userReviews.map((r) => r.breweryId));
+  }
+
   return c.json(
     result.map((row) => ({
       breweryId: row.breweryId,
@@ -35,6 +51,7 @@ app.get('/', async (c) => {
       mapPositionX: row.mapPositionX,
       mapPositionY: row.mapPositionY,
       averageRating: row.averageRating ?? null,
+      hasUserReviewed: userReviewedBreweryIds.has(row.breweryId),
     })),
   );
 });

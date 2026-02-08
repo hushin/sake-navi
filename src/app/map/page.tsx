@@ -221,10 +221,12 @@ function MapPageContent() {
 
                     {/* 実際のコンテンツ */}
                     <div
-                      className={`relative bg-white rounded-lg border-2 hover:border-blue-500 group-hover:scale-110 transition-all ${
+                      className={`relative rounded-lg border-2 hover:border-blue-500 group-hover:scale-110 transition-all ${
                         isFocused
                           ? 'border-green-500 shadow-lg shadow-green-200 scale-110'
-                          : 'border-gray-300'
+                          : brewery.hasUserReviewed
+                            ? 'border-blue-400 bg-blue-50'
+                            : 'border-gray-300 bg-white'
                       }`}
                       style={{
                         width: CELL_W,
@@ -260,13 +262,19 @@ function MapPageContent() {
 
       {/* 凡例 */}
       <div className="bg-white border-t border-gray-200 p-4">
-        <div className="max-w-7xl mx-auto">
-          <h2>凡例</h2>
-          <div className="flex items-center justify-center gap-6 text-sm text-gray-600">
-            <div className="flex items-center gap-2">
-              <span className="text-yellow-500">★</span>
-              <span>平均評価</span>
-            </div>
+        <div className="flex items-center justify-center gap-4 text-sm text-gray-600">
+          <h2 className="text-sm font-semibold text-gray-700 mr-4">凡例</h2>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-blue-50 border-2 border-blue-400 rounded"></div>
+            <span>レビュー済み</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-white border-2 border-gray-300 rounded"></div>
+            <span>未レビュー</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-yellow-500">★</span>
+            <span>平均評価</span>
           </div>
         </div>
       </div>
