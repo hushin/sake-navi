@@ -4,6 +4,7 @@ import { z } from "zod";
 import * as schema from "../db/schema";
 import { getCloudflareEnv } from "@/lib/db";
 import { sendReviewNotification } from "../services/discord";
+import { findUserOrThrow, findSakeOrThrow } from "../helpers/validation";
 import { VALID_TAGS } from "../constants";
 import type { AppEnv } from "../types";
 
@@ -26,17 +27,7 @@ app.get("/:id", async (c) => {
       return c.json({ error: "無効なお酒IDです" }, 400);
     }
 
-    // お酒情報を取得
-    const sake = await db
-      .select()
-      .from(schema.sakes)
-      .where(eq(schema.sakes.sakeId, sakeId))
-      .limit(1)
-      .then((rows) => rows[0]);
-
-    if (!sake) {
-      return c.json({ error: "お酒が見つかりません" }, 404);
-    }
+    const sake = await findSakeOrThrow(db, sakeId);
 
     // レビュー一覧を取得（新しい順、ユーザー名を含める）
     const reviewsData = await db
@@ -134,20 +125,10 @@ app.post("/:id/reviews", async (c) => {
       );
     }
 
-    // ユーザーの存在確認
-    const user = await db
-      .select()
-      .from(schema.users)
-      .where(eq(schema.users.userId, userId))
-      .limit(1)
-      .then((rows) => rows[0]);
+    const user = await findUserOrThrow(db, userId);
 
-    if (!user) {
-      return c.json({ error: "ユーザーが見つかりません" }, 404);
-    }
-
-    // お酒の存在確認
-    const sake = await db
+    // お酒と酒蔵情報を取得（通知用に酒蔵名も必要）
+    const sakeWithBrewery = await db
       .select({
         sakeId: schema.sakes.sakeId,
         name: schema.sakes.name,
@@ -162,7 +143,7 @@ app.post("/:id/reviews", async (c) => {
       .limit(1)
       .then((rows) => rows[0]);
 
-    if (!sake) {
+    if (!sakeWithBrewery) {
       return c.json({ error: "お酒が見つかりません" }, 404);
     }
 
@@ -190,8 +171,8 @@ app.post("/:id/reviews", async (c) => {
     const webhookUrl = env.DISCORD_WEBHOOK_URL;
     if (webhookUrl) {
       const notificationData = {
-        sakeName: sake.name,
-        breweryName: sake.breweryName || "不明",
+        sakeName: sakeWithBrewery.name,
+        breweryName: sakeWithBrewery.breweryName || "不明",
         rating,
         tags,
         comment,

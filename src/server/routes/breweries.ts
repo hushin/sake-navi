@@ -1,9 +1,12 @@
 import { Hono } from "hono";
 import { eq, sql, desc } from "drizzle-orm";
-import * as schema from "../db/schema";
 import { breweries, sakes, reviews, breweryNotes } from "../db/schema";
 import { getCloudflareEnv } from "@/lib/db";
 import { sendBreweryNoteNotification } from "../services/discord";
+import {
+  findUserOrThrow,
+  findBreweryOrThrow,
+} from "../helpers/validation";
 import type { AppEnv } from "../types";
 
 const app = new Hono<AppEnv>();
@@ -48,14 +51,7 @@ app.get("/:id", async (c) => {
     return c.json({ error: "無効な酒蔵IDです" }, 400);
   }
 
-  // 酒蔵情報取得
-  const brewery = await db.query.breweries.findFirst({
-    where: eq(breweries.breweryId, breweryId),
-  });
-
-  if (!brewery) {
-    return c.json({ error: "酒蔵が見つかりません" }, 404);
-  }
+  const brewery = await findBreweryOrThrow(db, breweryId);
 
   // 出品酒一覧と各酒の平均評価を取得
   const sakesWithRatings = await db
@@ -105,14 +101,7 @@ app.get("/:id/notes", async (c) => {
     return c.json({ error: "無効な酒蔵IDです" }, 400);
   }
 
-  // 酒蔵が存在するか確認
-  const brewery = await db.query.breweries.findFirst({
-    where: eq(breweries.breweryId, breweryId),
-  });
-
-  if (!brewery) {
-    return c.json({ error: "酒蔵が見つかりません" }, 404);
-  }
+  await findBreweryOrThrow(db, breweryId);
 
   // ノート一覧を新しい順に取得（ユーザー情報も含む）
   const notes = await db.query.breweryNotes.findMany({
@@ -157,23 +146,8 @@ app.post("/:id/notes", async (c) => {
     return c.json({ error: "コメントを入力してください" }, 400);
   }
 
-  // 酒蔵が存在するか確認
-  const brewery = await db.query.breweries.findFirst({
-    where: eq(breweries.breweryId, breweryId),
-  });
-
-  if (!brewery) {
-    return c.json({ error: "酒蔵が見つかりません" }, 404);
-  }
-
-  // ユーザーが存在するか確認
-  const user = await db.query.users.findFirst({
-    where: eq(schema.users.userId, userId),
-  });
-
-  if (!user) {
-    return c.json({ error: "ユーザーが見つかりません" }, 404);
-  }
+  const brewery = await findBreweryOrThrow(db, breweryId);
+  const user = await findUserOrThrow(db, userId);
 
   // ノートを作成
   const [newNote] = await db
@@ -245,23 +219,8 @@ app.post("/:id/sakes", async (c) => {
     return c.json({ error: "お酒の名前を入力してください" }, 400);
   }
 
-  // 酒蔵が存在するか確認
-  const brewery = await db.query.breweries.findFirst({
-    where: eq(breweries.breweryId, breweryId),
-  });
-
-  if (!brewery) {
-    return c.json({ error: "酒蔵が見つかりません" }, 404);
-  }
-
-  // ユーザーが存在するか確認
-  const user = await db.query.users.findFirst({
-    where: eq(schema.users.userId, userId),
-  });
-
-  if (!user) {
-    return c.json({ error: "ユーザーが見つかりません" }, 404);
-  }
+  await findBreweryOrThrow(db, breweryId);
+  await findUserOrThrow(db, userId);
 
   // お酒を追加（is_custom=true）
   const [newSake] = await db
