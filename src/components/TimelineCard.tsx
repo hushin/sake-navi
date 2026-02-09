@@ -66,7 +66,7 @@ export function TimelineCard({
   return (
     <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-5">
       {/* ヘッダー */}
-      <div className="flex items-start justify-between mb-2">
+      <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-3">
           <p className="font-semibold text-slate-800">{userName}</p>
           <p className="text-sm text-slate-500">{formatDate(createdAt)}</p>

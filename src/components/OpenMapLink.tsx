@@ -8,7 +8,7 @@ export function OpenMapLink({ breweryId }: Props): React.ReactElement {
   return (
     <Link
       href={`/map?brewery=${breweryId}`}
-      className="flex items-center gap-2 px-2 py-2 text-slate-600 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+      className="flex items-center gap-2 p-2 -m-2 text-slate-600 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
       title="マップで開く"
     >
       <svg

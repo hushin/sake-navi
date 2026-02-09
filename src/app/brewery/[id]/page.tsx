@@ -258,7 +258,7 @@ export default function BreweryDetailPage() {
                     <button
                       type="button"
                       onClick={() => handleToggleBookmark(sake.sakeId)}
-                      className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                      className={`p-1.5 -m-1.5 rounded-lg transition-colors cursor-pointer ${
                         bookmarkedSakes.has(sake.sakeId)
                           ? 'text-amber-500 hover:text-amber-600'
                           : 'text-slate-300 hover:text-amber-400'
