@@ -36,7 +36,7 @@ export default function ReviewsPage() {
   const [users, setUsers] = useState<User[]>([]);
 
   // フィルタ
-  const [sort, setSort] = useState<'latest' | 'rating'>('latest');
+  const [sort, setSort] = useState<'latest' | 'rating'>('rating');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string>('');
 
