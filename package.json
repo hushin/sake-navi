@@ -18,6 +18,7 @@
     "db:seed:local": "wrangler d1 execute sake-navi-db --local --file=./db/seed.sql",
     "db:seed:remote": "wrangler d1 execute sake-navi-db --remote --file=./db/seed.sql",
     "db:seed-demo:local": "wrangler d1 execute sake-navi-db --local --file=./db/seed-demo.sql",
+    "db:seed-demo:remote": "wrangler d1 execute sake-navi-db --remote --file=./db/seed-demo.sql",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check"
   },
