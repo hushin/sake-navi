@@ -213,7 +213,7 @@ export default function BreweryDetailPage() {
             <h2 className="text-lg font-bold text-slate-800">出品酒</h2>
             <button
               onClick={openAddSakeModal}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm hover:shadow-md"
+              className="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm hover:shadow-md"
             >
               + 酒を追加
             </button>
@@ -325,7 +325,7 @@ export default function BreweryDetailPage() {
                             <button
                               type="button"
                               onClick={() => openEditReviewModal(sake.sakeId, myReview)}
-                              className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg transition-colors whitespace-nowrap cursor-pointer"
+                              className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap cursor-pointer"
                             >
                               レビュー編集
                             </button>
@@ -334,7 +334,7 @@ export default function BreweryDetailPage() {
                         return (
                           <Link
                             href={`/brewery/${breweryId}/sake/${sake.sakeId}/review`}
-                            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors whitespace-nowrap"
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap"
                           >
                             レビュー投稿
                           </Link>
