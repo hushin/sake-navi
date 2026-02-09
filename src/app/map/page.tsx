@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { getBreweries, type BreweryWithRating } from '@/lib/api';
+import { getBreweries, getBookmarks, type BreweryWithRating } from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
 import { UserMenu } from '@/components/UserMenu';
 
@@ -21,6 +21,7 @@ function MapPageContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [focusedBreweryId, setFocusedBreweryId] = useState<number | null>(null);
+  const [bookmarkedBreweryIds, setBookmarkedBreweryIds] = useState<Set<number>>(new Set());
   const breweryRefs = useRef<Map<number, HTMLAnchorElement>>(new Map());
 
   useEffect(() => {
@@ -30,19 +31,26 @@ function MapPageContent() {
       return;
     }
 
-    // 酒蔵一覧を取得
-    const fetchBreweries = async () => {
+    // 酒蔵一覧とブックマークを取得
+    const fetchData = async () => {
       try {
-        const data = await getBreweries();
-        setBreweries(data);
+        const [breweriesData, bookmarksData] = await Promise.all([
+          getBreweries(),
+          getBookmarks(),
+        ]);
+        setBreweries(breweriesData);
+
+        // ブックマークされたお酒の酒蔵IDを抽出
+        const breweryIds = new Set(bookmarksData.map((b) => b.brewery.breweryId));
+        setBookmarkedBreweryIds(breweryIds);
       } catch (err) {
-        setError(err instanceof Error ? err.message : '酒蔵データの取得に失敗しました');
+        setError(err instanceof Error ? err.message : 'データの取得に失敗しました');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchBreweries();
+    fetchData();
   }, [router]);
 
   // URLパラメータから酒蔵IDを取得してフォーカス
@@ -233,6 +241,20 @@ function MapPageContent() {
                         height: CELL_H,
                       }}
                     >
+                      {/* ブックマークアイコン */}
+                      {bookmarkedBreweryIds.has(brewery.breweryId) && (
+                        <div className="absolute -top-1 -right-1 bg-yellow-400 rounded-full p-0.5 shadow-sm">
+                          <svg
+                            className="w-3 h-3 text-white"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+                          </svg>
+                        </div>
+                      )}
+
                       {/* 酒蔵名 */}
                       <div className="font-semibold text-sm text-gray-900 mb-1 text-center">
                         {brewery.name}
@@ -275,6 +297,21 @@ function MapPageContent() {
           <div className="flex items-center gap-2">
             <span className="text-yellow-500">★</span>
             <span>平均評価</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="relative w-4 h-4">
+              <div className="absolute -top-0.5 -right-0.5 bg-yellow-400 rounded-full p-0.5">
+                <svg
+                  className="w-2 h-2 text-white"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+                </svg>
+              </div>
+            </div>
+            <span>ブックマーク済み</span>
           </div>
         </div>
       </div>
