@@ -11,6 +11,23 @@ const createUserSchema = z.object({
   name: z.string().min(1, '名前を入力してください'),
 });
 
+// GET /api/users - ユーザー一覧取得
+app.get('/', async (c) => {
+  const db = c.var.db;
+
+  const allUsers = await db.query.users.findMany({
+    orderBy: (users, { asc }) => [asc(users.name)],
+  });
+
+  return c.json(
+    allUsers.map((user) => ({
+      id: user.userId,
+      name: user.name,
+      createdAt: user.createdAt,
+    })),
+  );
+});
+
 // POST /api/users - ユーザー登録
 app.post('/', async (c) => {
   const db = c.var.db;

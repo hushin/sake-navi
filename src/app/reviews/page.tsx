@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getReviews, type ReviewSearchItem } from '@/lib/api';
+import { getReviews, getUsers, type ReviewSearchItem, type User } from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
 import { UserMenu } from '@/components/UserMenu';
 import { getTagColorClass } from '@/lib/tagColors';
@@ -32,9 +32,13 @@ export default function ReviewsPage() {
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [hasReachedEnd, setHasReachedEnd] = useState(false);
 
+  // ユーザー一覧
+  const [users, setUsers] = useState<User[]>([]);
+
   // フィルタ
   const [sort, setSort] = useState<'latest' | 'rating'>('latest');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<string>('');
 
   // Intersection Observer
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -45,6 +49,11 @@ export default function ReviewsPage() {
       router.push('/');
       return;
     }
+
+    // ユーザー一覧を取得
+    getUsers()
+      .then((data) => setUsers(data))
+      .catch(console.error);
 
     fetchReviews();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -62,6 +71,7 @@ export default function ReviewsPage() {
       const response = await getReviews({
         sort,
         tags: selectedTags.length > 0 ? selectedTags : undefined,
+        userId: selectedUserId || undefined,
       });
       setItems(response.items);
       setNextCursor(response.nextCursor);
@@ -81,6 +91,7 @@ export default function ReviewsPage() {
       const response = await getReviews({
         sort,
         tags: selectedTags.length > 0 ? selectedTags : undefined,
+        userId: selectedUserId || undefined,
         cursor: nextCursor,
       });
       setItems((prev) => [...prev, ...response.items]);
@@ -91,7 +102,7 @@ export default function ReviewsPage() {
     } finally {
       setIsLoadingMore(false);
     }
-  }, [nextCursor, isLoadingMore, hasReachedEnd, sort, selectedTags]);
+  }, [nextCursor, isLoadingMore, hasReachedEnd, sort, selectedTags, selectedUserId]);
 
   // Intersection Observer
   useEffect(() => {
@@ -167,16 +178,34 @@ export default function ReviewsPage() {
       <main className="max-w-4xl mx-auto px-4 py-6">
         {/* フィルタ */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-          <div className="flex items-center gap-4 mb-3">
-            <label className="text-sm font-medium text-slate-700">並び順:</label>
-            <select
-              value={sort}
-              onChange={(e) => setSort(e.target.value as 'latest' | 'rating')}
-              className="border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="latest">新着順</option>
-              <option value="rating">評価順</option>
-            </select>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+            <div className="flex items-center gap-4">
+              <label className="text-sm font-medium text-slate-700">並び順:</label>
+              <select
+                value={sort}
+                onChange={(e) => setSort(e.target.value as 'latest' | 'rating')}
+                className="border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="latest">新着順</option>
+                <option value="rating">評価順</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <label className="text-sm font-medium text-slate-700">ユーザー:</label>
+              <select
+                value={selectedUserId}
+                onChange={(e) => setSelectedUserId(e.target.value)}
+                className="border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex-1"
+              >
+                <option value="">すべて</option>
+                {users.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div className="mb-3">

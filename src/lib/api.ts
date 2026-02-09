@@ -61,6 +61,17 @@ export type User = {
 };
 
 /**
+ * ユーザー一覧取得
+ */
+export async function getUsers(): Promise<User[]> {
+  const response = await fetch(`${baseUrl}/api/users`, {
+    method: 'GET',
+    headers: getHeaders(),
+  });
+  return handleResponse<User[]>(response);
+}
+
+/**
  * ユーザー登録
  */
 export async function createUser(name: string): Promise<User> {
