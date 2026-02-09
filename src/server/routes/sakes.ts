@@ -115,6 +115,9 @@ app.post('/:id/reviews', async (c) => {
     .select({
       sakeId: schema.sakes.sakeId,
       name: schema.sakes.name,
+      type: schema.sakes.type,
+      isLimited: schema.sakes.isLimited,
+      paidTastingPrice: schema.sakes.paidTastingPrice,
       breweryName: schema.breweries.name,
       breweryId: schema.breweries.breweryId,
     })
@@ -151,6 +154,9 @@ app.post('/:id/reviews', async (c) => {
   if (webhookUrl) {
     const notificationData = {
       sakeName: sakeWithBrewery.name,
+      sakeType: sakeWithBrewery.type,
+      isLimited: sakeWithBrewery.isLimited,
+      paidTastingPrice: sakeWithBrewery.paidTastingPrice,
       breweryName: sakeWithBrewery.breweryName || '不明',
       breweryId: sakeWithBrewery.breweryId,
       rating,

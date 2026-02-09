@@ -4,6 +4,9 @@
 
 interface ReviewNotificationData {
   sakeName: string;
+  sakeType?: string | null;
+  isLimited?: boolean;
+  paidTastingPrice?: number | null;
   breweryName: string;
   breweryId: number;
   rating: number;
@@ -45,13 +48,20 @@ export async function sendReviewNotification(
             },
             {
               name: 'お酒',
-              value: data.sakeName,
-              inline: true,
+              value: [
+                data.sakeName,
+                data.sakeType ? `（${data.sakeType}）` : '',
+                data.isLimited ? '【限定】' : '',
+                data.paidTastingPrice ? `【有料試飲 ¥${data.paidTastingPrice}】` : '',
+              ]
+                .filter(Boolean)
+                .join(' '),
+              inline: false,
             },
             {
               name: '評価',
               value: '⭐'.repeat(data.rating),
-              inline: false,
+              inline: true,
             },
             ...(data.tags.length > 0
               ? [
