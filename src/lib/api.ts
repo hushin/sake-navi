@@ -255,6 +255,27 @@ export async function getSakeDetail(sakeId: number): Promise<SakeDetail> {
 }
 
 /**
+ * お酒編集（カスタム酒のみ）
+ */
+export async function updateSake(
+  sakeId: number,
+  data: {
+    name: string;
+    type?: string;
+    isLimited?: boolean;
+    paidTastingPrice?: number;
+    category?: string;
+  },
+): Promise<Sake> {
+  const response = await fetch(`${baseUrl}/api/sakes/${sakeId}`, {
+    method: 'PUT',
+    headers: getHeaders(),
+    body: JSON.stringify(data),
+  });
+  return handleResponse<Sake>(response);
+}
+
+/**
  * レビュー投稿
  */
 export async function createReview(

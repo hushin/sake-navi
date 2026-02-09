@@ -264,4 +264,77 @@ app.delete('/:id/reviews/:reviewId', async (c) => {
   return c.json({ success: true });
 });
 
+// PUT /api/sakes/:id - お酒編集
+app.put('/:id', async (c) => {
+  const db = c.var.db;
+  const sakeId = parseInt(c.req.param('id'));
+  const userId = c.req.header('X-User-Id');
+
+  if (isNaN(sakeId)) {
+    return c.json({ error: '無効なお酒IDです' }, 400);
+  }
+
+  if (!userId) {
+    return c.json({ error: 'ユーザーIDが指定されていません' }, 401);
+  }
+
+  // お酒の存在確認
+  const sake = await findSakeOrThrow(db, sakeId);
+
+  // is_customのお酒のみ編集可能
+  if (!sake.isCustom) {
+    return c.json({ error: 'マスタデータのお酒は編集できません' }, 403);
+  }
+
+  // zodバリデーションスキーマ
+  const updateSakeSchema = z.object({
+    name: z.string().trim().min(1, 'お酒の名前を入力してください'),
+    type: z.string().trim().optional(),
+    isLimited: z.boolean().optional(),
+    paidTastingPrice: z
+      .number()
+      .int()
+      .positive('有料試飲価格は正の整数で入力してください')
+      .optional(),
+    category: z.enum(['清酒', 'リキュール', 'みりん', 'その他']).optional(),
+  });
+
+  // リクエストボディの検証
+  const body = await c.req.json();
+  const validationResult = updateSakeSchema.safeParse(body);
+
+  if (!validationResult.success) {
+    const errorMessages = validationResult.error.issues.map((e) => e.message).join(', ');
+    return c.json({ error: errorMessages }, 400);
+  }
+
+  const { name, type, isLimited, paidTastingPrice, category } = validationResult.data;
+
+  // お酒を更新
+  const [updated] = await db
+    .update(schema.sakes)
+    .set({
+      name,
+      type: type || null,
+      isLimited: isLimited ?? sake.isLimited,
+      paidTastingPrice: paidTastingPrice ?? sake.paidTastingPrice,
+      category: category ?? sake.category,
+    })
+    .where(eq(schema.sakes.sakeId, sakeId))
+    .returning();
+
+  return c.json({
+    sakeId: updated.sakeId,
+    breweryId: updated.breweryId,
+    name: updated.name,
+    type: updated.type,
+    isCustom: updated.isCustom,
+    addedBy: updated.addedBy,
+    isLimited: updated.isLimited,
+    paidTastingPrice: updated.paidTastingPrice,
+    category: updated.category,
+    createdAt: updated.createdAt,
+  });
+});
+
 export default app;

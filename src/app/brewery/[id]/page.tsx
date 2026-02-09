@@ -7,6 +7,7 @@ import {
   getBreweryDetail,
   getBreweryNotes,
   addCustomSake,
+  updateSake,
   createBreweryNote,
   updateReview,
   deleteReview,
@@ -18,6 +19,7 @@ import {
   type BreweryDetail,
   type BreweryNote,
   type Review,
+  type Sake,
 } from '@/lib/api';
 import { getAuth, isAuthenticated } from '@/lib/auth';
 import { OpenMapLink } from '@/components/OpenMapLink';
@@ -79,6 +81,16 @@ export default function BreweryDetailPage() {
   // ノート削除確認用
   const [deletingNote, setDeletingNote] = useState<BreweryNote | null>(null);
   const [isDeletingNote, setIsDeletingNote] = useState(false);
+
+  // お酒編集モーダル用のstate
+  const [editingSake, setEditingSake] = useState<Sake | null>(null);
+  const [editSakeName, setEditSakeName] = useState('');
+  const [editSakeType, setEditSakeType] = useState('');
+  const [editSakeIsLimited, setEditSakeIsLimited] = useState(false);
+  const [editSakePaidTastingPrice, setEditSakePaidTastingPrice] = useState('');
+  const [editSakeCategory, setEditSakeCategory] = useState('清酒');
+  const [isEditingSake, setIsEditingSake] = useState(false);
+  const [editSakeError, setEditSakeError] = useState<string | null>(null);
 
   // ブックマーク用のstate (sakeId -> bookmarked)
   const [bookmarkedSakes, setBookmarkedSakes] = useState<Set<number>>(new Set());
@@ -319,6 +331,58 @@ export default function BreweryDetailPage() {
     }
   };
 
+  // お酒編集開始
+  const handleStartEditSake = (sake: Sake) => {
+    setEditingSake(sake);
+    setEditSakeName(sake.name);
+    setEditSakeType(sake.type || '');
+    setEditSakeIsLimited(sake.isLimited);
+    setEditSakePaidTastingPrice(sake.paidTastingPrice != null ? String(sake.paidTastingPrice) : '');
+    setEditSakeCategory(sake.category || '清酒');
+    setEditSakeError(null);
+  };
+
+  // お酒編集保存
+  const handleSaveEditSake = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingSake) return;
+
+    if (!editSakeName.trim()) {
+      setEditSakeError('お酒の名前を入力してください');
+      return;
+    }
+
+    const paidTastingPrice = editSakePaidTastingPrice.trim()
+      ? parseInt(editSakePaidTastingPrice.trim(), 10)
+      : undefined;
+
+    if (editSakePaidTastingPrice.trim() && (isNaN(paidTastingPrice!) || paidTastingPrice! <= 0)) {
+      setEditSakeError('有料試飲価格は正の整数で入力してください');
+      return;
+    }
+
+    setIsEditingSake(true);
+    setEditSakeError(null);
+
+    try {
+      await updateSake(editingSake.sakeId, {
+        name: editSakeName.trim(),
+        type: editSakeType.trim() || undefined,
+        isLimited: editSakeIsLimited,
+        paidTastingPrice,
+        category: editSakeCategory,
+      });
+
+      const updatedDetail = await getBreweryDetail(breweryId);
+      setBreweryDetail(updatedDetail);
+      setEditingSake(null);
+    } catch (err) {
+      setEditSakeError(err instanceof Error ? err.message : 'お酒の編集に失敗しました');
+    } finally {
+      setIsEditingSake(false);
+    }
+  };
+
   // ブックマークトグル
   const handleToggleBookmark = async (sakeId: number) => {
     const isBookmarked = bookmarkedSakes.has(sakeId);
@@ -413,7 +477,7 @@ export default function BreweryDetailPage() {
                   key={sake.sakeId}
                   className="bg-white rounded-xl p-3 border border-slate-200 shadow-sm"
                 >
-                  <div className="flex items-center justify-between gap-3 mb-3">
+                  <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex items-center gap-2 flex-1 min-w-0">
                       <h3 className="font-semibold text-slate-800 truncate">{sake.name}</h3>
                       {sake.type && (
@@ -437,6 +501,21 @@ export default function BreweryDetailPage() {
                         </span>
                       )}
                     </div>
+                    <div className="flex items-center gap-2">
+                      {
+                        <button
+                          type="button"
+                          onClick={() => handleStartEditSake(sake)}
+                          className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded transition-colors cursor-pointer"
+                          title="お酒を編集"
+                        >
+                          編集
+                        </button>
+                      }
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                       {sake.isCustom && sake.addedBy && (
                         <div className="relative group">
@@ -486,6 +565,8 @@ export default function BreweryDetailPage() {
                           <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
                         </svg>
                       </button>
+                    </div>
+                    <div>
                       {(() => {
                         const myReview = sake.reviews.find((r) => r.user.id === currentUserId);
                         if (myReview) {
@@ -495,7 +576,7 @@ export default function BreweryDetailPage() {
                               onClick={() => handleStartEditReview(sake.sakeId, myReview)}
                               className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg transition-colors whitespace-nowrap cursor-pointer"
                             >
-                              編集
+                              レビュー編集
                             </button>
                           );
                         }
@@ -990,6 +1071,140 @@ export default function BreweryDetailPage() {
                 {isDeletingNote ? '削除中...' : '削除'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* お酒編集モーダル */}
+      {editingSake && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+            <h3 className="text-xl font-bold text-slate-800 mb-4">お酒を編集</h3>
+            <form onSubmit={handleSaveEditSake} className="space-y-4">
+              <div>
+                <label
+                  htmlFor="edit-sake-name"
+                  className="block text-sm font-medium text-slate-700 mb-2"
+                >
+                  お酒の名前 <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="edit-sake-name"
+                  type="text"
+                  value={editSakeName}
+                  onChange={(e) => setEditSakeName(e.target.value)}
+                  placeholder="例: 特別純米 しぼりたて"
+                  disabled={isEditingSake}
+                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-slate-100 disabled:cursor-not-allowed"
+                  maxLength={100}
+                  autoFocus
+                  data-1p-ignore
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="edit-sake-type"
+                  className="block text-sm font-medium text-slate-700 mb-2"
+                >
+                  種類
+                </label>
+                <input
+                  id="edit-sake-type"
+                  type="text"
+                  value={editSakeType}
+                  onChange={(e) => setEditSakeType(e.target.value)}
+                  placeholder="例: 純米大吟醸"
+                  disabled={isEditingSake}
+                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-slate-100 disabled:cursor-not-allowed"
+                  maxLength={50}
+                  data-1p-ignore
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="edit-sake-category"
+                  className="block text-sm font-medium text-slate-700 mb-2"
+                >
+                  区分
+                </label>
+                <select
+                  id="edit-sake-category"
+                  value={editSakeCategory}
+                  onChange={(e) => setEditSakeCategory(e.target.value)}
+                  disabled={isEditingSake}
+                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-slate-100 disabled:cursor-not-allowed"
+                >
+                  <option value="清酒">清酒</option>
+                  <option value="リキュール">リキュール</option>
+                  <option value="みりん">みりん</option>
+                  <option value="その他">その他</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  id="edit-sake-is-limited"
+                  type="checkbox"
+                  checked={editSakeIsLimited}
+                  onChange={(e) => setEditSakeIsLimited(e.target.checked)}
+                  disabled={isEditingSake}
+                  className="w-5 h-5 border-slate-300 rounded focus:ring-2 focus:ring-blue-500 text-blue-600 disabled:cursor-not-allowed"
+                />
+                <label
+                  htmlFor="edit-sake-is-limited"
+                  className="text-sm font-medium text-slate-700 cursor-pointer select-none"
+                >
+                  限定酒
+                </label>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="edit-sake-paid-tasting-price"
+                  className="block text-sm font-medium text-slate-700 mb-2"
+                >
+                  有料試飲価格（円）
+                </label>
+                <input
+                  id="edit-sake-paid-tasting-price"
+                  type="number"
+                  value={editSakePaidTastingPrice}
+                  onChange={(e) => setEditSakePaidTastingPrice(e.target.value)}
+                  placeholder="例: 500"
+                  disabled={isEditingSake}
+                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-slate-100 disabled:cursor-not-allowed"
+                  min="1"
+                  step="1"
+                  data-1p-ignore
+                />
+              </div>
+
+              {editSakeError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                  {editSakeError}
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setEditingSake(null)}
+                  disabled={isEditingSake}
+                  className="flex-1 px-4 py-3 bg-slate-200 hover:bg-slate-300 disabled:bg-slate-100 text-slate-700 font-semibold rounded-lg transition-colors"
+                >
+                  キャンセル
+                </button>
+                <button
+                  type="submit"
+                  disabled={isEditingSake || !editSakeName.trim()}
+                  className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
+                >
+                  {isEditingSake ? '保存中...' : '保存'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
