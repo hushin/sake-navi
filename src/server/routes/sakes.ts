@@ -17,66 +17,6 @@ const createReviewSchema = z.object({
   comment: z.string().optional(),
 });
 
-// GET /api/sakes/reviews/:reviewId - レビュー単体取得
-app.get('/reviews/:reviewId', async (c) => {
-  const db = c.var.db;
-  const reviewId = parseInt(c.req.param('reviewId'));
-
-  if (isNaN(reviewId)) {
-    return c.json({ error: '無効なレビューIDです' }, 400);
-  }
-
-  // レビュー情報を取得（user, sake, breweryの情報を含める）
-  const reviewData = await db
-    .select({
-      reviewId: schema.reviews.reviewId,
-      rating: schema.reviews.rating,
-      tags: schema.reviews.tags,
-      comment: schema.reviews.comment,
-      createdAt: schema.reviews.createdAt,
-      userId: schema.users.userId,
-      userName: schema.users.name,
-      sakeId: schema.sakes.sakeId,
-      sakeName: schema.sakes.name,
-      sakeType: schema.sakes.type,
-      breweryId: schema.breweries.breweryId,
-      breweryName: schema.breweries.name,
-    })
-    .from(schema.reviews)
-    .innerJoin(schema.users, eq(schema.reviews.userId, schema.users.userId))
-    .innerJoin(schema.sakes, eq(schema.reviews.sakeId, schema.sakes.sakeId))
-    .innerJoin(schema.breweries, eq(schema.sakes.breweryId, schema.breweries.breweryId))
-    .where(eq(schema.reviews.reviewId, reviewId))
-    .limit(1);
-
-  if (reviewData.length === 0) {
-    return c.json({ error: 'レビューが見つかりません' }, 404);
-  }
-
-  const review = reviewData[0];
-
-  return c.json({
-    reviewId: review.reviewId,
-    rating: review.rating,
-    tags: review.tags,
-    comment: review.comment,
-    createdAt: review.createdAt,
-    user: {
-      id: review.userId,
-      name: review.userName,
-    },
-    sake: {
-      id: review.sakeId,
-      name: review.sakeName,
-      type: review.sakeType,
-    },
-    brewery: {
-      id: review.breweryId,
-      name: review.breweryName,
-    },
-  });
-});
-
 // GET /api/sakes/:id - お酒詳細
 app.get('/:id', async (c) => {
   const db = c.var.db;

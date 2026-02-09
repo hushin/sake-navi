@@ -270,15 +270,6 @@ export default function ReviewsPage() {
                     {item.comment}
                   </p>
                 )}
-
-                <div className="pt-3 border-t border-slate-200 mt-3">
-                  <Link
-                    href={`/review/${item.reviewId}`}
-                    className="text-sm text-blue-600 hover:text-blue-700 hover:underline transition-colors"
-                  >
-                    詳細を見る
-                  </Link>
-                </div>
               </div>
             ))}
 

@@ -260,16 +260,6 @@ function ReviewCard({
           </p>
         </div>
       )}
-
-      {/* レビュー詳細へのリンク */}
-      <div className="pt-3 border-t border-slate-200">
-        <Link
-          href={`/review/${item.id}`}
-          className="text-sm text-blue-600 hover:text-blue-700 hover:underline transition-colors"
-        >
-          詳細を見る
-        </Link>
-      </div>
     </div>
   );
 }

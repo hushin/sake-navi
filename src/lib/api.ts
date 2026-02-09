@@ -301,29 +301,6 @@ export async function deleteReview(sakeId: number, reviewId: number): Promise<vo
 }
 
 // ========================================
-// レビュー単体API
-// ========================================
-
-export type ReviewDetail = {
-  reviewId: number;
-  rating: number;
-  tags: string[];
-  comment: string | null;
-  createdAt: string;
-  user: { id: string; name: string };
-  sake: { id: number; name: string; type: string | null };
-  brewery: { id: number; name: string };
-};
-
-/**
- * レビュー単体取得
- */
-export async function getReviewById(reviewId: number): Promise<ReviewDetail> {
-  const response = await fetch(`${baseUrl}/api/sakes/reviews/${reviewId}`, { method: 'GET' });
-  return handleResponse<ReviewDetail>(response);
-}
-
-// ========================================
 // レビュー検索API
 // ========================================
 
