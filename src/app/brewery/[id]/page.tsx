@@ -17,7 +17,6 @@ import {
   removeBookmark,
   type BreweryDetail,
   type BreweryNote,
-  type Sake,
   type Review,
 } from '@/lib/api';
 import { getAuth, isAuthenticated } from '@/lib/auth';
@@ -152,7 +151,7 @@ export default function BreweryDetailPage() {
     setAddSakeError(null);
 
     try {
-      const newSake = await addCustomSake(breweryId, {
+      await addCustomSake(breweryId, {
         name: newSakeName.trim(),
         type: newSakeType.trim() || undefined,
         isLimited: newSakeIsLimited,

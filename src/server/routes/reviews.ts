@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { desc, and, sql, or, lt } from 'drizzle-orm';
+import { desc, and, sql, lt } from 'drizzle-orm';
 import type { AppEnv } from '../types';
 import { reviews, users, sakes, breweries } from '../db/schema';
 
