@@ -487,12 +487,28 @@ export default function BreweryDetailPage() {
                           <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
                         </svg>
                       </button>
-                      <Link
-                        href={`/brewery/${breweryId}/sake/${sake.sakeId}/review`}
-                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors whitespace-nowrap"
-                      >
-                        レビュー投稿
-                      </Link>
+                      {(() => {
+                        const myReview = sake.reviews.find((r) => r.user.id === currentUserId);
+                        if (myReview) {
+                          return (
+                            <button
+                              type="button"
+                              onClick={() => handleStartEditReview(sake.sakeId, myReview)}
+                              className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg transition-colors whitespace-nowrap cursor-pointer"
+                            >
+                              編集
+                            </button>
+                          );
+                        }
+                        return (
+                          <Link
+                            href={`/brewery/${breweryId}/sake/${sake.sakeId}/review`}
+                            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors whitespace-nowrap"
+                          >
+                            レビュー投稿
+                          </Link>
+                        );
+                      })()}
                     </div>
                   </div>
 
@@ -530,32 +546,23 @@ export default function BreweryDetailPage() {
                                 )}
                               </div>
                               <div className="flex items-center gap-2">
+                                {currentUserId === review.user.id && (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setDeletingReview({
+                                        sakeId: sake.sakeId,
+                                        reviewId: review.id,
+                                      })
+                                    }
+                                    className="text-xs text-red-600 hover:text-red-700 cursor-pointer"
+                                  >
+                                    削除
+                                  </button>
+                                )}
                                 <span className="text-xs text-slate-500 whitespace-nowrap">
                                   {formatDate(review.createdAt)}
                                 </span>
-                                {currentUserId === review.user.id && (
-                                  <div className="flex gap-1">
-                                    <button
-                                      type="button"
-                                      onClick={() => handleStartEditReview(sake.sakeId, review)}
-                                      className="text-xs text-blue-600 hover:text-blue-700 cursor-pointer"
-                                    >
-                                      編集
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        setDeletingReview({
-                                          sakeId: sake.sakeId,
-                                          reviewId: review.id,
-                                        })
-                                      }
-                                      className="text-xs text-red-600 hover:text-red-700 cursor-pointer"
-                                    >
-                                      削除
-                                    </button>
-                                  </div>
-                                )}
                               </div>
                             </div>
                             {review.comment && (
