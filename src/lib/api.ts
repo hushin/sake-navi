@@ -311,7 +311,7 @@ export type ReviewSearchItem = {
   comment: string | null;
   createdAt: string;
   user: { id: string; name: string };
-  sake: { id: number; name: string; type: string | null };
+  sake: { id: number; name: string; type: string | null; isLimited: boolean; paidTastingPrice?: number };
   brewery: { id: number; name: string };
 };
 
@@ -357,6 +357,8 @@ export type TimelineReviewItem = {
   rating: number;
   tags: string[];
   comment?: string;
+  isLimited: boolean;
+  paidTastingPrice?: number;
 };
 
 export type TimelineNoteItem = {

@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getReviews, type ReviewSearchItem } from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
-import { StarRating } from '@/components/StarRating';
 import { UserMenu } from '@/components/UserMenu';
 import { getTagColorClass } from '@/lib/tagColors';
+import { TimelineReviewCard } from '@/components/TimelineReviewCard';
 
 const ALL_TAGS = [
   '甘口',
@@ -224,53 +224,12 @@ export default function ReviewsPage() {
         ) : (
           <div className="space-y-4">
             {items.map((item) => (
-              <div
+              <TimelineReviewCard
                 key={item.reviewId}
-                className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-5"
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <p className="font-semibold text-slate-800">{item.user.name}</p>
-                    <p className="text-sm text-slate-500">{formatDate(item.createdAt)}</p>
-                  </div>
-                </div>
-
-                <div className="mb-2 flex items-center gap-2">
-                  <Link
-                    href={`/brewery/${item.brewery.id}`}
-                    className="text-blue-600 hover:text-blue-700 hover:underline transition-colors"
-                  >
-                    {item.brewery.name}
-                  </Link>
-                  <span className="text-slate-400">/</span>
-                  <span className="font-bold text-slate-800">{item.sake.name}</span>
-                  {item.sake.type && (
-                    <span className="text-sm text-slate-500">{item.sake.type}</span>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-4 mb-3">
-                  <StarRating value={item.rating} readonly size="sm" />
-                  {item.tags && item.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {item.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getTagColorClass(tag)}`}
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {item.comment && (
-                  <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap bg-slate-50 rounded-lg p-3 border border-slate-200">
-                    {item.comment}
-                  </p>
-                )}
-              </div>
+                item={item}
+                formatDate={formatDate}
+                showBadge={false}
+              />
             ))}
 
             {!hasReachedEnd && (

@@ -17,6 +17,8 @@ type TimelineItem = {
   tags?: string[];
   comment?: string;
   content?: string;
+  isLimited?: boolean;
+  paidTastingPrice?: number;
 };
 
 // GET /api/timeline - cursor-basedページネーション対応のタイムライン取得
@@ -43,6 +45,8 @@ app.get('/', async (c) => {
       rating: schema.reviews.rating,
       tags: schema.reviews.tags,
       comment: schema.reviews.comment,
+      isLimited: schema.sakes.isLimited,
+      paidTastingPrice: schema.sakes.paidTastingPrice,
     })
     .from(schema.reviews)
     .innerJoin(schema.users, eq(schema.users.userId, schema.reviews.userId))
@@ -81,6 +85,8 @@ app.get('/', async (c) => {
     rating: review.rating,
     tags: review.tags ?? [],
     comment: review.comment ?? undefined,
+    isLimited: review.isLimited,
+    paidTastingPrice: review.paidTastingPrice ?? undefined,
   }));
 
   const noteItems: TimelineItem[] = notesData.map((note) => ({

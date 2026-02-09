@@ -86,6 +86,8 @@ app.get('/', async (c) => {
       sakeId: sakes.sakeId,
       sakeName: sakes.name,
       sakeType: sakes.type,
+      isLimited: sakes.isLimited,
+      paidTastingPrice: sakes.paidTastingPrice,
       breweryId: breweries.breweryId,
       breweryName: breweries.name,
     })
@@ -117,6 +119,8 @@ app.get('/', async (c) => {
       id: row.sakeId,
       name: row.sakeName,
       type: row.sakeType,
+      isLimited: row.isLimited,
+      paidTastingPrice: row.paidTastingPrice ?? undefined,
     },
     brewery: {
       id: row.breweryId,
