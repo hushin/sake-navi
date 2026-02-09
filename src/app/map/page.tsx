@@ -34,10 +34,7 @@ function MapPageContent() {
     // 酒蔵一覧とブックマークを取得
     const fetchData = async () => {
       try {
-        const [breweriesData, bookmarksData] = await Promise.all([
-          getBreweries(),
-          getBookmarks(),
-        ]);
+        const [breweriesData, bookmarksData] = await Promise.all([getBreweries(), getBookmarks()]);
         setBreweries(breweriesData);
 
         // ブックマークされたお酒の酒蔵IDを抽出
@@ -143,7 +140,7 @@ function MapPageContent() {
 
       {/* フロアマップ */}
       <main className="overflow-x-auto">
-        <div className="relative w-[1640px] min-h-[500px] mx-auto my-10">
+        <div className="relative w-[1640px] min-h-[450px] mx-auto my-10">
           {/* 酒蔵バッジオーバーレイレイヤー */}
           <div className="absolute inset-0 pointer-events-none">
             {breweries.map((brewery) => {
