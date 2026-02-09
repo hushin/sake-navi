@@ -11,6 +11,7 @@ type TimelineItem = {
   userName: string;
   createdAt: string;
   breweryId: number;
+  sakeId?: number;
   sakeName?: string;
   breweryName?: string;
   rating?: number;
@@ -40,6 +41,7 @@ app.get('/', async (c) => {
       userName: schema.users.name,
       createdAt: schema.reviews.createdAt,
       breweryId: schema.breweries.breweryId,
+      sakeId: schema.sakes.sakeId,
       sakeName: schema.sakes.name,
       breweryName: schema.breweries.name,
       rating: schema.reviews.rating,
@@ -80,6 +82,7 @@ app.get('/', async (c) => {
     userName: review.userName,
     createdAt: review.createdAt,
     breweryId: review.breweryId,
+    sakeId: review.sakeId,
     sakeName: review.sakeName,
     breweryName: review.breweryName,
     rating: review.rating,

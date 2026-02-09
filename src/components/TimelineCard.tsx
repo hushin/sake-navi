@@ -11,6 +11,7 @@ type TimelineCardProps = {
   sakeInfo?: React.ReactNode;
   badgeVariant?: BadgeVariant;
   showBadge?: boolean;
+  bookmarkButton?: React.ReactNode;
   children: React.ReactNode;
   formatDate: (dateStr: string) => string;
 };
@@ -58,6 +59,7 @@ export function TimelineCard({
   sakeInfo,
   badgeVariant = 'review',
   showBadge = true,
+  bookmarkButton,
   children,
   formatDate,
 }: TimelineCardProps) {
@@ -97,6 +99,7 @@ export function TimelineCard({
               {sakeInfo}
             </>
           )}
+          {bookmarkButton && <div className="ml-auto">{bookmarkButton}</div>}
         </div>
       )}
 

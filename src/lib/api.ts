@@ -390,6 +390,7 @@ export type TimelineReviewItem = {
   userName: string;
   createdAt: string;
   breweryId: number;
+  sakeId: number;
   sakeName: string;
   breweryName: string;
   rating: number;

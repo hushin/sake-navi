@@ -7,6 +7,8 @@ type TimelineReviewCardProps = {
   item: TimelineReviewItem | ReviewSearchItem;
   formatDate: (dateStr: string) => string;
   showBadge?: boolean;
+  isBookmarked?: boolean;
+  onToggleBookmark?: (sakeId: number) => void;
 };
 
 // TimelineReviewItem か ReviewSearchItem かを判定する型ガード
@@ -20,11 +22,14 @@ export function TimelineReviewCard({
   item,
   formatDate,
   showBadge = true,
+  isBookmarked = false,
+  onToggleBookmark,
 }: TimelineReviewCardProps) {
   // TimelineReviewItem と ReviewSearchItem で異なるフィールド名を統一
   const userName = isTimelineReviewItem(item) ? item.userName : item.user.name;
   const breweryId = isTimelineReviewItem(item) ? item.breweryId : item.brewery.id;
   const breweryName = isTimelineReviewItem(item) ? item.breweryName : item.brewery.name;
+  const sakeId = isTimelineReviewItem(item) ? item.sakeId : item.sake.id;
   const sakeName = isTimelineReviewItem(item) ? item.sakeName : item.sake.name;
   const sakeType = isTimelineReviewItem(item) ? undefined : item.sake.type;
   const rating = isTimelineReviewItem(item) ? item.rating : item.rating;
@@ -60,6 +65,29 @@ export function TimelineReviewCard({
       badgeVariant="review"
       showBadge={showBadge}
       formatDate={formatDate}
+      bookmarkButton={
+        onToggleBookmark && (
+          <button
+            type="button"
+            onClick={() => onToggleBookmark(sakeId)}
+            className={`p-1.5 -m-1.5 rounded-lg transition-colors cursor-pointer ${
+              isBookmarked
+                ? 'text-amber-500 hover:text-amber-600'
+                : 'text-slate-300 hover:text-amber-400'
+            }`}
+            title={isBookmarked ? 'ブックマーク解除' : 'ブックマーク'}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+            </svg>
+          </button>
+        )
+      }
     >
       {/* 星評価とタグ */}
       <div className="flex items-center gap-4 mb-3">

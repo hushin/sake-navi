@@ -3,7 +3,13 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getTimeline, type TimelineItem } from '@/lib/api';
+import {
+  getTimeline,
+  getBookmarks,
+  addBookmark,
+  removeBookmark,
+  type TimelineItem,
+} from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
 import { UserMenu } from '@/components/UserMenu';
 import { TimelineReviewCard } from '@/components/TimelineReviewCard';
@@ -17,6 +23,7 @@ export default function TimelinePage() {
   const [error, setError] = useState<string | null>(null);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [hasReachedEnd, setHasReachedEnd] = useState(false);
+  const [bookmarkedSakes, setBookmarkedSakes] = useState<Set<number>>(new Set());
 
   // Intersection Observer 用の ref
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -30,6 +37,13 @@ export default function TimelinePage() {
     }
 
     fetchTimeline();
+
+    // ブックマーク初期読み込み
+    getBookmarks()
+      .then((bms) => {
+        setBookmarkedSakes(new Set(bms.map((b) => b.sake.sakeId)));
+      })
+      .catch(() => {});
   }, [router]);
 
   // 初回読み込み
@@ -89,6 +103,26 @@ export default function TimelinePage() {
       }
     };
   }, [isLoading, hasReachedEnd, fetchMoreTimeline]);
+
+  // ブックマークトグル
+  const handleToggleBookmark = async (sakeId: number) => {
+    const isBookmarked = bookmarkedSakes.has(sakeId);
+    try {
+      if (isBookmarked) {
+        await removeBookmark(sakeId);
+        setBookmarkedSakes((prev) => {
+          const next = new Set(prev);
+          next.delete(sakeId);
+          return next;
+        });
+      } else {
+        await addBookmark(sakeId);
+        setBookmarkedSakes((prev) => new Set(prev).add(sakeId));
+      }
+    } catch (err) {
+      console.error('ブックマーク操作エラー:', err);
+    }
+  };
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -165,7 +199,13 @@ export default function TimelinePage() {
           <div className="space-y-4">
             {items.map((item) =>
               item.type === 'review' ? (
-                <TimelineReviewCard key={`review-${item.id}`} item={item} formatDate={formatDate} />
+                <TimelineReviewCard
+                  key={`review-${item.id}`}
+                  item={item}
+                  formatDate={formatDate}
+                  isBookmarked={bookmarkedSakes.has(item.sakeId)}
+                  onToggleBookmark={handleToggleBookmark}
+                />
               ) : (
                 <TimelineNoteCard key={`note-${item.id}`} item={item} formatDate={formatDate} />
               ),
