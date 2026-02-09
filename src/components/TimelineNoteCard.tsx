@@ -7,11 +7,7 @@ type TimelineNoteCardProps = {
   showBadge?: boolean;
 };
 
-export function TimelineNoteCard({
-  item,
-  formatDate,
-  showBadge = true,
-}: TimelineNoteCardProps) {
+export function TimelineNoteCard({ item, formatDate, showBadge = true }: TimelineNoteCardProps) {
   return (
     <TimelineCard
       userName={item.userName}

@@ -6,10 +6,7 @@ type UseAddBreweryNoteModalOptions = {
   onSuccess: (newNote: BreweryNote) => void | Promise<void>;
 };
 
-export const useAddBreweryNoteModal = ({
-  breweryId,
-  onSuccess,
-}: UseAddBreweryNoteModalOptions) => {
+export const useAddBreweryNoteModal = ({ breweryId, onSuccess }: UseAddBreweryNoteModalOptions) => {
   const [isOpen, setIsOpen] = useState(false);
   const [content, setContent] = useState('');
   const [isAdding, setIsAdding] = useState(false);
@@ -60,7 +57,10 @@ export const useAddBreweryNoteModal = ({
           <h3 className="text-xl font-bold text-slate-800 mb-4">酒蔵ノートを投稿</h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="note-content" className="block text-sm font-medium text-slate-700 mb-2">
+              <label
+                htmlFor="note-content"
+                className="block text-sm font-medium text-slate-700 mb-2"
+              >
                 ノート内容
               </label>
               <textarea

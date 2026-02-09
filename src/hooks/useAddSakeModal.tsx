@@ -82,10 +82,7 @@ export const useAddSakeModal = ({ breweryId, onSuccess }: UseAddSakeModalOptions
           <h3 className="text-xl font-bold text-slate-800 mb-4">お酒を追加</h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label
-                htmlFor="sake-name"
-                className="block text-sm font-medium text-slate-700 mb-2"
-              >
+              <label htmlFor="sake-name" className="block text-sm font-medium text-slate-700 mb-2">
                 お酒の名前 <span className="text-red-500">*</span>
               </label>
               <input
@@ -103,10 +100,7 @@ export const useAddSakeModal = ({ breweryId, onSuccess }: UseAddSakeModalOptions
             </div>
 
             <div>
-              <label
-                htmlFor="sake-type"
-                className="block text-sm font-medium text-slate-700 mb-2"
-              >
+              <label htmlFor="sake-type" className="block text-sm font-medium text-slate-700 mb-2">
                 種類
               </label>
               <input

@@ -343,7 +343,13 @@ export type ReviewSearchItem = {
   comment: string | null;
   createdAt: string;
   user: { id: string; name: string };
-  sake: { id: number; name: string; type: string | null; isLimited: boolean; paidTastingPrice?: number };
+  sake: {
+    id: number;
+    name: string;
+    type: string | null;
+    isLimited: boolean;
+    paidTastingPrice?: number;
+  };
   brewery: { id: number; name: string };
 };
 
