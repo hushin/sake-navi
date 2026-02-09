@@ -1,3 +1,14 @@
+CREATE TABLE `bookmarks` (
+	`bookmark_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`user_id` text NOT NULL,
+	`sake_id` integer NOT NULL,
+	`created_at` text DEFAULT (datetime('now')) NOT NULL,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`sake_id`) REFERENCES `sakes`(`sake_id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE INDEX `idx_bookmarks_user` ON `bookmarks` (`user_id`);--> statement-breakpoint
+CREATE UNIQUE INDEX `idx_bookmarks_unique` ON `bookmarks` (`user_id`,`sake_id`);--> statement-breakpoint
 CREATE TABLE `breweries` (
 	`brewery_id` integer PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
@@ -40,6 +51,9 @@ CREATE TABLE `sakes` (
 	`type` text,
 	`is_custom` integer DEFAULT false NOT NULL,
 	`added_by` text,
+	`is_limited` integer DEFAULT false NOT NULL,
+	`paid_tasting_price` integer,
+	`category` text DEFAULT '清酒',
 	`created_at` text DEFAULT (datetime('now')) NOT NULL,
 	FOREIGN KEY (`brewery_id`) REFERENCES `breweries`(`brewery_id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`added_by`) REFERENCES `users`(`user_id`) ON UPDATE no action ON DELETE no action

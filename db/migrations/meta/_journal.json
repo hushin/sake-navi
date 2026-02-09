@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1770553457261,
-      "tag": "0000_strange_slapstick",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1770594319427,
-      "tag": "0001_rich_bedlam",
+      "when": 1770647437311,
+      "tag": "0000_abnormal_shard",
       "breakpoints": true
     }
   ]
