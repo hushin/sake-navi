@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, lt } from 'drizzle-orm';
 import * as schema from '../db/schema';
 import type { AppEnv } from '../types';
 
@@ -19,9 +19,17 @@ type TimelineItem = {
   content?: string;
 };
 
-// GET /api/timeline - 全投稿を新しい順に取得
+// GET /api/timeline - cursor-basedページネーション対応のタイムライン取得
 app.get('/', async (c) => {
   const db = c.var.db;
+
+  // クエリパラメータから cursor と limit を取得
+  const cursor = c.req.query('cursor'); // createdAt の値
+  const limitParam = c.req.query('limit');
+  const limit = limitParam ? parseInt(limitParam, 10) : 20;
+
+  // limit + 1 件取得して、次のページがあるか判定
+  const fetchLimit = limit + 1;
 
   // レビュー取得（JOIN: users, sakes, breweries）
   const reviewsData = await db
@@ -40,7 +48,9 @@ app.get('/', async (c) => {
     .innerJoin(schema.users, eq(schema.users.userId, schema.reviews.userId))
     .innerJoin(schema.sakes, eq(schema.sakes.sakeId, schema.reviews.sakeId))
     .innerJoin(schema.breweries, eq(schema.breweries.breweryId, schema.sakes.breweryId))
-    .orderBy(desc(schema.reviews.createdAt));
+    .where(cursor ? lt(schema.reviews.createdAt, cursor) : undefined)
+    .orderBy(desc(schema.reviews.createdAt))
+    .limit(fetchLimit);
 
   // 酒蔵ノート取得（JOIN: users, breweries）
   const notesData = await db
@@ -55,7 +65,9 @@ app.get('/', async (c) => {
     .from(schema.breweryNotes)
     .innerJoin(schema.users, eq(schema.users.userId, schema.breweryNotes.userId))
     .innerJoin(schema.breweries, eq(schema.breweries.breweryId, schema.breweryNotes.breweryId))
-    .orderBy(desc(schema.breweryNotes.createdAt));
+    .where(cursor ? lt(schema.breweryNotes.createdAt, cursor) : undefined)
+    .orderBy(desc(schema.breweryNotes.createdAt))
+    .limit(fetchLimit);
 
   // タイムラインアイテムに変換
   const reviewItems: TimelineItem[] = reviewsData.map((review) => ({
@@ -86,7 +98,12 @@ app.get('/', async (c) => {
     return b.createdAt.localeCompare(a.createdAt);
   });
 
-  return c.json({ items: allItems });
+  // limit + 1 件取得した場合、最後の1件があれば次のページがある
+  const hasMore = allItems.length > limit;
+  const items = hasMore ? allItems.slice(0, limit) : allItems;
+  const nextCursor = hasMore && items.length > 0 ? items[items.length - 1].createdAt : null;
+
+  return c.json({ items, nextCursor });
 });
 
 export default app;

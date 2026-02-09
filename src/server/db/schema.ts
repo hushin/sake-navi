@@ -1,5 +1,5 @@
 import { sql, relations } from 'drizzle-orm';
-import { sqliteTable, text, integer, real, index } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real, index, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 // ユーザー
 export const users = sqliteTable('users', {
@@ -33,6 +33,9 @@ export const sakes = sqliteTable(
     type: text('type'),
     isCustom: integer('is_custom', { mode: 'boolean' }).notNull().default(false),
     addedBy: text('added_by').references(() => users.userId),
+    isLimited: integer('is_limited', { mode: 'boolean' }).notNull().default(false),
+    paidTastingPrice: integer('paid_tasting_price'),
+    category: text('category').default('清酒'),
     createdAt: text('created_at')
       .notNull()
       .default(sql`(datetime('now'))`),
@@ -87,11 +90,33 @@ export const breweryNotes = sqliteTable(
   ],
 );
 
+// ブックマーク
+export const bookmarks = sqliteTable(
+  'bookmarks',
+  {
+    bookmarkId: integer('bookmark_id').primaryKey({ autoIncrement: true }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.userId),
+    sakeId: integer('sake_id')
+      .notNull()
+      .references(() => sakes.sakeId),
+    createdAt: text('created_at')
+      .notNull()
+      .default(sql`(datetime('now'))`),
+  },
+  (table) => [
+    index('idx_bookmarks_user').on(table.userId),
+    uniqueIndex('idx_bookmarks_unique').on(table.userId, table.sakeId),
+  ],
+);
+
 // リレーション定義
 export const usersRelations = relations(users, ({ many }) => ({
   sakes: many(sakes),
   reviews: many(reviews),
   breweryNotes: many(breweryNotes),
+  bookmarks: many(bookmarks),
 }));
 
 export const breweriesRelations = relations(breweries, ({ many }) => ({
@@ -109,6 +134,7 @@ export const sakesRelations = relations(sakes, ({ one, many }) => ({
     references: [users.userId],
   }),
   reviews: many(reviews),
+  bookmarks: many(bookmarks),
 }));
 
 export const reviewsRelations = relations(reviews, ({ one }) => ({
@@ -133,6 +159,17 @@ export const breweryNotesRelations = relations(breweryNotes, ({ one }) => ({
   }),
 }));
 
+export const bookmarksRelations = relations(bookmarks, ({ one }) => ({
+  user: one(users, {
+    fields: [bookmarks.userId],
+    references: [users.userId],
+  }),
+  sake: one(sakes, {
+    fields: [bookmarks.sakeId],
+    references: [sakes.sakeId],
+  }),
+}));
+
 // 型エクスポート
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -144,3 +181,5 @@ export type Review = typeof reviews.$inferSelect;
 export type NewReview = typeof reviews.$inferInsert;
 export type BreweryNote = typeof breweryNotes.$inferSelect;
 export type NewBreweryNote = typeof breweryNotes.$inferInsert;
+export type Bookmark = typeof bookmarks.$inferSelect;
+export type NewBookmark = typeof bookmarks.$inferInsert;

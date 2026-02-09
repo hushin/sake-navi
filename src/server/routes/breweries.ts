@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
-import { eq, sql, desc } from 'drizzle-orm';
+import { eq, sql, desc, and } from 'drizzle-orm';
+import { z } from 'zod';
 import { breweries, sakes, reviews, breweryNotes } from '../db/schema';
 import { getCloudflareEnv } from '@/lib/db';
 import { sendBreweryNoteNotification } from '../services/discord';
@@ -93,6 +94,9 @@ app.get('/:id', async (c) => {
       type: sake.type,
       isCustom: sake.isCustom,
       addedBy: sake.addedBy,
+      isLimited: sake.isLimited,
+      paidTastingPrice: sake.paidTastingPrice,
+      category: sake.category,
       createdAt: sake.createdAt,
       averageRating: avgRating,
       reviews: sake.reviews.map((r) => ({
@@ -113,7 +117,6 @@ app.get('/:id', async (c) => {
     brewery: {
       breweryId: brewery.breweryId,
       name: brewery.name,
-      boothNumber: brewery.boothNumber,
       mapPositionX: brewery.mapPositionX,
       mapPositionY: brewery.mapPositionY,
       area: brewery.area,
@@ -217,6 +220,90 @@ app.post('/:id/notes', async (c) => {
   );
 });
 
+// PUT /api/breweries/:id/notes/:noteId - 酒蔵ノート編集
+app.put('/:id/notes/:noteId', async (c) => {
+  const db = c.var.db;
+  const breweryId = parseInt(c.req.param('id'), 10);
+  const noteId = parseInt(c.req.param('noteId'), 10);
+  const userId = c.req.header('X-User-Id');
+
+  if (isNaN(breweryId) || isNaN(noteId)) {
+    return c.json({ error: '無効なIDです' }, 400);
+  }
+
+  if (!userId) {
+    return c.json({ error: 'ユーザーIDが必要です' }, 401);
+  }
+
+  const note = await db.query.breweryNotes.findFirst({
+    where: and(eq(breweryNotes.noteId, noteId), eq(breweryNotes.breweryId, breweryId)),
+  });
+
+  if (!note) {
+    return c.json({ error: 'ノートが見つかりません' }, 404);
+  }
+
+  if (note.userId !== userId) {
+    return c.json({ error: '自分のノートのみ編集できます' }, 403);
+  }
+
+  const body = await c.req.json();
+  const { content } = body;
+
+  if (!content || typeof content !== 'string' || content.trim().length === 0) {
+    return c.json({ error: 'コメントを入力してください' }, 400);
+  }
+
+  const [updated] = await db
+    .update(breweryNotes)
+    .set({ comment: content.trim() })
+    .where(eq(breweryNotes.noteId, noteId))
+    .returning();
+
+  const user = await findUserOrThrow(db, userId);
+
+  return c.json({
+    noteId: updated.noteId,
+    userId: updated.userId,
+    userName: user.name,
+    breweryId: updated.breweryId,
+    comment: updated.comment,
+    createdAt: updated.createdAt,
+  });
+});
+
+// DELETE /api/breweries/:id/notes/:noteId - 酒蔵ノート削除
+app.delete('/:id/notes/:noteId', async (c) => {
+  const db = c.var.db;
+  const breweryId = parseInt(c.req.param('id'), 10);
+  const noteId = parseInt(c.req.param('noteId'), 10);
+  const userId = c.req.header('X-User-Id');
+
+  if (isNaN(breweryId) || isNaN(noteId)) {
+    return c.json({ error: '無効なIDです' }, 400);
+  }
+
+  if (!userId) {
+    return c.json({ error: 'ユーザーIDが必要です' }, 401);
+  }
+
+  const note = await db.query.breweryNotes.findFirst({
+    where: and(eq(breweryNotes.noteId, noteId), eq(breweryNotes.breweryId, breweryId)),
+  });
+
+  if (!note) {
+    return c.json({ error: 'ノートが見つかりません' }, 404);
+  }
+
+  if (note.userId !== userId) {
+    return c.json({ error: '自分のノートのみ削除できます' }, 403);
+  }
+
+  await db.delete(breweryNotes).where(eq(breweryNotes.noteId, noteId));
+
+  return c.json({ success: true });
+});
+
 // POST /api/breweries/:id/sakes - お酒追加（ユーザー自由入力）
 app.post('/:id/sakes', async (c) => {
   const db = c.var.db;
@@ -231,13 +318,25 @@ app.post('/:id/sakes', async (c) => {
     return c.json({ error: 'ユーザーIDが必要です' }, 401);
   }
 
+  // zodバリデーションスキーマ
+  const addSakeSchema = z.object({
+    name: z.string().trim().min(1, 'お酒の名前を入力してください'),
+    type: z.string().trim().optional(),
+    isLimited: z.boolean().optional().default(false),
+    paidTastingPrice: z.number().int().positive('有料試飲価格は正の整数で入力してください').optional(),
+    category: z.enum(['清酒', 'リキュール', 'みりん', 'その他']).optional().default('清酒'),
+  });
+
   // リクエストボディの検証
   const body = await c.req.json();
-  const { name } = body;
+  const validationResult = addSakeSchema.safeParse(body);
 
-  if (!name || typeof name !== 'string' || name.trim().length === 0) {
-    return c.json({ error: 'お酒の名前を入力してください' }, 400);
+  if (!validationResult.success) {
+    const errorMessages = validationResult.error.issues.map((e) => e.message).join(', ');
+    return c.json({ error: errorMessages }, 400);
   }
+
+  const { name, type, isLimited, paidTastingPrice, category } = validationResult.data;
 
   await findBreweryOrThrow(db, breweryId);
   await findUserOrThrow(db, userId);
@@ -247,9 +346,13 @@ app.post('/:id/sakes', async (c) => {
     .insert(sakes)
     .values({
       breweryId,
-      name: name.trim(),
+      name,
+      type: type || null,
       isCustom: true,
       addedBy: userId,
+      isLimited,
+      paidTastingPrice: paidTastingPrice || null,
+      category,
     })
     .returning();
 
@@ -261,6 +364,9 @@ app.post('/:id/sakes', async (c) => {
       type: newSake.type,
       isCustom: newSake.isCustom,
       addedBy: newSake.addedBy,
+      isLimited: newSake.isLimited,
+      paidTastingPrice: newSake.paidTastingPrice,
+      category: newSake.category,
       createdAt: newSake.createdAt,
     },
     201,

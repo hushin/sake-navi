@@ -6,6 +6,8 @@ import usersRoute from './routes/users';
 import breweriesRoute from './routes/breweries';
 import sakesRoute from './routes/sakes';
 import timelineRoute from './routes/timeline';
+import bookmarksRoute from './routes/bookmarks';
+import reviewsRoute from './routes/reviews';
 
 const app = new Hono<AppEnv>().basePath('/api');
 
@@ -38,6 +40,8 @@ app.route('/users', usersRoute);
 app.route('/breweries', breweriesRoute);
 app.route('/sakes', sakesRoute);
 app.route('/timeline', timelineRoute);
+app.route('/bookmarks', bookmarksRoute);
+app.route('/reviews', reviewsRoute);
 
 export default app;
 export type AppType = typeof app;

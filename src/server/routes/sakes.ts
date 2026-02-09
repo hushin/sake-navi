@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { eq, desc, sql } from 'drizzle-orm';
+import { eq, desc, sql, and } from 'drizzle-orm';
 import { z } from 'zod';
 import * as schema from '../db/schema';
 import { getCloudflareEnv } from '@/lib/db';
@@ -15,6 +15,66 @@ const createReviewSchema = z.object({
   rating: z.number().int().min(1).max(5, '評価は1-5の範囲で指定してください'),
   tags: z.array(z.string()).default([]),
   comment: z.string().optional(),
+});
+
+// GET /api/sakes/reviews/:reviewId - レビュー単体取得
+app.get('/reviews/:reviewId', async (c) => {
+  const db = c.var.db;
+  const reviewId = parseInt(c.req.param('reviewId'));
+
+  if (isNaN(reviewId)) {
+    return c.json({ error: '無効なレビューIDです' }, 400);
+  }
+
+  // レビュー情報を取得（user, sake, breweryの情報を含める）
+  const reviewData = await db
+    .select({
+      reviewId: schema.reviews.reviewId,
+      rating: schema.reviews.rating,
+      tags: schema.reviews.tags,
+      comment: schema.reviews.comment,
+      createdAt: schema.reviews.createdAt,
+      userId: schema.users.userId,
+      userName: schema.users.name,
+      sakeId: schema.sakes.sakeId,
+      sakeName: schema.sakes.name,
+      sakeType: schema.sakes.type,
+      breweryId: schema.breweries.breweryId,
+      breweryName: schema.breweries.name,
+    })
+    .from(schema.reviews)
+    .innerJoin(schema.users, eq(schema.reviews.userId, schema.users.userId))
+    .innerJoin(schema.sakes, eq(schema.reviews.sakeId, schema.sakes.sakeId))
+    .innerJoin(schema.breweries, eq(schema.sakes.breweryId, schema.breweries.breweryId))
+    .where(eq(schema.reviews.reviewId, reviewId))
+    .limit(1);
+
+  if (reviewData.length === 0) {
+    return c.json({ error: 'レビューが見つかりません' }, 404);
+  }
+
+  const review = reviewData[0];
+
+  return c.json({
+    reviewId: review.reviewId,
+    rating: review.rating,
+    tags: review.tags,
+    comment: review.comment,
+    createdAt: review.createdAt,
+    user: {
+      id: review.userId,
+      name: review.userName,
+    },
+    sake: {
+      id: review.sakeId,
+      name: review.sakeName,
+      type: review.sakeType,
+    },
+    brewery: {
+      id: review.breweryId,
+      name: review.breweryName,
+    },
+  });
 });
 
 // GET /api/sakes/:id - お酒詳細
@@ -174,6 +234,94 @@ app.post('/:id/reviews', async (c) => {
     },
     201,
   );
+});
+
+// PUT /api/sakes/:id/reviews/:reviewId - レビュー編集
+app.put('/:id/reviews/:reviewId', async (c) => {
+  const db = c.var.db;
+  const sakeId = parseInt(c.req.param('id'));
+  const reviewId = parseInt(c.req.param('reviewId'));
+  const userId = c.req.header('X-User-Id');
+
+  if (isNaN(sakeId) || isNaN(reviewId)) {
+    return c.json({ error: '無効なIDです' }, 400);
+  }
+
+  if (!userId) {
+    return c.json({ error: 'ユーザーIDが指定されていません' }, 401);
+  }
+
+  // レビューの存在確認と所有者確認
+  const review = await db.query.reviews.findFirst({
+    where: and(eq(schema.reviews.reviewId, reviewId), eq(schema.reviews.sakeId, sakeId)),
+  });
+
+  if (!review) {
+    return c.json({ error: 'レビューが見つかりません' }, 404);
+  }
+
+  if (review.userId !== userId) {
+    return c.json({ error: '自分のレビューのみ編集できます' }, 403);
+  }
+
+  const body = await c.req.json();
+  const parseResult = createReviewSchema.safeParse(body);
+  if (!parseResult.success) {
+    return c.json({ error: parseResult.error.issues[0].message }, 400);
+  }
+
+  const { rating, tags, comment } = parseResult.data;
+
+  const invalidTags = tags.filter((tag) => !VALID_TAGS.includes(tag));
+  if (invalidTags.length > 0) {
+    return c.json({ error: `無効なタグが含まれています: ${invalidTags.join(', ')}` }, 400);
+  }
+
+  const [updated] = await db
+    .update(schema.reviews)
+    .set({ rating, tags, comment: comment || null })
+    .where(eq(schema.reviews.reviewId, reviewId))
+    .returning();
+
+  return c.json({
+    id: updated.reviewId,
+    rating: updated.rating,
+    tags: updated.tags,
+    comment: updated.comment,
+    createdAt: updated.createdAt,
+  });
+});
+
+// DELETE /api/sakes/:id/reviews/:reviewId - レビュー削除
+app.delete('/:id/reviews/:reviewId', async (c) => {
+  const db = c.var.db;
+  const sakeId = parseInt(c.req.param('id'));
+  const reviewId = parseInt(c.req.param('reviewId'));
+  const userId = c.req.header('X-User-Id');
+
+  if (isNaN(sakeId) || isNaN(reviewId)) {
+    return c.json({ error: '無効なIDです' }, 400);
+  }
+
+  if (!userId) {
+    return c.json({ error: 'ユーザーIDが指定されていません' }, 401);
+  }
+
+  const review = await db.query.reviews.findFirst({
+    where: and(eq(schema.reviews.reviewId, reviewId), eq(schema.reviews.sakeId, sakeId)),
+  });
+
+  if (!review) {
+    return c.json({ error: 'レビューが見つかりません' }, 404);
+  }
+
+  if (review.userId !== userId) {
+    return c.json({ error: '自分のレビューのみ削除できます' }, 403);
+  }
+
+  await db.delete(schema.reviews).where(eq(schema.reviews.reviewId, reviewId));
+
+  return c.json({ success: true });
 });
 
 export default app;

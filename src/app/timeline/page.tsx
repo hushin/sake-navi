@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getTimeline, type TimelineItem } from '@/lib/api';
@@ -13,7 +13,14 @@ export default function TimelinePage() {
   const router = useRouter();
   const [items, setItems] = useState<TimelineItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasReachedEnd, setHasReachedEnd] = useState(false);
+
+  // Intersection Observer 用の ref
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     // 未認証の場合は / へリダイレクト
@@ -25,18 +32,63 @@ export default function TimelinePage() {
     fetchTimeline();
   }, [router]);
 
+  // 初回読み込み
   const fetchTimeline = async () => {
     try {
       setIsLoading(true);
       setError(null);
       const response = await getTimeline();
       setItems(response.items);
+      setNextCursor(response.nextCursor);
+      setHasReachedEnd(response.nextCursor === null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'タイムラインの取得に失敗しました');
     } finally {
       setIsLoading(false);
     }
   };
+
+  // 追加読み込み
+  const fetchMoreTimeline = useCallback(async () => {
+    if (!nextCursor || isLoadingMore || hasReachedEnd) return;
+
+    try {
+      setIsLoadingMore(true);
+      setError(null);
+      const response = await getTimeline(nextCursor);
+      setItems((prevItems) => [...prevItems, ...response.items]);
+      setNextCursor(response.nextCursor);
+      setHasReachedEnd(response.nextCursor === null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'タイムラインの取得に失敗しました');
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [nextCursor, isLoadingMore, hasReachedEnd]);
+
+  // Intersection Observer のセットアップ
+  useEffect(() => {
+    if (isLoading || hasReachedEnd) return;
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          fetchMoreTimeline();
+        }
+      },
+      { threshold: 0.1 },
+    );
+
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [isLoading, hasReachedEnd, fetchMoreTimeline]);
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -117,6 +169,19 @@ export default function TimelinePage() {
               ) : (
                 <NoteCard key={`note-${item.id}`} item={item} formatDate={formatDate} />
               ),
+            )}
+
+            {/* 無限スクロール用のsentinel */}
+            {!hasReachedEnd && (
+              <div ref={loadMoreRef} className="flex items-center justify-center py-8">
+                {isLoadingMore && (
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                )}
+              </div>
+            )}
+
+            {hasReachedEnd && items.length > 0 && (
+              <p className="text-center text-slate-400 text-sm py-4">すべて読み込みました</p>
             )}
           </div>
         )}
@@ -211,6 +276,16 @@ function ReviewCard({
           </p>
         </div>
       )}
+
+      {/* レビュー詳細へのリンク */}
+      <div className="pt-3 border-t border-slate-200">
+        <Link
+          href={`/review/${item.id}`}
+          className="text-sm text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+        >
+          詳細を見る
+        </Link>
+      </div>
     </div>
   );
 }
