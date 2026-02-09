@@ -231,8 +231,8 @@ export default function BreweryDetailPage() {
                   className="bg-white rounded-xl p-3 border border-slate-200 shadow-sm"
                 >
                   <div className="flex items-start justify-between gap-3 mb-3">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <h3 className="font-semibold text-slate-800 truncate">{sake.name}</h3>
+                    <div className="flex flex-wrap items-center gap-y-0 gap-x-2 flex-1 min-w-0">
+                      <h3 className="font-semibold text-slate-800">{sake.name}</h3>
                       {sake.type && (
                         <span className="text-sm text-slate-600 whitespace-nowrap">
                           {sake.type}
@@ -254,21 +254,42 @@ export default function BreweryDetailPage() {
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => openEditSakeModal(sake)}
-                        className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded transition-colors cursor-pointer"
-                        title="お酒を編集"
+
+                    <button
+                      type="button"
+                      onClick={() => handleToggleBookmark(sake.sakeId)}
+                      className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                        bookmarkedSakes.has(sake.sakeId)
+                          ? 'text-amber-500 hover:text-amber-600'
+                          : 'text-slate-300 hover:text-amber-400'
+                      }`}
+                      title={bookmarkedSakes.has(sake.sakeId) ? 'ブックマーク解除' : 'ブックマーク'}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
                       >
-                        編集
-                      </button>
-                    </div>
+                        <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+                      </svg>
+                    </button>
                   </div>
 
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      {sake.isCustom && sake.addedBy && (
+                      {sake.averageRating !== null ? (
+                        <div className="flex items-center gap-1">
+                          <span className="text-yellow-500">★</span>
+                          <span className="font-semibold text-slate-800">
+                            {sake.averageRating.toFixed(1)}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-slate-400 whitespace-nowrap">未評価</span>
+                      )}
+
+                      {sake.isCustom && (
                         <div className="relative group">
                           <button
                             type="button"
@@ -285,37 +306,16 @@ export default function BreweryDetailPage() {
                           </div>
                         </div>
                       )}
-                      {sake.averageRating !== null ? (
-                        <div className="flex items-center gap-1">
-                          <span className="text-yellow-500">★</span>
-                          <span className="font-semibold text-slate-800">
-                            {sake.averageRating.toFixed(1)}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-sm text-slate-400 whitespace-nowrap">未評価</span>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => handleToggleBookmark(sake.sakeId)}
-                        className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                          bookmarkedSakes.has(sake.sakeId)
-                            ? 'text-amber-500 hover:text-amber-600'
-                            : 'text-slate-300 hover:text-amber-400'
-                        }`}
-                        title={
-                          bookmarkedSakes.has(sake.sakeId) ? 'ブックマーク解除' : 'ブックマーク'
-                        }
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
+                      {sake.isCustom && (
+                        <button
+                          type="button"
+                          onClick={() => openEditSakeModal(sake)}
+                          className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded transition-colors cursor-pointer"
+                          title="お酒を編集"
                         >
-                          <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
-                        </svg>
-                      </button>
+                          編集
+                        </button>
+                      )}
                     </div>
                     <div>
                       {(() => {
