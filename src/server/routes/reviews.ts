@@ -32,7 +32,12 @@ app.get('/', async (c) => {
   }
 
   // タグフィルタのパース
-  const tagFilters = tagsParam ? tagsParam.split(',').map((t) => t.trim()).filter(Boolean) : [];
+  const tagFilters = tagsParam
+    ? tagsParam
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean)
+    : [];
 
   // WHERE条件を構築
   const conditions = [];

@@ -323,7 +323,11 @@ app.post('/:id/sakes', async (c) => {
     name: z.string().trim().min(1, 'お酒の名前を入力してください'),
     type: z.string().trim().optional(),
     isLimited: z.boolean().optional().default(false),
-    paidTastingPrice: z.number().int().positive('有料試飲価格は正の整数で入力してください').optional(),
+    paidTastingPrice: z
+      .number()
+      .int()
+      .positive('有料試飲価格は正の整数で入力してください')
+      .optional(),
     category: z.enum(['清酒', 'リキュール', 'みりん', 'その他']).optional().default('清酒'),
   });
 

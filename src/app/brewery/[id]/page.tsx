@@ -143,10 +143,7 @@ export default function BreweryDetailPage() {
       ? parseInt(newSakePaidTastingPrice.trim(), 10)
       : undefined;
 
-    if (
-      newSakePaidTastingPrice.trim() &&
-      (isNaN(paidTastingPrice!) || paidTastingPrice! <= 0)
-    ) {
+    if (newSakePaidTastingPrice.trim() && (isNaN(paidTastingPrice!) || paidTastingPrice! <= 0)) {
       setAddSakeError('有料試飲価格は正の整数で入力してください');
       return;
     }
@@ -478,9 +475,7 @@ export default function BreweryDetailPage() {
                             : 'text-slate-300 hover:text-amber-400'
                         }`}
                         title={
-                          bookmarkedSakes.has(sake.sakeId)
-                            ? 'ブックマーク解除'
-                            : 'ブックマーク'
+                          bookmarkedSakes.has(sake.sakeId) ? 'ブックマーク解除' : 'ブックマーク'
                         }
                       >
                         <svg
@@ -542,9 +537,7 @@ export default function BreweryDetailPage() {
                                   <div className="flex gap-1">
                                     <button
                                       type="button"
-                                      onClick={() =>
-                                        handleStartEditReview(sake.sakeId, review)
-                                      }
+                                      onClick={() => handleStartEditReview(sake.sakeId, review)}
                                       className="text-xs text-blue-600 hover:text-blue-700 cursor-pointer"
                                     >
                                       編集
@@ -842,11 +835,7 @@ export default function BreweryDetailPage() {
             <form onSubmit={handleSaveEditReview} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">評価</label>
-                <StarRating
-                  value={editReviewRating}
-                  onChange={setEditReviewRating}
-                  size="lg"
-                />
+                <StarRating value={editReviewRating} onChange={setEditReviewRating} size="lg" />
               </div>
 
               <div>

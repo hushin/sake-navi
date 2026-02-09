@@ -100,9 +100,7 @@ export default function BookmarksPage() {
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-slate-800 truncate">
-                      {bookmark.sake.name}
-                    </h3>
+                    <h3 className="font-semibold text-slate-800 truncate">{bookmark.sake.name}</h3>
                     {bookmark.sake.type && (
                       <span className="text-sm text-slate-600 whitespace-nowrap">
                         {bookmark.sake.type}

@@ -81,15 +81,9 @@ app.post('/', async (c) => {
     return c.json({ error: '既にブックマークしています' }, 409);
   }
 
-  const [newBookmark] = await db
-    .insert(bookmarks)
-    .values({ userId, sakeId })
-    .returning();
+  const [newBookmark] = await db.insert(bookmarks).values({ userId, sakeId }).returning();
 
-  return c.json(
-    { bookmarkId: newBookmark.bookmarkId, sakeId: newBookmark.sakeId },
-    201,
-  );
+  return c.json({ bookmarkId: newBookmark.bookmarkId, sakeId: newBookmark.sakeId }, 201);
 });
 
 // DELETE /api/bookmarks/:sakeId - ブックマーク削除
@@ -114,9 +108,7 @@ app.delete('/:sakeId', async (c) => {
     return c.json({ error: 'ブックマークが見つかりません' }, 404);
   }
 
-  await db
-    .delete(bookmarks)
-    .where(and(eq(bookmarks.userId, userId), eq(bookmarks.sakeId, sakeId)));
+  await db.delete(bookmarks).where(and(eq(bookmarks.userId, userId), eq(bookmarks.sakeId, sakeId)));
 
   return c.json({ success: true });
 });
