@@ -3,16 +3,20 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getBookmarks, removeBookmark, type BookmarkedSake } from '@/lib/api';
+import { getBookmarks, removeBookmark, addBookmark, type BookmarkedSake } from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
 import { OpenMapLink } from '@/components/OpenMapLink';
 import { UserMenu } from '@/components/UserMenu';
+import { Toast } from '@/components/Toast';
 
 export default function BookmarksPage() {
   const router = useRouter();
   const [bookmarks, setBookmarks] = useState<BookmarkedSake[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; sakeId: number; sakeName: string } | null>(
+    null,
+  );
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -36,12 +40,26 @@ export default function BookmarksPage() {
     }
   };
 
-  const handleRemoveBookmark = async (sakeId: number) => {
+  const handleRemoveBookmark = async (sakeId: number, sakeName: string) => {
     try {
       await removeBookmark(sakeId);
       setBookmarks(bookmarks.filter((b) => b.sake.sakeId !== sakeId));
+      setToast({ message: `「${sakeName}」を削除しました`, sakeId, sakeName });
     } catch (err) {
       console.error('ブックマーク削除エラー:', err);
+    }
+  };
+
+  const handleUndoRemove = async () => {
+    if (!toast) return;
+
+    try {
+      await addBookmark(toast.sakeId);
+      setToast(null);
+      // ブックマーク一覧を再取得して最新の状態に更新
+      await fetchBookmarks();
+    } catch (err) {
+      console.error('ブックマーク復元エラー:', err);
     }
   };
 
@@ -125,7 +143,7 @@ export default function BookmarksPage() {
                   <OpenMapLink breweryId={bookmark.brewery.breweryId} />
                   <button
                     type="button"
-                    onClick={() => handleRemoveBookmark(bookmark.sake.sakeId)}
+                    onClick={() => handleRemoveBookmark(bookmark.sake.sakeId, bookmark.sake.name)}
                     className="text-red-500 hover:text-red-700 transition-colors cursor-pointer"
                     title="ブックマークを解除"
                   >
@@ -144,6 +162,15 @@ export default function BookmarksPage() {
           </div>
         )}
       </main>
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          onUndo={handleUndoRemove}
+          onClose={() => setToast(null)}
+          duration={5000}
+        />
+      )}
     </div>
   );
 }
