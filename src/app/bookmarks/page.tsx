@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getBookmarks, removeBookmark, type BookmarkedSake } from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
+import { OpenMapLink } from '@/components/OpenMapLink';
 import { UserMenu } from '@/components/UserMenu';
 
 export default function BookmarksPage() {
@@ -113,28 +114,33 @@ export default function BookmarksPage() {
                       </span>
                     )}
                   </div>
-                  <Link
-                    href={`/brewery/${bookmark.brewery.breweryId}`}
-                    className="text-sm text-blue-600 hover:underline"
-                  >
-                    {bookmark.brewery.name}
-                  </Link>
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/brewery/${bookmark.brewery.breweryId}`}
+                      className="text-sm text-blue-600 hover:underline"
+                    >
+                      {bookmark.brewery.name}
+                    </Link>
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handleRemoveBookmark(bookmark.sake.sakeId)}
-                  className="text-red-500 hover:text-red-700 transition-colors cursor-pointer"
-                  title="ブックマークを解除"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
+                <div className="flex items-center gap-2">
+                  <OpenMapLink breweryId={bookmark.brewery.breweryId} />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveBookmark(bookmark.sake.sakeId)}
+                    className="text-red-500 hover:text-red-700 transition-colors cursor-pointer"
+                    title="ブックマークを解除"
                   >
-                    <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
-                  </svg>
-                </button>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             ))}
           </div>
