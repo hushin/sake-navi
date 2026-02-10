@@ -38,16 +38,15 @@ pnpm install
 ### ローカル開発
 
 ```bash
-# D1データベース作成（初回のみ）
-wrangler d1 create sake-navi-db
-
-# wrangler.toml の database_id を更新
+# .dev.vars.example を参考に .dev.vars を作成
 
 # マイグレーション適用
 pnpm db:migrate:local
 
 # 初期データ投入（酒蔵・お酒マスタ）
 pnpm db:seed:local
+# デモ用ダミーデータ投入
+pnpm db:seed-demo:local
 
 # 開発サーバー起動
 pnpm dev
@@ -56,6 +55,11 @@ pnpm dev
 ### デプロイ
 
 ```bash
+# D1データベース作成（初回のみ）
+wrangler d1 create sake-navi-db
+
+# wrangler.toml の database_id を更新
+
 # リモートD1にマイグレーション適用
 pnpm db:migrate:remote
 
@@ -64,9 +68,10 @@ pnpm db:seed:remote
 
 # Discord Webhook設定
 wrangler secret put DISCORD_WEBHOOK_URL
+# BASE_URL 設定 例: https://sake-navi.example.workers.dev
+wrangler secret put BASE_URL
 
 # デプロイ
-pnpm build
 pnpm run deploy
 ```
 
@@ -82,3 +87,13 @@ pnpm run deploy
 - [設計書](./DESIGN.md) - 機能一覧、画面設計、DB設計、API設計
 - [CLAUDE.md](./CLAUDE.md) - AI開発ガイド、アーキテクチャ判断
 - [酒蔵データ](./src/data/) - フロアマップの酒蔵・お酒マスタ
+
+## メモ
+
+### データを消す
+
+```
+# すべてのテーブルを削除
+pnpm wrangler d1 execute sake-navi-db --remote --command="DROP TABLE IF EXISTS reviews; DROP TABLE IF EXISTS brewery_notes; DROP TABLE IF EXISTS sakes; DROP TABLE
+IF EXISTS breweries; DROP TABLE IF EXISTS users; DROP TABLE IF EXISTS _drizzle_migrations;"
+```
