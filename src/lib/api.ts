@@ -392,6 +392,7 @@ export type TimelineReviewItem = {
   breweryId: number;
   sakeId: number;
   sakeName: string;
+  sakeType?: string;
   breweryName: string;
   rating: number;
   tags: string[];

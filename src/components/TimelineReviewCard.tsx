@@ -31,7 +31,7 @@ export function TimelineReviewCard({
   const breweryName = isTimelineReviewItem(item) ? item.breweryName : item.brewery.name;
   const sakeId = isTimelineReviewItem(item) ? item.sakeId : item.sake.id;
   const sakeName = isTimelineReviewItem(item) ? item.sakeName : item.sake.name;
-  const sakeType = isTimelineReviewItem(item) ? undefined : item.sake.type;
+  const sakeType = isTimelineReviewItem(item) ? item.sakeType : item.sake.type;
   const rating = isTimelineReviewItem(item) ? item.rating : item.rating;
   const tags = isTimelineReviewItem(item) ? item.tags : item.tags;
   const comment = isTimelineReviewItem(item) ? item.comment : item.comment;

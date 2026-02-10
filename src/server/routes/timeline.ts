@@ -13,6 +13,7 @@ type TimelineItem = {
   breweryId: number;
   sakeId?: number;
   sakeName?: string;
+  sakeType?: string;
   breweryName?: string;
   rating?: number;
   tags?: string[];
@@ -43,6 +44,7 @@ app.get('/', async (c) => {
       breweryId: schema.breweries.breweryId,
       sakeId: schema.sakes.sakeId,
       sakeName: schema.sakes.name,
+      sakeType: schema.sakes.type,
       breweryName: schema.breweries.name,
       rating: schema.reviews.rating,
       tags: schema.reviews.tags,
@@ -84,6 +86,7 @@ app.get('/', async (c) => {
     breweryId: review.breweryId,
     sakeId: review.sakeId,
     sakeName: review.sakeName,
+    sakeType: review.sakeType ?? undefined,
     breweryName: review.breweryName,
     rating: review.rating,
     tags: review.tags ?? [],
