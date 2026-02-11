@@ -22,16 +22,13 @@
 
 ### 前提条件
 
-- Node.js >= 20
+- Node.js >= 22
 - pnpm
 - Cloudflare アカウント
-- Wrangler CLI (`pnpm add -g wrangler`)
 
 ### インストール
 
 ```bash
-git clone <repository-url>
-cd sake-navi
 pnpm install
 ```
 
@@ -56,7 +53,7 @@ pnpm dev
 
 ```bash
 # D1データベース作成（初回のみ）
-wrangler d1 create sake-navi-db
+pnpm wrangler d1 create sake-navi-db
 
 # wrangler.toml の database_id を更新
 
@@ -67,9 +64,9 @@ pnpm db:migrate:remote
 pnpm db:seed:remote
 
 # Discord Webhook設定
-wrangler secret put DISCORD_WEBHOOK_URL
+pnpm wrangler secret put DISCORD_WEBHOOK_URL
 # BASE_URL 設定 例: https://sake-navi.example.workers.dev
-wrangler secret put BASE_URL
+pnpm wrangler secret put BASE_URL
 
 # デプロイ
 pnpm run deploy
