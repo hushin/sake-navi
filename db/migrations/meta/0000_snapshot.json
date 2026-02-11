@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "cb15be0a-fe50-42f1-9987-ffc1714d0b31",
+  "id": "288ed162-03cb-42f0-9259-17b45571b9fe",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "bookmarks": {
@@ -34,7 +34,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "(datetime('now'))"
+          "default": "(strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))"
         }
       },
       "indexes": {
@@ -170,7 +170,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "(datetime('now'))"
+          "default": "(strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))"
         }
       },
       "indexes": {
@@ -273,7 +273,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "(datetime('now'))"
+          "default": "(strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))"
         }
       },
       "indexes": {
@@ -406,7 +406,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "(datetime('now'))"
+          "default": "(strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))"
         }
       },
       "indexes": {
@@ -473,7 +473,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "(datetime('now'))"
+          "default": "(strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))"
         }
       },
       "indexes": {

@@ -9,7 +9,7 @@ export const users = sqliteTable('users', {
   name: text('name').notNull().unique(),
   createdAt: text('created_at')
     .notNull()
-    .default(sql`(datetime('now'))`),
+    .default(sql`(strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))`),
 });
 
 // 酒蔵
@@ -38,7 +38,7 @@ export const sakes = sqliteTable(
     category: text('category').default('清酒'),
     createdAt: text('created_at')
       .notNull()
-      .default(sql`(datetime('now'))`),
+      .default(sql`(strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))`),
   },
   (table) => [index('idx_sakes_brewery').on(table.breweryId)],
 );
@@ -59,7 +59,7 @@ export const reviews = sqliteTable(
     comment: text('comment'),
     createdAt: text('created_at')
       .notNull()
-      .default(sql`(datetime('now'))`),
+      .default(sql`(strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))`),
   },
   (table) => [
     index('idx_reviews_sake').on(table.sakeId),
@@ -82,7 +82,7 @@ export const breweryNotes = sqliteTable(
     comment: text('comment').notNull(),
     createdAt: text('created_at')
       .notNull()
-      .default(sql`(datetime('now'))`),
+      .default(sql`(strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))`),
   },
   (table) => [
     index('idx_brewery_notes_brewery').on(table.breweryId),
@@ -103,7 +103,7 @@ export const bookmarks = sqliteTable(
       .references(() => sakes.sakeId),
     createdAt: text('created_at')
       .notNull()
-      .default(sql`(datetime('now'))`),
+      .default(sql`(strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))`),
   },
   (table) => [
     index('idx_bookmarks_user').on(table.userId),

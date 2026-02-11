@@ -2,7 +2,7 @@ CREATE TABLE `bookmarks` (
 	`bookmark_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`user_id` text NOT NULL,
 	`sake_id` integer NOT NULL,
-	`created_at` text DEFAULT (datetime('now')) NOT NULL,
+	`created_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')) NOT NULL,
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`sake_id`) REFERENCES `sakes`(`sake_id`) ON UPDATE no action ON DELETE no action
 );
@@ -22,7 +22,7 @@ CREATE TABLE `brewery_notes` (
 	`user_id` text NOT NULL,
 	`brewery_id` integer NOT NULL,
 	`comment` text NOT NULL,
-	`created_at` text DEFAULT (datetime('now')) NOT NULL,
+	`created_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')) NOT NULL,
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`brewery_id`) REFERENCES `breweries`(`brewery_id`) ON UPDATE no action ON DELETE no action
 );
@@ -36,7 +36,7 @@ CREATE TABLE `reviews` (
 	`rating` integer NOT NULL,
 	`tags` text DEFAULT '[]',
 	`comment` text,
-	`created_at` text DEFAULT (datetime('now')) NOT NULL,
+	`created_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')) NOT NULL,
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`sake_id`) REFERENCES `sakes`(`sake_id`) ON UPDATE no action ON DELETE no action
 );
@@ -54,7 +54,7 @@ CREATE TABLE `sakes` (
 	`is_limited` integer DEFAULT false NOT NULL,
 	`paid_tasting_price` integer,
 	`category` text DEFAULT '清酒',
-	`created_at` text DEFAULT (datetime('now')) NOT NULL,
+	`created_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')) NOT NULL,
 	FOREIGN KEY (`brewery_id`) REFERENCES `breweries`(`brewery_id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`added_by`) REFERENCES `users`(`user_id`) ON UPDATE no action ON DELETE no action
 );
@@ -63,7 +63,7 @@ CREATE INDEX `idx_sakes_brewery` ON `sakes` (`brewery_id`);--> statement-breakpo
 CREATE TABLE `users` (
 	`user_id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
-	`created_at` text DEFAULT (datetime('now')) NOT NULL
+	`created_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')) NOT NULL
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `users_name_unique` ON `users` (`name`);
