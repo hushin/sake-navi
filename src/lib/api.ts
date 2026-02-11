@@ -1,25 +1,7 @@
-import { getAuth } from './auth';
+'use client';
 
-const baseUrl =
-  typeof window !== 'undefined'
-    ? window.location.origin
-    : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-
-/**
- * APIリクエストのヘッダーにX-User-Idを自動付与
- */
-function getHeaders(): HeadersInit {
-  const auth = getAuth();
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-  };
-
-  if (auth) {
-    headers['X-User-Id'] = auth.userId;
-  }
-
-  return headers;
-}
+import type { InferResponseType } from 'hono';
+import { client } from './clients';
 
 /**
  * APIエラーの型定義
@@ -35,148 +17,144 @@ export class ApiError extends Error {
 }
 
 /**
- * レスポンスのエラーハンドリング
+ * エラーレスポンスから日本語メッセージを取得
  */
-async function handleResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    const errorData = (await response.json().catch(() => ({}))) as {
-      error?: string;
-    };
-    throw new ApiError(
-      response.status,
-      errorData.error || `リクエストエラー: ${response.statusText}`,
-    );
+async function getErrorMessage(response: Response): Promise<string> {
+  try {
+    const data = (await response.json()) as { error?: string };
+    return data.error || `リクエストエラー: ${response.statusText}`;
+  } catch {
+    return `リクエストエラー: ${response.statusText}`;
   }
-  return response.json();
 }
 
 // ========================================
 // ユーザーAPI
 // ========================================
 
-export type User = {
-  id: string;
-  name: string;
-  createdAt: string;
-};
+type UsersGetResponse = Exclude<InferResponseType<typeof client.api.users.$get>, { error: string }>;
+export type User = UsersGetResponse[number];
 
 /**
  * ユーザー一覧取得
  */
 export async function getUsers(): Promise<User[]> {
-  const response = await fetch(`${baseUrl}/api/users`, {
-    method: 'GET',
-    headers: getHeaders(),
-  });
-  return handleResponse<User[]>(response);
+  const res = await client.api.users.$get();
+
+  if (!res.ok) {
+    const message = await getErrorMessage(res);
+    throw new ApiError(res.status, message);
+  }
+
+  return res.json();
 }
 
 /**
  * ユーザー登録
  */
 export async function createUser(name: string): Promise<User> {
-  const response = await fetch(`${baseUrl}/api/users`, {
-    method: 'POST',
-    headers: getHeaders(),
-    body: JSON.stringify({ name }),
+  const res = await client.api.users.$post({
+    json: { name },
   });
-  return handleResponse<User>(response);
+
+  if (!res.ok) {
+    const message = await getErrorMessage(res);
+    throw new ApiError(res.status, message);
+  }
+
+  return res.json();
 }
 
 // ========================================
 // 酒蔵API
 // ========================================
 
-export type Brewery = {
-  breweryId: number;
-  name: string;
-  mapPositionX: number;
-  mapPositionY: number;
-  area: string | null;
-};
+type BreweriesGetResponse = Exclude<
+  InferResponseType<typeof client.api.breweries.$get>,
+  { error: string }
+>;
+type BreweryDetailResponse = Exclude<
+  InferResponseType<(typeof client.api.breweries)[':id']['$get']>,
+  { error: string }
+>;
 
-export type BreweryWithRating = {
-  breweryId: number;
-  name: string;
-  mapPositionX: number;
-  mapPositionY: number;
-  averageRating: number | null;
-  hasUserReviewed: boolean;
-};
-
-export type Sake = {
-  sakeId: number;
-  name: string;
-  type: string | null;
-  isCustom: boolean;
-  addedBy: string | null;
-  isLimited: boolean;
-  paidTastingPrice: number | null;
-  category: string;
-  createdAt: string;
-  averageRating: number | null;
-  reviews: Review[];
-};
-
-export type BreweryDetail = {
-  brewery: Brewery;
-  sakes: Sake[];
-};
+export type BreweryWithRating = BreweriesGetResponse[number];
+export type BreweryDetail = BreweryDetailResponse;
+export type Brewery = BreweryDetail['brewery'];
+export type Sake = BreweryDetail['sakes'][number];
+export type Review = Sake['reviews'][number];
 
 /**
  * 酒蔵一覧取得（マップ表示用）
  */
 export async function getBreweries(): Promise<BreweryWithRating[]> {
-  const response = await fetch(`${baseUrl}/api/breweries`, {
-    method: 'GET',
-    headers: getHeaders(),
-  });
-  return handleResponse<BreweryWithRating[]>(response);
+  const res = await client.api.breweries.$get();
+
+  if (!res.ok) {
+    const message = await getErrorMessage(res);
+    throw new ApiError(res.status, message);
+  }
+
+  return res.json();
 }
 
 /**
  * 酒蔵詳細取得
  */
 export async function getBreweryDetail(breweryId: number): Promise<BreweryDetail> {
-  const response = await fetch(`${baseUrl}/api/breweries/${breweryId}`, {
-    method: 'GET',
+  const res = await client.api.breweries[':id'].$get({
+    param: { id: String(breweryId) },
   });
-  return handleResponse<BreweryDetail>(response);
+
+  if (!res.ok) {
+    const message = await getErrorMessage(res);
+    throw new ApiError(res.status, message);
+  }
+
+  return res.json();
 }
 
 // ========================================
 // 酒蔵ノートAPI
 // ========================================
 
-export type BreweryNote = {
-  noteId: number;
-  userId: string;
-  userName: string;
-  breweryId: number;
-  comment: string;
-  createdAt: string;
-};
+type BreweryNotesGetResponse = Exclude<
+  InferResponseType<(typeof client.api.breweries)[':id']['notes']['$get']>,
+  { error: string }
+>;
+export type BreweryNote = BreweryNotesGetResponse[number];
 
 /**
  * 酒蔵ノート一覧取得
  */
 export async function getBreweryNotes(breweryId: number): Promise<BreweryNote[]> {
-  const response = await fetch(`${baseUrl}/api/breweries/${breweryId}/notes`, {
-    method: 'GET',
+  const res = await client.api.breweries[':id'].notes.$get({
+    param: { id: String(breweryId) },
   });
-  return handleResponse<BreweryNote[]>(response);
+
+  if (!res.ok) {
+    const message = await getErrorMessage(res);
+    throw new ApiError(res.status, message);
+  }
+
+  return res.json();
 }
 
 /**
  * 酒蔵ノート投稿
  */
 export async function createBreweryNote(breweryId: number, content: string): Promise<BreweryNote> {
-  const response = await fetch(`${baseUrl}/api/breweries/${breweryId}/notes`, {
-    method: 'POST',
-    headers: getHeaders(),
-    body: JSON.stringify({ content }),
+  const res = await client.api.breweries[':id'].notes.$post({
+    param: { id: String(breweryId) },
+    json: { content },
   });
-  return handleResponse<BreweryNote>(response);
+
+  if (!res.ok) {
+    const message = await getErrorMessage(res);
+    throw new ApiError(res.status, message);
+  }
+
+  return res.json();
 }
 
 /**
@@ -189,15 +167,20 @@ export async function addCustomSake(
     type?: string;
     isLimited?: boolean;
     paidTastingPrice?: number;
-    category?: string;
+    category?: '清酒' | 'リキュール' | 'みりん' | 'その他';
   },
-): Promise<Sake> {
-  const response = await fetch(`${baseUrl}/api/breweries/${breweryId}/sakes`, {
-    method: 'POST',
-    headers: getHeaders(),
-    body: JSON.stringify(data),
+): Promise<Omit<Sake, 'averageRating' | 'reviews'>> {
+  const res = await client.api.breweries[':id'].sakes.$post({
+    param: { id: String(breweryId) },
+    json: data,
   });
-  return handleResponse<Sake>(response);
+
+  if (!res.ok) {
+    const message = await getErrorMessage(res);
+    throw new ApiError(res.status, message);
+  }
+
+  return res.json();
 }
 
 /**
@@ -208,61 +191,57 @@ export async function updateBreweryNote(
   noteId: number,
   content: string,
 ): Promise<BreweryNote> {
-  const response = await fetch(`${baseUrl}/api/breweries/${breweryId}/notes/${noteId}`, {
-    method: 'PUT',
-    headers: getHeaders(),
-    body: JSON.stringify({ content }),
+  const res = await client.api.breweries[':id'].notes[':noteId'].$put({
+    param: { id: String(breweryId), noteId: String(noteId) },
+    json: { content },
   });
-  return handleResponse<BreweryNote>(response);
+
+  if (!res.ok) {
+    const message = await getErrorMessage(res);
+    throw new ApiError(res.status, message);
+  }
+
+  return res.json();
 }
 
 /**
  * 酒蔵ノート削除
  */
 export async function deleteBreweryNote(breweryId: number, noteId: number): Promise<void> {
-  const response = await fetch(`${baseUrl}/api/breweries/${breweryId}/notes/${noteId}`, {
-    method: 'DELETE',
-    headers: getHeaders(),
+  const res = await client.api.breweries[':id'].notes[':noteId'].$delete({
+    param: { id: String(breweryId), noteId: String(noteId) },
   });
-  await handleResponse<{ success: boolean }>(response);
+
+  if (!res.ok) {
+    const message = await getErrorMessage(res);
+    throw new ApiError(res.status, message);
+  }
 }
 
 // ========================================
 // お酒API
 // ========================================
 
-export type Review = {
-  id: number;
-  rating: number;
-  tags: string[];
-  comment: string | null;
-  createdAt: string;
-  user: {
-    id: string;
-    name: string;
-  };
-};
-
-export type SakeDetail = {
-  id: number;
-  breweryId: number;
-  name: string;
-  type: string | null;
-  isCustom: boolean;
-  addedBy: string | null;
-  createdAt: string;
-  avgRating: number | null;
-  reviews: Review[];
-};
+type SakeDetailResponse = Exclude<
+  InferResponseType<(typeof client.api.sakes)[':id']['$get']>,
+  { error: string }
+>;
+export type SakeDetail = SakeDetailResponse;
 
 /**
  * お酒詳細取得
  */
 export async function getSakeDetail(sakeId: number): Promise<SakeDetail> {
-  const response = await fetch(`${baseUrl}/api/sakes/${sakeId}`, {
-    method: 'GET',
+  const res = await client.api.sakes[':id'].$get({
+    param: { id: String(sakeId) },
   });
-  return handleResponse<SakeDetail>(response);
+
+  if (!res.ok) {
+    const message = await getErrorMessage(res);
+    throw new ApiError(res.status, message);
+  }
+
+  return res.json();
 }
 
 /**
@@ -275,15 +254,20 @@ export async function updateSake(
     type?: string;
     isLimited?: boolean;
     paidTastingPrice?: number;
-    category?: string;
+    category?: '清酒' | 'リキュール' | 'みりん' | 'その他';
   },
-): Promise<Sake> {
-  const response = await fetch(`${baseUrl}/api/sakes/${sakeId}`, {
-    method: 'PUT',
-    headers: getHeaders(),
-    body: JSON.stringify(data),
+): Promise<Omit<Sake, 'averageRating' | 'reviews'>> {
+  const res = await client.api.sakes[':id'].$put({
+    param: { id: String(sakeId) },
+    json: data,
   });
-  return handleResponse<Sake>(response);
+
+  if (!res.ok) {
+    const message = await getErrorMessage(res);
+    throw new ApiError(res.status, message);
+  }
+
+  return res.json();
 }
 
 /**
@@ -296,13 +280,18 @@ export async function createReview(
     tags?: string[];
     comment?: string;
   },
-): Promise<Review> {
-  const response = await fetch(`${baseUrl}/api/sakes/${sakeId}/reviews`, {
-    method: 'POST',
-    headers: getHeaders(),
-    body: JSON.stringify(data),
+): Promise<Omit<Review, 'user'>> {
+  const res = await client.api.sakes[':id'].reviews.$post({
+    param: { id: String(sakeId) },
+    json: data,
   });
-  return handleResponse<Review>(response);
+
+  if (!res.ok) {
+    const message = await getErrorMessage(res);
+    throw new ApiError(res.status, message);
+  }
+
+  return res.json();
 }
 
 /**
@@ -313,43 +302,41 @@ export async function updateReview(
   reviewId: number,
   data: { rating: number; tags: string[]; comment?: string },
 ): Promise<void> {
-  const response = await fetch(`${baseUrl}/api/sakes/${sakeId}/reviews/${reviewId}`, {
-    method: 'PUT',
-    headers: getHeaders(),
-    body: JSON.stringify(data),
+  const res = await client.api.sakes[':id'].reviews[':reviewId'].$put({
+    param: { id: String(sakeId), reviewId: String(reviewId) },
+    json: data,
   });
-  await handleResponse<{ id: number }>(response);
+
+  if (!res.ok) {
+    const message = await getErrorMessage(res);
+    throw new ApiError(res.status, message);
+  }
 }
 
 /**
  * レビュー削除
  */
 export async function deleteReview(sakeId: number, reviewId: number): Promise<void> {
-  const response = await fetch(`${baseUrl}/api/sakes/${sakeId}/reviews/${reviewId}`, {
-    method: 'DELETE',
-    headers: getHeaders(),
+  const res = await client.api.sakes[':id'].reviews[':reviewId'].$delete({
+    param: { id: String(sakeId), reviewId: String(reviewId) },
   });
-  await handleResponse<{ success: boolean }>(response);
+
+  if (!res.ok) {
+    const message = await getErrorMessage(res);
+    throw new ApiError(res.status, message);
+  }
 }
 
 // ========================================
 // 酒検索API
 // ========================================
 
-export type SakeSearchItem = {
-  sakeId: number;
-  name: string;
-  type: string | null;
-  category: string | null;
-  isLimited: boolean;
-  paidTastingPrice: number | null;
-  brewery: { breweryId: number; name: string };
-};
-
-export type SakeSearchResponse = {
-  items: SakeSearchItem[];
-  nextCursor: string | null;
-};
+type SakesSearchResponse = Exclude<
+  InferResponseType<typeof client.api.sakes.$get>,
+  { error: string }
+>;
+export type SakeSearchResponse = SakesSearchResponse;
+export type SakeSearchItem = SakeSearchResponse['items'][number];
 
 /**
  * 酒検索（ページネーション対応）
@@ -362,44 +349,35 @@ export async function searchSakes(params?: {
   cursor?: string;
   limit?: number;
 }): Promise<SakeSearchResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.q) searchParams.append('q', params.q);
-  if (params?.category) searchParams.append('category', params.category);
-  if (params?.isLimited) searchParams.append('isLimited', 'true');
-  if (params?.hasPaidTasting) searchParams.append('hasPaidTasting', 'true');
-  if (params?.cursor) searchParams.append('cursor', params.cursor);
-  if (params?.limit) searchParams.append('limit', params.limit.toString());
+  const res = await client.api.sakes.$get({
+    query: {
+      q: params?.q,
+      category: params?.category,
+      isLimited: params?.isLimited ? 'true' : undefined,
+      hasPaidTasting: params?.hasPaidTasting ? 'true' : undefined,
+      cursor: params?.cursor,
+      limit: params?.limit?.toString(),
+    },
+  });
 
-  const url = `${baseUrl}/api/sakes${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
-  const response = await fetch(url, { method: 'GET' });
-  return handleResponse<SakeSearchResponse>(response);
+  if (!res.ok) {
+    const message = await getErrorMessage(res);
+    throw new ApiError(res.status, message);
+  }
+
+  return res.json();
 }
 
 // ========================================
 // レビュー検索API
 // ========================================
 
-export type ReviewSearchItem = {
-  reviewId: number;
-  rating: number;
-  tags: string[];
-  comment: string | null;
-  createdAt: string;
-  user: { id: string; name: string };
-  sake: {
-    id: number;
-    name: string;
-    type: string | null;
-    isLimited: boolean;
-    paidTastingPrice?: number;
-  };
-  brewery: { id: number; name: string };
-};
-
-export type ReviewSearchResponse = {
-  items: ReviewSearchItem[];
-  nextCursor: string | null;
-};
+type ReviewsSearchResponse = Exclude<
+  InferResponseType<typeof client.api.reviews.$get>,
+  { error: string }
+>;
+export type ReviewSearchResponse = ReviewsSearchResponse;
+export type ReviewSearchItem = ReviewSearchResponse['items'][number];
 
 /**
  * レビュー検索（ページネーション対応）
@@ -411,122 +389,104 @@ export async function getReviews(params?: {
   cursor?: string;
   limit?: number;
 }): Promise<ReviewSearchResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.sort) searchParams.append('sort', params.sort);
-  if (params?.tags && params.tags.length > 0) searchParams.append('tags', params.tags.join(','));
-  if (params?.userId) searchParams.append('userId', params.userId);
-  if (params?.cursor) searchParams.append('cursor', params.cursor);
-  if (params?.limit) searchParams.append('limit', params.limit.toString());
+  const res = await client.api.reviews.$get({
+    query: {
+      sort: params?.sort,
+      tags: params?.tags && params.tags.length > 0 ? params.tags.join(',') : undefined,
+      userId: params?.userId,
+      cursor: params?.cursor,
+      limit: params?.limit?.toString(),
+    },
+  });
 
-  const url = `${baseUrl}/api/reviews${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
-  const response = await fetch(url, { method: 'GET' });
-  return handleResponse<ReviewSearchResponse>(response);
+  if (!res.ok) {
+    const message = await getErrorMessage(res);
+    throw new ApiError(res.status, message);
+  }
+
+  return res.json();
 }
 
 // ========================================
 // タイムラインAPI
 // ========================================
 
-export type TimelineReviewItem = {
-  type: 'review';
-  id: number;
-  userName: string;
-  createdAt: string;
-  breweryId: number;
-  sakeId: number;
-  sakeName: string;
-  sakeType?: string;
-  breweryName: string;
-  rating: number;
-  tags: string[];
-  comment?: string;
-  isLimited: boolean;
-  paidTastingPrice?: number;
-};
-
-export type TimelineNoteItem = {
-  type: 'brewery_note';
-  id: number;
-  userName: string;
-  createdAt: string;
-  breweryId: number;
-  breweryName: string;
-  content: string;
-};
-
-export type TimelineItem = TimelineReviewItem | TimelineNoteItem;
-
-export type TimelineResponse = {
-  items: TimelineItem[];
-  nextCursor: string | null;
-};
+type TimelineGetResponse = Exclude<
+  InferResponseType<typeof client.api.timeline.$get>,
+  { error: string }
+>;
+export type TimelineResponse = TimelineGetResponse;
+export type TimelineItem = TimelineResponse['items'][number];
+export type TimelineReviewItem = Extract<TimelineItem, { type: 'review' }>;
+export type TimelineNoteItem = Extract<TimelineItem, { type: 'brewery_note' }>;
 
 /**
  * タイムライン取得（ページネーション対応）
  */
 export async function getTimeline(cursor?: string, limit?: number): Promise<TimelineResponse> {
-  const params = new URLSearchParams();
-  if (cursor) params.append('cursor', cursor);
-  if (limit) params.append('limit', limit.toString());
-
-  const url = `${baseUrl}/api/timeline${params.toString() ? `?${params.toString()}` : ''}`;
-  const response = await fetch(url, {
-    method: 'GET',
+  const res = await client.api.timeline.$get({
+    query: {
+      cursor,
+      limit: limit?.toString(),
+    },
   });
-  return handleResponse<TimelineResponse>(response);
+
+  if (!res.ok) {
+    const message = await getErrorMessage(res);
+    throw new ApiError(res.status, message);
+  }
+
+  return res.json();
 }
 
 // ========================================
 // ブックマークAPI
 // ========================================
 
-export type BookmarkedSake = {
-  bookmarkId: number;
-  sake: {
-    sakeId: number;
-    name: string;
-    type: string | null;
-    isLimited: boolean;
-    paidTastingPrice: number | null;
-    category: string | null;
-  };
-  brewery: {
-    breweryId: number;
-    name: string;
-  };
-  createdAt: string;
-};
+type BookmarksGetResponse = Exclude<
+  InferResponseType<typeof client.api.bookmarks.$get>,
+  { error: string }
+>;
+export type BookmarkedSake = BookmarksGetResponse[number];
 
 /**
  * ブックマーク一覧取得
  */
 export async function getBookmarks(): Promise<BookmarkedSake[]> {
-  const response = await fetch(`${baseUrl}/api/bookmarks`, {
-    method: 'GET',
-    headers: getHeaders(),
-  });
-  return handleResponse<BookmarkedSake[]>(response);
+  const res = await client.api.bookmarks.$get();
+
+  if (!res.ok) {
+    const message = await getErrorMessage(res);
+    throw new ApiError(res.status, message);
+  }
+
+  return res.json();
 }
 
 /**
  * ブックマーク追加
  */
 export async function addBookmark(sakeId: number): Promise<void> {
-  const response = await fetch(`${baseUrl}/api/bookmarks`, {
-    method: 'POST',
-    headers: getHeaders(),
-    body: JSON.stringify({ sakeId }),
+  const res = await client.api.bookmarks.$post({
+    json: { sakeId },
   });
-  await handleResponse<{ bookmarkId: number; sakeId: number }>(response);
+
+  if (!res.ok) {
+    const message = await getErrorMessage(res);
+    throw new ApiError(res.status, message);
+  }
 }
 
 /**
  * ブックマーク削除
  */
 export async function removeBookmark(sakeId: number): Promise<void> {
-  const response = await fetch(`${baseUrl}/api/bookmarks/${sakeId}`, {
-    method: 'DELETE',
-    headers: getHeaders(),
+  const res = await client.api.bookmarks[':sakeId'].$delete({
+    param: { sakeId: String(sakeId) },
   });
-  await handleResponse<{ success: boolean }>(response);
+
+  if (!res.ok) {
+    const message = await getErrorMessage(res);
+    throw new ApiError(res.status, message);
+  }
 }

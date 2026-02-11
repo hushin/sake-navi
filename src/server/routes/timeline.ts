@@ -3,22 +3,31 @@ import { desc, eq, lt } from 'drizzle-orm';
 import * as schema from '../db/schema';
 import type { AppEnv } from '../types';
 
-type TimelineItem = {
-  type: 'review' | 'brewery_note';
+type ReviewItem = {
+  type: 'review';
   id: number;
   userName: string;
   createdAt: string;
   breweryId: number;
-  sakeId?: number;
-  sakeName?: string;
+  sakeId: number;
+  sakeName: string;
   sakeType?: string;
-  breweryName?: string;
-  rating?: number;
-  tags?: string[];
+  breweryName: string;
+  rating: number;
+  tags: string[];
   comment?: string;
-  content?: string;
   isLimited?: boolean;
   paidTastingPrice?: number;
+};
+
+type BreweryNoteItem = {
+  type: 'brewery_note';
+  id: number;
+  userName: string;
+  createdAt: string;
+  breweryId: number;
+  breweryName: string;
+  content: string;
 };
 
 const app = new Hono<AppEnv>()
@@ -77,8 +86,8 @@ const app = new Hono<AppEnv>()
       .limit(fetchLimit);
 
     // タイムラインアイテムに変換
-    const reviewItems: TimelineItem[] = reviewsData.map((review) => ({
-      type: 'review' as const,
+    const reviewItems: ReviewItem[] = reviewsData.map((review) => ({
+      type: 'review',
       id: review.reviewId,
       userName: review.userName,
       createdAt: review.createdAt,
@@ -94,8 +103,8 @@ const app = new Hono<AppEnv>()
       paidTastingPrice: review.paidTastingPrice ?? undefined,
     }));
 
-    const noteItems: TimelineItem[] = notesData.map((note) => ({
-      type: 'brewery_note' as const,
+    const noteItems: BreweryNoteItem[] = notesData.map((note) => ({
+      type: 'brewery_note',
       id: note.noteId,
       userName: note.userName,
       createdAt: note.createdAt,

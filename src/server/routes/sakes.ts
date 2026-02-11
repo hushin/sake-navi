@@ -257,60 +257,58 @@ const app = new Hono<AppEnv>()
     );
   })
   // PUT /api/sakes/:id/reviews/:reviewId - レビュー編集
-  .put('/:id/reviews/:reviewId', async (c) => {
-    const db = c.var.db;
-    const sakeId = parseInt(c.req.param('id'));
-    const reviewId = parseInt(c.req.param('reviewId'));
-    const userId = c.req.header('X-User-Id');
+  .put(
+    '/:id/reviews/:reviewId',
+    zValidator('json', createReviewSchema),
+    async (c) => {
+      const db = c.var.db;
+      const sakeId = parseInt(c.req.param('id'));
+      const reviewId = parseInt(c.req.param('reviewId'));
+      const userId = c.req.header('X-User-Id');
 
-    if (isNaN(sakeId) || isNaN(reviewId)) {
-      return c.json({ error: '無効なIDです' }, 400);
-    }
+      if (isNaN(sakeId) || isNaN(reviewId)) {
+        return c.json({ error: '無効なIDです' }, 400);
+      }
 
-    if (!userId) {
-      return c.json({ error: 'ユーザーIDが指定されていません' }, 401);
-    }
+      if (!userId) {
+        return c.json({ error: 'ユーザーIDが指定されていません' }, 401);
+      }
 
-    // レビューの存在確認と所有者確認
-    const review = await db.query.reviews.findFirst({
-      where: and(eq(schema.reviews.reviewId, reviewId), eq(schema.reviews.sakeId, sakeId)),
-    });
+      // レビューの存在確認と所有者確認
+      const review = await db.query.reviews.findFirst({
+        where: and(eq(schema.reviews.reviewId, reviewId), eq(schema.reviews.sakeId, sakeId)),
+      });
 
-    if (!review) {
-      return c.json({ error: 'レビューが見つかりません' }, 404);
-    }
+      if (!review) {
+        return c.json({ error: 'レビューが見つかりません' }, 404);
+      }
 
-    if (review.userId !== userId) {
-      return c.json({ error: '自分のレビューのみ編集できます' }, 403);
-    }
+      if (review.userId !== userId) {
+        return c.json({ error: '自分のレビューのみ編集できます' }, 403);
+      }
 
-    const body = await c.req.json();
-    const parseResult = createReviewSchema.safeParse(body);
-    if (!parseResult.success) {
-      return c.json({ error: parseResult.error.issues[0].message }, 400);
-    }
+      const { rating, tags, comment } = c.req.valid('json');
 
-    const { rating, tags, comment } = parseResult.data;
+      const invalidTags = tags.filter((tag) => !VALID_TAGS.includes(tag));
+      if (invalidTags.length > 0) {
+        return c.json({ error: `無効なタグが含まれています: ${invalidTags.join(', ')}` }, 400);
+      }
 
-    const invalidTags = tags.filter((tag) => !VALID_TAGS.includes(tag));
-    if (invalidTags.length > 0) {
-      return c.json({ error: `無効なタグが含まれています: ${invalidTags.join(', ')}` }, 400);
-    }
+      const [updated] = await db
+        .update(schema.reviews)
+        .set({ rating, tags, comment: comment || null })
+        .where(eq(schema.reviews.reviewId, reviewId))
+        .returning();
 
-    const [updated] = await db
-      .update(schema.reviews)
-      .set({ rating, tags, comment: comment || null })
-      .where(eq(schema.reviews.reviewId, reviewId))
-      .returning();
-
-    return c.json({
-      id: updated.reviewId,
-      rating: updated.rating,
-      tags: updated.tags,
-      comment: updated.comment,
-      createdAt: updated.createdAt,
-    });
-  })
+      return c.json({
+        id: updated.reviewId,
+        rating: updated.rating,
+        tags: updated.tags,
+        comment: updated.comment,
+        createdAt: updated.createdAt,
+      });
+    },
+  )
   // DELETE /api/sakes/:id/reviews/:reviewId - レビュー削除
   .delete('/:id/reviews/:reviewId', async (c) => {
     const db = c.var.db;
