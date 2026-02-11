@@ -52,7 +52,7 @@ export const useAddBreweryNoteModal = ({ breweryId, onSuccess }: UseAddBreweryNo
     if (!isOpen) return null;
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="fixed inset-0 bg-black/50 flex items-start justify-center pt-10 p-4 z-50">
         <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
           <h3 className="text-xl font-bold text-slate-800 mb-4">酒蔵ノートを投稿</h3>
           <form onSubmit={handleSubmit} className="space-y-4">

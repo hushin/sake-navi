@@ -77,7 +77,7 @@ export const useAddSakeModal = ({ breweryId, onSuccess }: UseAddSakeModalOptions
     if (!isOpen) return null;
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="fixed inset-0 bg-black/50 flex items-start justify-center pt-10 p-4 z-50">
         <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
           <h3 className="text-xl font-bold text-slate-800 mb-4">お酒を追加</h3>
           <form onSubmit={handleSubmit} className="space-y-4">

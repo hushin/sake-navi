@@ -39,7 +39,7 @@ export const useDeleteReviewModal = ({ onSuccess }: UseDeleteReviewModalOptions)
     if (!deletingReview) return null;
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="fixed inset-0 bg-black/50 flex items-start justify-center pt-10 p-4 z-50">
         <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
           <h3 className="text-lg font-bold text-slate-800 mb-4">レビューを削除しますか？</h3>
           <p className="text-sm text-slate-600 mb-6">この操作は元に戻せません。</p>
