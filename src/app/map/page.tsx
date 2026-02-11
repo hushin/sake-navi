@@ -281,7 +281,7 @@ function MapPageContent() {
 
       {/* 凡例 */}
       <div className="bg-white border-t border-gray-200 p-4">
-        <div className="flex items-center justify-center gap-4 text-sm text-gray-600">
+        <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-gray-600">
           <h2 className="text-sm font-semibold text-gray-700 mr-4">凡例</h2>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-blue-50 border-2 border-blue-400 rounded"></div>
