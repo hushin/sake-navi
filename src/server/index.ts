@@ -9,7 +9,7 @@ import timelineRoute from './routes/timeline';
 import bookmarksRoute from './routes/bookmarks';
 import reviewsRoute from './routes/reviews';
 
-const app = new Hono<AppEnv>().basePath('/api');
+const app = new Hono<AppEnv>();
 
 // グローバルエラーハンドラー
 app.onError((err, c) => {
@@ -30,18 +30,18 @@ app.use('/*', async (c, next) => {
   await next();
 });
 
-// ヘルスチェック
-app.get('/health', (c) => {
-  return c.json({ status: 'ok' });
-});
-
 // ルート登録
-app.route('/users', usersRoute);
-app.route('/breweries', breweriesRoute);
-app.route('/sakes', sakesRoute);
-app.route('/timeline', timelineRoute);
-app.route('/bookmarks', bookmarksRoute);
-app.route('/reviews', reviewsRoute);
+const routes = app
+  .basePath('/api')
+  .get('/health', (c) => {
+    return c.json({ status: 'ok' });
+  })
+  .route('/users', usersRoute)
+  .route('/breweries', breweriesRoute)
+  .route('/sakes', sakesRoute)
+  .route('/timeline', timelineRoute)
+  .route('/bookmarks', bookmarksRoute)
+  .route('/reviews', reviewsRoute);
 
 export default app;
-export type AppType = typeof app;
+export type AppType = typeof routes;

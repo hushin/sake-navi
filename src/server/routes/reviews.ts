@@ -4,8 +4,6 @@ import { desc, and, sql, lt } from 'drizzle-orm';
 import type { AppEnv } from '../types';
 import { reviews, users, sakes, breweries } from '../db/schema';
 
-const app = new Hono<AppEnv>();
-
 /**
  * GET /api/reviews - レビュー検索
  * クエリパラメータ:
@@ -15,7 +13,7 @@ const app = new Hono<AppEnv>();
  * - cursor: createdAt値（ページネーション用）
  * - limit: 件数（デフォルト: 20）
  */
-app.get('/', async (c) => {
+const app = new Hono<AppEnv>().get('/', async (c) => {
   const db = c.get('db');
 
   // クエリパラメータを取得
