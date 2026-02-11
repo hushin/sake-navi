@@ -1,5 +1,7 @@
 import { Hono } from 'hono';
 import { eq, and } from 'drizzle-orm';
+import { z } from 'zod';
+import { zValidator } from '@hono/zod-validator';
 import { bookmarks, sakes, breweries } from '../db/schema';
 import { findUserOrThrow } from '../helpers/validation';
 import type { AppEnv } from '../types';
@@ -53,36 +55,40 @@ const app = new Hono<AppEnv>()
     );
   })
   // POST /api/bookmarks - ブックマーク追加
-  .post('/', async (c) => {
-    const db = c.var.db;
-    const userId = c.req.header('X-User-Id');
+  .post(
+    '/',
+    zValidator(
+      'json',
+      z.object({
+        sakeId: z.number().int().positive('お酒IDが必要です'),
+      }),
+    ),
+    async (c) => {
+      const db = c.var.db;
+      const userId = c.req.header('X-User-Id');
 
-    if (!userId) {
-      return c.json({ error: 'ユーザーIDが必要です' }, 401);
-    }
+      if (!userId) {
+        return c.json({ error: 'ユーザーIDが必要です' }, 401);
+      }
 
-    const body = await c.req.json();
-    const { sakeId } = body;
+      const { sakeId } = c.req.valid('json');
 
-    if (!sakeId || typeof sakeId !== 'number') {
-      return c.json({ error: 'お酒IDが必要です' }, 400);
-    }
+      await findUserOrThrow(db, userId);
 
-    await findUserOrThrow(db, userId);
+      // 重複チェック
+      const existing = await db.query.bookmarks.findFirst({
+        where: and(eq(bookmarks.userId, userId), eq(bookmarks.sakeId, sakeId)),
+      });
 
-    // 重複チェック
-    const existing = await db.query.bookmarks.findFirst({
-      where: and(eq(bookmarks.userId, userId), eq(bookmarks.sakeId, sakeId)),
-    });
+      if (existing) {
+        return c.json({ error: '既にブックマークしています' }, 409);
+      }
 
-    if (existing) {
-      return c.json({ error: '既にブックマークしています' }, 409);
-    }
+      const [newBookmark] = await db.insert(bookmarks).values({ userId, sakeId }).returning();
 
-    const [newBookmark] = await db.insert(bookmarks).values({ userId, sakeId }).returning();
-
-    return c.json({ bookmarkId: newBookmark.bookmarkId, sakeId: newBookmark.sakeId }, 201);
-  })
+      return c.json({ bookmarkId: newBookmark.bookmarkId, sakeId: newBookmark.sakeId }, 201);
+    },
+  )
   // DELETE /api/bookmarks/:sakeId - ブックマーク削除
   .delete('/:sakeId', async (c) => {
     const db = c.var.db;

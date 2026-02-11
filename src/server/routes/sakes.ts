@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { eq, desc, sql, and, gt, like } from 'drizzle-orm';
 import { z } from 'zod';
+import { zValidator } from '@hono/zod-validator';
 import * as schema from '../db/schema';
 import { getCloudflareEnv } from '@/lib/db';
 import { sendReviewNotification } from '../services/discord';
@@ -161,7 +162,7 @@ const app = new Hono<AppEnv>()
     });
   })
   // POST /api/sakes/:id/reviews - レビュー投稿
-  .post('/:id/reviews', async (c) => {
+  .post('/:id/reviews', zValidator('json', createReviewSchema), async (c) => {
     const db = c.var.db;
     const sakeId = parseInt(c.req.param('id'));
     const userId = c.req.header('X-User-Id');
@@ -174,15 +175,7 @@ const app = new Hono<AppEnv>()
       return c.json({ error: 'ユーザーIDが指定されていません' }, 401);
     }
 
-    const body = await c.req.json();
-
-    // バリデーション
-    const parseResult = createReviewSchema.safeParse(body);
-    if (!parseResult.success) {
-      return c.json({ error: parseResult.error.issues[0].message }, 400);
-    }
-
-    const { rating, tags, comment } = parseResult.data;
+    const { rating, tags, comment } = c.req.valid('json');
 
     // タグのバリデーション
     const invalidTags = tags.filter((tag) => !VALID_TAGS.includes(tag));
@@ -350,76 +343,71 @@ const app = new Hono<AppEnv>()
     return c.json({ success: true });
   })
   // PUT /api/sakes/:id - お酒編集
-  .put('/:id', async (c) => {
-    const db = c.var.db;
-    const sakeId = parseInt(c.req.param('id'));
-    const userId = c.req.header('X-User-Id');
+  .put(
+    '/:id',
+    zValidator(
+      'json',
+      z.object({
+        name: z.string().trim().min(1, 'お酒の名前を入力してください'),
+        type: z.string().trim().optional(),
+        isLimited: z.boolean().optional(),
+        paidTastingPrice: z
+          .number()
+          .int()
+          .positive('有料試飲価格は正の整数で入力してください')
+          .optional(),
+        category: z.enum(['清酒', 'リキュール', 'みりん', 'その他']).optional(),
+      }),
+    ),
+    async (c) => {
+      const db = c.var.db;
+      const sakeId = parseInt(c.req.param('id'));
+      const userId = c.req.header('X-User-Id');
 
-    if (isNaN(sakeId)) {
-      return c.json({ error: '無効なお酒IDです' }, 400);
-    }
+      if (isNaN(sakeId)) {
+        return c.json({ error: '無効なお酒IDです' }, 400);
+      }
 
-    if (!userId) {
-      return c.json({ error: 'ユーザーIDが指定されていません' }, 401);
-    }
+      if (!userId) {
+        return c.json({ error: 'ユーザーIDが指定されていません' }, 401);
+      }
 
-    // お酒の存在確認
-    const sake = await findSakeOrThrow(db, sakeId);
+      // お酒の存在確認
+      const sake = await findSakeOrThrow(db, sakeId);
 
-    // is_customのお酒のみ編集可能
-    if (!sake.isCustom) {
-      return c.json({ error: 'マスタデータのお酒は編集できません' }, 403);
-    }
+      // is_customのお酒のみ編集可能
+      if (!sake.isCustom) {
+        return c.json({ error: 'マスタデータのお酒は編集できません' }, 403);
+      }
 
-    // zodバリデーションスキーマ
-    const updateSakeSchema = z.object({
-      name: z.string().trim().min(1, 'お酒の名前を入力してください'),
-      type: z.string().trim().optional(),
-      isLimited: z.boolean().optional(),
-      paidTastingPrice: z
-        .number()
-        .int()
-        .positive('有料試飲価格は正の整数で入力してください')
-        .optional(),
-      category: z.enum(['清酒', 'リキュール', 'みりん', 'その他']).optional(),
-    });
+      const { name, type, isLimited, paidTastingPrice, category } = c.req.valid('json');
 
-    // リクエストボディの検証
-    const body = await c.req.json();
-    const validationResult = updateSakeSchema.safeParse(body);
+      // お酒を更新
+      const [updated] = await db
+        .update(schema.sakes)
+        .set({
+          name,
+          type: type || null,
+          isLimited: isLimited ?? sake.isLimited,
+          paidTastingPrice: paidTastingPrice ?? sake.paidTastingPrice,
+          category: category ?? sake.category,
+        })
+        .where(eq(schema.sakes.sakeId, sakeId))
+        .returning();
 
-    if (!validationResult.success) {
-      const errorMessages = validationResult.error.issues.map((e) => e.message).join(', ');
-      return c.json({ error: errorMessages }, 400);
-    }
-
-    const { name, type, isLimited, paidTastingPrice, category } = validationResult.data;
-
-    // お酒を更新
-    const [updated] = await db
-      .update(schema.sakes)
-      .set({
-        name,
-        type: type || null,
-        isLimited: isLimited ?? sake.isLimited,
-        paidTastingPrice: paidTastingPrice ?? sake.paidTastingPrice,
-        category: category ?? sake.category,
-      })
-      .where(eq(schema.sakes.sakeId, sakeId))
-      .returning();
-
-    return c.json({
-      sakeId: updated.sakeId,
-      breweryId: updated.breweryId,
-      name: updated.name,
-      type: updated.type,
-      isCustom: updated.isCustom,
-      addedBy: updated.addedBy,
-      isLimited: updated.isLimited,
-      paidTastingPrice: updated.paidTastingPrice,
-      category: updated.category,
-      createdAt: updated.createdAt,
-    });
-  });
+      return c.json({
+        sakeId: updated.sakeId,
+        breweryId: updated.breweryId,
+        name: updated.name,
+        type: updated.type,
+        isCustom: updated.isCustom,
+        addedBy: updated.addedBy,
+        isLimited: updated.isLimited,
+        paidTastingPrice: updated.paidTastingPrice,
+        category: updated.category,
+        createdAt: updated.createdAt,
+      });
+    },
+  );
 
 export default app;

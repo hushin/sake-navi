@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
+import { zValidator } from '@hono/zod-validator';
 import * as schema from '../db/schema';
 import type { AppEnv } from '../types';
 
@@ -27,17 +28,9 @@ const app = new Hono<AppEnv>()
     );
   })
   // POST /api/users - ユーザー登録
-  .post('/', async (c) => {
+  .post('/', zValidator('json', createUserSchema), async (c) => {
     const db = c.var.db;
-    const body = await c.req.json();
-
-    // バリデーション
-    const parseResult = createUserSchema.safeParse(body);
-    if (!parseResult.success) {
-      return c.json({ error: parseResult.error.issues[0].message }, 400);
-    }
-
-    const { name } = parseResult.data;
+    const { name } = c.req.valid('json');
 
     // 既存ユーザーの確認
     const existingUser = await db.query.users.findFirst({
