@@ -36,6 +36,7 @@ pnpm install
 
 ```bash
 # .dev.vars.example を参考に .dev.vars を作成
+cp .dev.vars.example .dev.vars
 
 # マイグレーション適用
 pnpm db:migrate:local
@@ -54,8 +55,7 @@ pnpm dev
 ```bash
 # D1データベース作成（初回のみ）
 pnpm wrangler d1 create sake-navi-db
-
-# wrangler.toml の database_id を更新
+# 質問されるので wrangler.toml の database_id を更新する
 
 # リモートD1にマイグレーション適用
 pnpm db:migrate:remote
@@ -79,12 +79,17 @@ pnpm run deploy
 3. お酒を選んでレビューを投稿
 4. タイムラインで友人のレビューを確認
 
-## メモ
+## 開発メモ
 
 ### データを消す
 
+```bash
+# local
+rm -rf .wrangler/
 ```
-# すべてのテーブルを削除
+
+```bash
+# remote すべてのテーブルを削除
 pnpm wrangler d1 execute sake-navi-db --remote --command="DROP TABLE IF EXISTS reviews; DROP TABLE IF EXISTS brewery_notes; DROP TABLE IF EXISTS sakes; DROP TABLE
 IF EXISTS breweries; DROP TABLE IF EXISTS users; DROP TABLE IF EXISTS _drizzle_migrations;"
 ```
