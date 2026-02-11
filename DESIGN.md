@@ -441,8 +441,6 @@ sake-navi/
 │   └── data/
 │       ├── breweries.json       # 酒蔵マスタ（座標含む）
 │       └── sakes.json           # 出品酒マスタ
-├── public/
-│   └── floor-map.png            # 会場フロアマップ画像
 ├── db/
 │   └── migrations/
 │       └── 0001_initial.sql
@@ -472,7 +470,6 @@ sake-navi/
 // 概念コード
 <div className="overflow-x-auto">
   <div className="relative" style={{ width: MAP_WIDTH }}>
-    <img src="/floor-map.png" alt="会場マップ" />
     {breweries.map((b) => (
       <Link
         key={b.breweryId}
