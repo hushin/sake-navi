@@ -94,3 +94,7 @@ rm -rf .wrangler/
 # remote すべてのテーブルを削除
 pnpm wrangler d1 execute sake-navi-db --remote --command "DROP TABLE IF EXISTS reviews; DROP TABLE IF EXISTS bookmarks; DROP TABLE IF EXISTS brewery_notes; DROP TABLE IF EXISTS sakes; DROP TABLE IF EXISTS breweries; DROP TABLE IF EXISTS users; DROP TABLE IF EXISTS d1_migrations;"
 ```
+
+## License
+
+[MIT](LICENSE)
