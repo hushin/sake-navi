@@ -7,6 +7,7 @@ import { isAuthenticated } from '@/lib/auth';
 import { UserMenu } from '@/components/UserMenu';
 import { useBreweries } from '@/hooks/useBreweries';
 import { useBookmarks } from '@/hooks/useBookmarks';
+import { BookmarkIcon } from '@/components/icons';
 
 /**
  * フロアマップページのメインコンテンツ
@@ -227,14 +228,7 @@ function MapPageContent() {
                       {/* ブックマークアイコン */}
                       {bookmarkedBreweryIds.has(brewery.breweryId) && (
                         <div className="absolute -top-1 -right-1 bg-yellow-400 rounded-full p-0.5 shadow-sm">
-                          <svg
-                            className="w-3 h-3 text-white"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
-                          </svg>
+                          <BookmarkIcon className="w-3 h-3 text-white" />
                         </div>
                       )}
 
@@ -284,14 +278,7 @@ function MapPageContent() {
           <div className="flex items-center gap-2">
             <div className="relative w-4 h-4">
               <div className="absolute -top-0.5 -right-0.5 bg-yellow-400 rounded-full p-0.5">
-                <svg
-                  className="w-2 h-2 text-white"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
-                </svg>
+                <BookmarkIcon className="w-2 h-2 text-white" />
               </div>
             </div>
             <span>ブックマーク済み</span>

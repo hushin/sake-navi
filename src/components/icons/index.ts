@@ -1,3 +1,4 @@
+export { BackIcon } from './BackIcon';
 export { BookmarkIcon } from './BookmarkIcon';
 export { ClockIcon } from './ClockIcon';
 export { CloseIcon } from './CloseIcon';

@@ -8,6 +8,7 @@ import { OpenMapLink } from '@/components/OpenMapLink';
 import { UserMenu } from '@/components/UserMenu';
 import { Toast } from '@/components/Toast';
 import { useBookmarks } from '@/hooks/useBookmarks';
+import { BackIcon, BookmarkIcon } from '@/components/icons';
 
 export default function BookmarksPage() {
   const router = useRouter();
@@ -51,18 +52,7 @@ export default function BookmarksPage() {
             href="/map"
             className="text-blue-600 hover:text-blue-700 flex items-center gap-2 transition-colors"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
-                clipRule="evenodd"
-              />
-            </svg>
+            <BackIcon />
             マップへ戻る
           </Link>
           <h1 className="text-xl font-bold text-slate-800">ブックマーク</h1>
@@ -127,14 +117,7 @@ export default function BookmarksPage() {
                     className="text-red-500 hover:text-red-700 transition-colors cursor-pointer"
                     title="ブックマークを解除"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
-                    </svg>
+                    <BookmarkIcon className="h-6 w-6" />
                   </button>
                 </div>
               </div>
