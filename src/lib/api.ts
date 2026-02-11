@@ -4,6 +4,11 @@ import type { InferResponseType } from 'hono';
 import { client } from './clients';
 
 /**
+ * お酒のカテゴリ
+ */
+export type SakeCategory = '清酒' | 'リキュール' | 'みりん' | 'その他';
+
+/**
  * APIエラーの型定義
  */
 export class ApiError extends Error {
@@ -167,7 +172,7 @@ export async function addCustomSake(
     type?: string;
     isLimited?: boolean;
     paidTastingPrice?: number;
-    category?: '清酒' | 'リキュール' | 'みりん' | 'その他';
+    category?: SakeCategory;
   },
 ): Promise<Omit<Sake, 'averageRating' | 'reviews'>> {
   const res = await client.api.breweries[':id'].sakes.$post({
@@ -254,7 +259,7 @@ export async function updateSake(
     type?: string;
     isLimited?: boolean;
     paidTastingPrice?: number;
-    category?: '清酒' | 'リキュール' | 'みりん' | 'その他';
+    category?: SakeCategory;
   },
 ): Promise<Omit<Sake, 'averageRating' | 'reviews'>> {
   const res = await client.api.sakes[':id'].$put({

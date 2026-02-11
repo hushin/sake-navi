@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { updateSake, type Sake } from '@/lib/api';
+import { updateSake, type Sake, type SakeCategory } from '@/lib/api';
 
 type UseEditSakeModalOptions = {
   onSuccess: () => void | Promise<void>;
@@ -11,7 +11,7 @@ export const useEditSakeModal = ({ onSuccess }: UseEditSakeModalOptions) => {
   const [type, setType] = useState('');
   const [isLimited, setIsLimited] = useState(false);
   const [paidTastingPrice, setPaidTastingPrice] = useState('');
-  const [category, setCategory] = useState('清酒');
+  const [category, setCategory] = useState<SakeCategory>('清酒');
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,7 +21,7 @@ export const useEditSakeModal = ({ onSuccess }: UseEditSakeModalOptions) => {
     setType(sake.type || '');
     setIsLimited(sake.isLimited);
     setPaidTastingPrice(sake.paidTastingPrice != null ? String(sake.paidTastingPrice) : '');
-    setCategory(sake.category || '清酒');
+    setCategory((sake.category || '清酒') as SakeCategory);
     setError(null);
   };
 
@@ -127,7 +127,7 @@ export const useEditSakeModal = ({ onSuccess }: UseEditSakeModalOptions) => {
               <select
                 id="edit-sake-category"
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                onChange={(e) => setCategory(e.target.value as SakeCategory)}
                 disabled={isSaving}
                 className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-slate-100 disabled:cursor-not-allowed"
               >

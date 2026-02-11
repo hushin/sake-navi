@@ -21,7 +21,7 @@ export const useEditReviewModal = ({ onSuccess }: UseEditReviewModalOptions) => 
   const open = (sakeId: number, review: Review) => {
     setEditingReview({ sakeId, review });
     setRating(review.rating);
-    setTags(review.tags);
+    setTags(review.tags ?? []);
     setComment(review.comment || '');
     setError(null);
   };

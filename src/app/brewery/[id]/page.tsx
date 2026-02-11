@@ -346,7 +346,7 @@ export default function BreweryDetailPage() {
                                 <div className="flex items-center gap-0.5">
                                   <StarRating value={review.rating} size="sm" readonly />
                                 </div>
-                                {review.tags.length > 0 && (
+                                {review.tags && review.tags.length > 0 && (
                                   <div className="flex flex-wrap gap-1">
                                     {review.tags.map((tag, idx) => (
                                       <span

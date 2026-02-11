@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { addCustomSake } from '@/lib/api';
+import { addCustomSake, type SakeCategory } from '@/lib/api';
 
 type UseAddSakeModalOptions = {
   breweryId: number;
@@ -12,7 +12,7 @@ export const useAddSakeModal = ({ breweryId, onSuccess }: UseAddSakeModalOptions
   const [type, setType] = useState('');
   const [isLimited, setIsLimited] = useState(false);
   const [paidTastingPrice, setPaidTastingPrice] = useState('');
-  const [category, setCategory] = useState('清酒');
+  const [category, setCategory] = useState<SakeCategory>('清酒');
   const [isAdding, setIsAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -126,7 +126,7 @@ export const useAddSakeModal = ({ breweryId, onSuccess }: UseAddSakeModalOptions
               <select
                 id="sake-category"
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                onChange={(e) => setCategory(e.target.value as SakeCategory)}
                 disabled={isAdding}
                 className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-slate-100 disabled:cursor-not-allowed"
               >
