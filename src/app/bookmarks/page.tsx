@@ -3,17 +3,15 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { NoPrefetchLink as Link } from '@/components/NoPrefetchLink';
-import { getBookmarks, removeBookmark, addBookmark, type BookmarkedSake } from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
 import { OpenMapLink } from '@/components/OpenMapLink';
 import { UserMenu } from '@/components/UserMenu';
 import { Toast } from '@/components/Toast';
+import { useBookmarks } from '@/hooks/useBookmarks';
 
 export default function BookmarksPage() {
   const router = useRouter();
-  const [bookmarks, setBookmarks] = useState<BookmarkedSake[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { bookmarks, isLoading, error, toggleBookmark } = useBookmarks();
   const [toast, setToast] = useState<{ message: string; sakeId: number; sakeName: string } | null>(
     null,
   );
@@ -23,27 +21,11 @@ export default function BookmarksPage() {
       router.push('/');
       return;
     }
-
-    fetchBookmarks();
   }, [router]);
-
-  const fetchBookmarks = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const data = await getBookmarks();
-      setBookmarks(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'ブックマークの取得に失敗しました');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleRemoveBookmark = async (sakeId: number, sakeName: string) => {
     try {
-      await removeBookmark(sakeId);
-      setBookmarks(bookmarks.filter((b) => b.sake.sakeId !== sakeId));
+      await toggleBookmark(sakeId);
       setToast({ message: `「${sakeName}」を削除しました`, sakeId, sakeName });
     } catch (err) {
       console.error('ブックマーク削除エラー:', err);
@@ -54,10 +36,8 @@ export default function BookmarksPage() {
     if (!toast) return;
 
     try {
-      await addBookmark(toast.sakeId);
+      await toggleBookmark(toast.sakeId);
       setToast(null);
-      // ブックマーク一覧を再取得して最新の状態に更新
-      await fetchBookmarks();
     } catch (err) {
       console.error('ブックマーク復元エラー:', err);
     }
@@ -97,7 +77,7 @@ export default function BookmarksPage() {
           </div>
         ) : error ? (
           <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg">
-            {error}
+            {error instanceof Error ? error.message : 'ブックマークの取得に失敗しました'}
           </div>
         ) : bookmarks.length === 0 ? (
           <div className="text-center py-20">

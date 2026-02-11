@@ -1,29 +1,20 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { NoPrefetchLink as Link } from '@/components/NoPrefetchLink';
-import {
-  getTimeline,
-  getBookmarks,
-  addBookmark,
-  removeBookmark,
-  type TimelineItem,
-} from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
 import { UserMenu } from '@/components/UserMenu';
 import { TimelineReviewCard } from '@/components/TimelineReviewCard';
 import { TimelineNoteCard } from '@/components/TimelineNoteCard';
+import { useTimeline } from '@/hooks/useTimeline';
+import { useBookmarks } from '@/hooks/useBookmarks';
 
 export default function TimelinePage() {
   const router = useRouter();
-  const [items, setItems] = useState<TimelineItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [hasReachedEnd, setHasReachedEnd] = useState(false);
-  const [bookmarkedSakes, setBookmarkedSakes] = useState<Set<number>>(new Set());
+  const { items, isLoading, isValidating, isLoadingMore, hasReachedEnd, error, loadMore, refresh } =
+    useTimeline();
+  const { bookmarkedSakeIds, toggleBookmark } = useBookmarks();
 
   // Intersection Observer 用の ref
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -35,50 +26,11 @@ export default function TimelinePage() {
       router.push('/');
       return;
     }
-
-    fetchTimeline();
-
-    // ブックマーク初期読み込み
-    getBookmarks()
-      .then((bms) => {
-        setBookmarkedSakes(new Set(bms.map((b) => b.sake.sakeId)));
-      })
-      .catch(() => {});
   }, [router]);
 
-  // 初回読み込み
-  const fetchTimeline = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const response = await getTimeline();
-      setItems(response.items);
-      setNextCursor(response.nextCursor);
-      setHasReachedEnd(response.nextCursor === null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'タイムラインの取得に失敗しました');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // 追加読み込み
-  const fetchMoreTimeline = useCallback(async () => {
-    if (!nextCursor || isLoadingMore || hasReachedEnd) return;
-
-    try {
-      setIsLoadingMore(true);
-      setError(null);
-      const response = await getTimeline(nextCursor);
-      setItems((prevItems) => [...prevItems, ...response.items]);
-      setNextCursor(response.nextCursor);
-      setHasReachedEnd(response.nextCursor === null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'タイムラインの取得に失敗しました');
-    } finally {
-      setIsLoadingMore(false);
-    }
-  }, [nextCursor, isLoadingMore, hasReachedEnd]);
+  const handleLoadMore = useCallback(() => {
+    loadMore();
+  }, [loadMore]);
 
   // Intersection Observer のセットアップ
   useEffect(() => {
@@ -87,7 +39,7 @@ export default function TimelinePage() {
     observerRef.current = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
-          fetchMoreTimeline();
+          handleLoadMore();
         }
       },
       { threshold: 0.1 },
@@ -102,23 +54,12 @@ export default function TimelinePage() {
         observerRef.current.disconnect();
       }
     };
-  }, [isLoading, hasReachedEnd, fetchMoreTimeline]);
+  }, [isLoading, hasReachedEnd, handleLoadMore]);
 
   // ブックマークトグル
   const handleToggleBookmark = async (sakeId: number) => {
-    const isBookmarked = bookmarkedSakes.has(sakeId);
     try {
-      if (isBookmarked) {
-        await removeBookmark(sakeId);
-        setBookmarkedSakes((prev) => {
-          const next = new Set(prev);
-          next.delete(sakeId);
-          return next;
-        });
-      } else {
-        await addBookmark(sakeId);
-        setBookmarkedSakes((prev) => new Set(prev).add(sakeId));
-      }
+      await toggleBookmark(sakeId);
     } catch (err) {
       console.error('ブックマーク操作エラー:', err);
     }
@@ -177,13 +118,26 @@ export default function TimelinePage() {
 
       {/* メインコンテンツ */}
       <main className="max-w-4xl mx-auto px-4 py-6">
+        {/* 最新情報取得ボタン */}
+        {!isLoading && items.length > 0 && (
+          <div className="mb-4 flex justify-center">
+            <button
+              onClick={refresh}
+              disabled={isValidating}
+              className="px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm cursor-pointer"
+            >
+              {isValidating ? '更新中...' : '最新情報を取得'}
+            </button>
+          </div>
+        )}
+
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
         ) : error ? (
           <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg">
-            {error}
+            {error instanceof Error ? error.message : 'タイムラインの取得に失敗しました'}
           </div>
         ) : items.length === 0 ? (
           <div className="text-center py-20">
@@ -203,7 +157,7 @@ export default function TimelinePage() {
                   key={`review-${item.id}`}
                   item={item}
                   formatDate={formatDate}
-                  isBookmarked={bookmarkedSakes.has(item.sakeId)}
+                  isBookmarked={bookmarkedSakeIds.has(item.sakeId)}
                   onToggleBookmark={handleToggleBookmark}
                 />
               ) : (

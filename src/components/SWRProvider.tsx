@@ -1,0 +1,18 @@
+'use client';
+
+import { SWRConfig } from 'swr';
+
+export function SWRProvider({ children }: { children: React.ReactNode }) {
+  return (
+    <SWRConfig
+      value={{
+        revalidateOnFocus: false,
+        revalidateOnReconnect: true,
+        shouldRetryOnError: false,
+        dedupingInterval: 2000,
+      }}
+    >
+      {children}
+    </SWRConfig>
+  );
+}

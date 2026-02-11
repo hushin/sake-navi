@@ -3,9 +3,10 @@
 import { useEffect, useState, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { NoPrefetchLink as Link } from '@/components/NoPrefetchLink';
-import { getBreweries, getBookmarks, type BreweryWithRating } from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
 import { UserMenu } from '@/components/UserMenu';
+import { useBreweries } from '@/hooks/useBreweries';
+import { useBookmarks } from '@/hooks/useBookmarks';
 
 /**
  * フロアマップページのメインコンテンツ
@@ -17,12 +18,13 @@ import { UserMenu } from '@/components/UserMenu';
 function MapPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [breweries, setBreweries] = useState<BreweryWithRating[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { breweries, isLoading: breweriesLoading, error: breweriesError } = useBreweries();
+  const { bookmarkedBreweryIds, isLoading: bookmarksLoading } = useBookmarks();
   const [focusedBreweryId, setFocusedBreweryId] = useState<number | null>(null);
-  const [bookmarkedBreweryIds, setBookmarkedBreweryIds] = useState<Set<number>>(new Set());
   const breweryRefs = useRef<Map<number, HTMLAnchorElement>>(new Map());
+
+  const loading = breweriesLoading || bookmarksLoading;
+  const error = breweriesError;
 
   useEffect(() => {
     // 未認証の場合はトップページへリダイレクト
@@ -30,24 +32,6 @@ function MapPageContent() {
       router.push('/');
       return;
     }
-
-    // 酒蔵一覧とブックマークを取得
-    const fetchData = async () => {
-      try {
-        const [breweriesData, bookmarksData] = await Promise.all([getBreweries(), getBookmarks()]);
-        setBreweries(breweriesData);
-
-        // ブックマークされたお酒の酒蔵IDを抽出
-        const breweryIds = new Set(bookmarksData.map((b) => b.brewery.breweryId));
-        setBookmarkedBreweryIds(breweryIds);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'データの取得に失敗しました');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
   }, [router]);
 
   // URLパラメータから酒蔵IDを取得してフォーカス
@@ -95,7 +79,9 @@ function MapPageContent() {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
+          <p className="text-red-600 mb-4">
+            {error instanceof Error ? error.message : 'データの取得に失敗しました'}
+          </p>
           <button
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"

@@ -5,8 +5,10 @@ import { useRouter, useParams } from 'next/navigation';
 import { StarRating } from '@/components/StarRating';
 import { TagSelector } from '@/components/TagSelector';
 import { UserMenu } from '@/components/UserMenu';
-import { getBreweryDetail, createReview, ApiError } from '@/lib/api';
+import { getBreweryDetail, getBreweries, createReview, ApiError } from '@/lib/api';
 import { getAuth } from '@/lib/auth';
+import { useSWRConfig } from 'swr';
+import { SWR_KEYS } from '@/lib/swrKeys';
 
 /**
  * レビュー投稿ページ
@@ -17,6 +19,7 @@ export default function ReviewPage() {
   const params = useParams();
   const breweryId = Number(params.id);
   const sakeId = Number(params.sakeId);
+  const { mutate: globalMutate } = useSWRConfig();
 
   // 認証状態
   const [isAuthChecked, setIsAuthChecked] = useState(false);
@@ -99,6 +102,9 @@ export default function ReviewPage() {
         tags: selectedTags.length > 0 ? selectedTags : undefined,
         comment: comment.trim() || undefined,
       });
+
+      // breweriesキャッシュに最新データを注入（hasUserReviewed を最新化）
+      globalMutate(SWR_KEYS.breweries, getBreweries(), { revalidate: false });
 
       // 投稿成功 → 酒蔵詳細ページへ遷移
       router.push(`/brewery/${breweryId}`);

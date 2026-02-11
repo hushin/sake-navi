@@ -6,9 +6,7 @@ import { NoPrefetchLink as Link } from '@/components/NoPrefetchLink';
 import {
   getBreweryDetail,
   getBreweryNotes,
-  getBookmarks,
-  addBookmark,
-  removeBookmark,
+  getBreweries,
   type BreweryDetail,
   type BreweryNote,
 } from '@/lib/api';
@@ -24,6 +22,9 @@ import { useDeleteReviewModal } from '@/hooks/useDeleteReviewModal';
 import { useEditBreweryNoteModal } from '@/hooks/useEditBreweryNoteModal';
 import { useDeleteBreweryNoteModal } from '@/hooks/useDeleteBreweryNoteModal';
 import { useEditSakeModal } from '@/hooks/useEditSakeModal';
+import { useBookmarks } from '@/hooks/useBookmarks';
+import { SWR_KEYS } from '@/lib/swrKeys';
+import { useSWRConfig } from 'swr';
 
 export default function BreweryDetailPage() {
   const router = useRouter();
@@ -35,8 +36,8 @@ export default function BreweryDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ブックマーク用のstate (sakeId -> bookmarked)
-  const [bookmarkedSakes, setBookmarkedSakes] = useState<Set<number>>(new Set());
+  const { bookmarkedSakeIds: bookmarkedSakes, toggleBookmark } = useBookmarks();
+  const { mutate: globalMutate } = useSWRConfig();
 
   // 未認証の場合はトップページへリダイレクト
   useEffect(() => {
@@ -74,13 +75,6 @@ export default function BreweryDetailPage() {
     };
 
     fetchData();
-
-    // ブックマーク初期読み込み
-    getBookmarks()
-      .then((bms) => {
-        setBookmarkedSakes(new Set(bms.map((b) => b.sake.sakeId)));
-      })
-      .catch(() => {});
   }, [breweryId]);
 
   // モーダルフック
@@ -110,6 +104,7 @@ export default function BreweryDetailPage() {
     onSuccess: async () => {
       const updatedDetail = await getBreweryDetail(breweryId);
       setBreweryDetail(updatedDetail);
+      globalMutate(SWR_KEYS.breweries, getBreweries(), { revalidate: false });
     },
   });
 
@@ -136,21 +131,9 @@ export default function BreweryDetailPage() {
 
   const currentUserId = getAuth()?.userId;
 
-  // ブックマークトグル
   const handleToggleBookmark = async (sakeId: number) => {
-    const isBookmarked = bookmarkedSakes.has(sakeId);
     try {
-      if (isBookmarked) {
-        await removeBookmark(sakeId);
-        setBookmarkedSakes((prev) => {
-          const next = new Set(prev);
-          next.delete(sakeId);
-          return next;
-        });
-      } else {
-        await addBookmark(sakeId);
-        setBookmarkedSakes((prev) => new Set(prev).add(sakeId));
-      }
+      await toggleBookmark(sakeId);
     } catch (err) {
       console.error('ブックマーク操作エラー:', err);
     }
