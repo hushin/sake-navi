@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { NoPrefetchLink as Link } from '@/components/NoPrefetchLink';
 import { getBookmarks, removeBookmark, addBookmark, type BookmarkedSake } from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
 import { OpenMapLink } from '@/components/OpenMapLink';

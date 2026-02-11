@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { NoPrefetchLink as Link } from '@/components/NoPrefetchLink';
 import { getAuth, clearAuth } from '@/lib/auth';
 
 /**

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { NoPrefetchLink as Link } from '@/components/NoPrefetchLink';
 import { getReviews, getUsers, type ReviewSearchItem, type User } from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
 import { UserMenu } from '@/components/UserMenu';
