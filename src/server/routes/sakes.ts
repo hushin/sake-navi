@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { eq, desc, sql, and } from 'drizzle-orm';
+import { eq, desc, sql, and, gt, like } from 'drizzle-orm';
 import { z } from 'zod';
 import * as schema from '../db/schema';
 import { getCloudflareEnv } from '@/lib/db';
@@ -15,6 +15,91 @@ const createReviewSchema = z.object({
   rating: z.number().int().min(1).max(5, '評価は1-5の範囲で指定してください'),
   tags: z.array(z.string()).default([]),
   comment: z.string().optional(),
+});
+
+// GET /api/sakes - 酒検索
+app.get('/', async (c) => {
+  const db = c.var.db;
+
+  const q = c.req.query('q');
+  const category = c.req.query('category');
+  const isLimited = c.req.query('isLimited');
+  const hasPaidTasting = c.req.query('hasPaidTasting');
+  const cursor = c.req.query('cursor');
+  const limitParam = c.req.query('limit');
+  const limit = limitParam ? parseInt(limitParam, 10) : 30;
+
+  const conditions = [];
+
+  // テキスト検索（酒名 or 酒蔵名）
+  if (q) {
+    const pattern = `%${q}%`;
+    conditions.push(
+      sql`(${like(schema.sakes.name, pattern)} OR ${like(schema.breweries.name, pattern)})`,
+    );
+  }
+
+  // カテゴリフィルタ
+  if (category) {
+    conditions.push(eq(schema.sakes.category, category));
+  }
+
+  // 限定品フィルタ
+  if (isLimited === 'true') {
+    conditions.push(eq(schema.sakes.isLimited, true));
+  }
+
+  // 有料試飲フィルタ
+  if (hasPaidTasting === 'true') {
+    conditions.push(sql`${schema.sakes.paidTastingPrice} IS NOT NULL`);
+  }
+
+  // カーソルベースのページネーション（sakeId昇順）
+  if (cursor) {
+    const cursorId = parseInt(cursor, 10);
+    if (!isNaN(cursorId)) {
+      conditions.push(gt(schema.sakes.sakeId, cursorId));
+    }
+  }
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const results = await db
+    .select({
+      sakeId: schema.sakes.sakeId,
+      name: schema.sakes.name,
+      type: schema.sakes.type,
+      category: schema.sakes.category,
+      isLimited: schema.sakes.isLimited,
+      paidTastingPrice: schema.sakes.paidTastingPrice,
+      breweryId: schema.breweries.breweryId,
+      breweryName: schema.breweries.name,
+    })
+    .from(schema.sakes)
+    .innerJoin(schema.breweries, eq(schema.sakes.breweryId, schema.breweries.breweryId))
+    .where(whereClause)
+    .orderBy(schema.sakes.sakeId)
+    .limit(limit + 1);
+
+  const hasMore = results.length > limit;
+  const items = hasMore ? results.slice(0, limit) : results;
+  const nextCursor = hasMore && items.length > 0 ? String(items[items.length - 1].sakeId) : null;
+
+  return c.json({
+    items: items.map((row) => ({
+      sakeId: row.sakeId,
+      name: row.name,
+      type: row.type,
+      category: row.category,
+      isLimited: row.isLimited,
+      paidTastingPrice: row.paidTastingPrice,
+      brewery: {
+        breweryId: row.breweryId,
+        name: row.breweryName,
+      },
+    })),
+    nextCursor,
+  });
 });
 
 // GET /api/sakes/:id - お酒詳細

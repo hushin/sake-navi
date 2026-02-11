@@ -333,6 +333,49 @@ export async function deleteReview(sakeId: number, reviewId: number): Promise<vo
 }
 
 // ========================================
+// 酒検索API
+// ========================================
+
+export type SakeSearchItem = {
+  sakeId: number;
+  name: string;
+  type: string | null;
+  category: string | null;
+  isLimited: boolean;
+  paidTastingPrice: number | null;
+  brewery: { breweryId: number; name: string };
+};
+
+export type SakeSearchResponse = {
+  items: SakeSearchItem[];
+  nextCursor: string | null;
+};
+
+/**
+ * 酒検索（ページネーション対応）
+ */
+export async function searchSakes(params?: {
+  q?: string;
+  category?: string;
+  isLimited?: boolean;
+  hasPaidTasting?: boolean;
+  cursor?: string;
+  limit?: number;
+}): Promise<SakeSearchResponse> {
+  const searchParams = new URLSearchParams();
+  if (params?.q) searchParams.append('q', params.q);
+  if (params?.category) searchParams.append('category', params.category);
+  if (params?.isLimited) searchParams.append('isLimited', 'true');
+  if (params?.hasPaidTasting) searchParams.append('hasPaidTasting', 'true');
+  if (params?.cursor) searchParams.append('cursor', params.cursor);
+  if (params?.limit) searchParams.append('limit', params.limit.toString());
+
+  const url = `${baseUrl}/api/sakes${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+  const response = await fetch(url, { method: 'GET' });
+  return handleResponse<SakeSearchResponse>(response);
+}
+
+// ========================================
 // レビュー検索API
 // ========================================
 
