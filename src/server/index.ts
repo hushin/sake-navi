@@ -9,30 +9,26 @@ import timelineRoute from './routes/timeline';
 import bookmarksRoute from './routes/bookmarks';
 import reviewsRoute from './routes/reviews';
 
-const app = new Hono<AppEnv>();
-
-// グローバルエラーハンドラー
-app.onError((err, c) => {
-  // HTTPExceptionはそのままレスポンスに変換
-  if (err instanceof HTTPException) {
-    return c.json({ error: err.message }, err.status);
-  }
-
-  // その他のエラーはログ出力して500エラー
-  console.error('サーバーエラー:', err);
-  return c.json({ error: 'サーバーエラーが発生しました' }, 500);
-});
-
-// DBミドルウェア
-app.use('/*', async (c, next) => {
-  const db = await getDb();
-  c.set('db', db);
-  await next();
-});
-
-// ルート登録
-const routes = app
+const app = new Hono<AppEnv>()
   .basePath('/api')
+  // グローバルエラーハンドラー
+  .onError((err, c) => {
+    // HTTPExceptionはそのままレスポンスに変換
+    if (err instanceof HTTPException) {
+      return c.json({ error: err.message }, err.status);
+    }
+
+    // その他のエラーはログ出力して500エラー
+    console.error('サーバーエラー:', err);
+    return c.json({ error: 'サーバーエラーが発生しました' }, 500);
+  })
+  // DBミドルウェア
+  .use('/*', async (c, next) => {
+    const db = await getDb();
+    c.set('db', db);
+    await next();
+  })
+  // ルート登録
   .get('/health', (c) => {
     return c.json({ status: 'ok' });
   })
@@ -44,4 +40,4 @@ const routes = app
   .route('/reviews', reviewsRoute);
 
 export default app;
-export type AppType = typeof routes;
+export type AppType = typeof app;
