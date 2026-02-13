@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { NoPrefetchLink as Link } from '@/components/NoPrefetchLink';
 import { getReviews, getUsers, type ReviewSearchItem, type User } from '@/lib/api';
-import { isAuthenticated } from '@/lib/auth';
+import { isAuthenticated, getUserId } from '@/lib/auth';
 import { UserMenu } from '@/components/UserMenu';
 import { BackIcon } from '@/components/icons';
 import { getTagColorClass } from '@/lib/tagColors';
@@ -39,7 +39,10 @@ export default function ReviewsPage() {
   // フィルタ
   const [sort, setSort] = useState<'latest' | 'rating'>('rating');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [selectedUserId, setSelectedUserId] = useState<string>('');
+  const [selectedUserId, setSelectedUserId] = useState<string>(() => {
+    // デフォルトで自分のレビューを表示
+    return getUserId() || '';
+  });
 
   // Intersection Observer
   const observerRef = useRef<IntersectionObserver | null>(null);
