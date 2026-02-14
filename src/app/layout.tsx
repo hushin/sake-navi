@@ -25,7 +25,7 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <head>
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml"></link>
+        <link rel="icon" href="/sake-navi-icon.png" type="image/png"></link>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <SWRProvider>{children}</SWRProvider>
