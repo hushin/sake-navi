@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "288ed162-03cb-42f0-9259-17b45571b9fe",
+  "id": "10330065-6b3a-4e5b-a1c8-e5f651b383f6",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "bookmarks": {
@@ -40,12 +40,17 @@
       "indexes": {
         "idx_bookmarks_user": {
           "name": "idx_bookmarks_user",
-          "columns": ["user_id"],
+          "columns": [
+            "user_id"
+          ],
           "isUnique": false
         },
         "idx_bookmarks_unique": {
           "name": "idx_bookmarks_unique",
-          "columns": ["user_id", "sake_id"],
+          "columns": [
+            "user_id",
+            "sake_id"
+          ],
           "isUnique": true
         }
       },
@@ -54,8 +59,12 @@
           "name": "bookmarks_user_id_users_user_id_fk",
           "tableFrom": "bookmarks",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["user_id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -63,8 +72,12 @@
           "name": "bookmarks_sake_id_sakes_sake_id_fk",
           "tableFrom": "bookmarks",
           "tableTo": "sakes",
-          "columnsFrom": ["sake_id"],
-          "columnsTo": ["sake_id"],
+          "columnsFrom": [
+            "sake_id"
+          ],
+          "columnsTo": [
+            "sake_id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -163,12 +176,16 @@
       "indexes": {
         "idx_brewery_notes_brewery": {
           "name": "idx_brewery_notes_brewery",
-          "columns": ["brewery_id"],
+          "columns": [
+            "brewery_id"
+          ],
           "isUnique": false
         },
         "idx_brewery_notes_created": {
           "name": "idx_brewery_notes_created",
-          "columns": ["created_at"],
+          "columns": [
+            "created_at"
+          ],
           "isUnique": false
         }
       },
@@ -177,8 +194,12 @@
           "name": "brewery_notes_user_id_users_user_id_fk",
           "tableFrom": "brewery_notes",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["user_id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -186,8 +207,12 @@
           "name": "brewery_notes_brewery_id_breweries_brewery_id_fk",
           "tableFrom": "brewery_notes",
           "tableTo": "breweries",
-          "columnsFrom": ["brewery_id"],
-          "columnsTo": ["brewery_id"],
+          "columnsFrom": [
+            "brewery_id"
+          ],
+          "columnsTo": [
+            "brewery_id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -254,17 +279,23 @@
       "indexes": {
         "idx_reviews_sake": {
           "name": "idx_reviews_sake",
-          "columns": ["sake_id"],
+          "columns": [
+            "sake_id"
+          ],
           "isUnique": false
         },
         "idx_reviews_user": {
           "name": "idx_reviews_user",
-          "columns": ["user_id"],
+          "columns": [
+            "user_id"
+          ],
           "isUnique": false
         },
         "idx_reviews_created": {
           "name": "idx_reviews_created",
-          "columns": ["created_at"],
+          "columns": [
+            "created_at"
+          ],
           "isUnique": false
         }
       },
@@ -273,8 +304,12 @@
           "name": "reviews_user_id_users_user_id_fk",
           "tableFrom": "reviews",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["user_id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -282,8 +317,12 @@
           "name": "reviews_sake_id_sakes_sake_id_fk",
           "tableFrom": "reviews",
           "tableTo": "sakes",
-          "columnsFrom": ["sake_id"],
-          "columnsTo": ["sake_id"],
+          "columnsFrom": [
+            "sake_id"
+          ],
+          "columnsTo": [
+            "sake_id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -373,7 +412,9 @@
       "indexes": {
         "idx_sakes_brewery": {
           "name": "idx_sakes_brewery",
-          "columns": ["brewery_id"],
+          "columns": [
+            "brewery_id"
+          ],
           "isUnique": false
         }
       },
@@ -382,8 +423,12 @@
           "name": "sakes_brewery_id_breweries_brewery_id_fk",
           "tableFrom": "sakes",
           "tableTo": "breweries",
-          "columnsFrom": ["brewery_id"],
-          "columnsTo": ["brewery_id"],
+          "columnsFrom": [
+            "brewery_id"
+          ],
+          "columnsTo": [
+            "brewery_id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -391,8 +436,12 @@
           "name": "sakes_added_by_users_user_id_fk",
           "tableFrom": "sakes",
           "tableTo": "users",
-          "columnsFrom": ["added_by"],
-          "columnsTo": ["user_id"],
+          "columnsFrom": [
+            "added_by"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -430,7 +479,9 @@
       "indexes": {
         "users_name_unique": {
           "name": "users_name_unique",
-          "columns": ["name"],
+          "columns": [
+            "name"
+          ],
           "isUnique": true
         }
       },
