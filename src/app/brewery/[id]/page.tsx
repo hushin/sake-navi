@@ -283,16 +283,14 @@ export default function BreweryDetailPage() {
                           </div>
                         </div>
                       )}
-                      {sake.isCustom && (
-                        <button
-                          type="button"
-                          onClick={() => openEditSakeModal(sake)}
-                          className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded transition-colors cursor-pointer"
-                          title="お酒を編集"
-                        >
-                          編集
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => openEditSakeModal(sake)}
+                        className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded transition-colors cursor-pointer"
+                        title="お酒を編集"
+                      >
+                        編集
+                      </button>
                     </div>
                     <div>
                       {(() => {

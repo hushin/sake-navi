@@ -373,11 +373,6 @@ const app = new Hono<AppEnv>()
       // お酒の存在確認
       const sake = await findSakeOrThrow(db, sakeId);
 
-      // is_customのお酒のみ編集可能
-      if (!sake.isCustom) {
-        return c.json({ error: 'マスタデータのお酒は編集できません' }, 403);
-      }
-
       const { name, type, isLimited, paidTastingPrice, category } = c.req.valid('json');
 
       // お酒を更新
