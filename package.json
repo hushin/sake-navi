@@ -20,7 +20,10 @@
     "db:seed-demo:local": "wrangler d1 execute sake-navi-db --local --file=./db/seed-demo.sql",
     "db:seed-demo:remote": "wrangler d1 execute sake-navi-db --remote --file=./db/seed-demo.sql",
     "fmt": "oxfmt",
-    "fmt:check": "oxfmt --check"
+    "fmt:check": "oxfmt --check",
+    "archive:dump": "node --experimental-strip-types scripts/dump-db.ts",
+    "archive:generate": "node --experimental-strip-types scripts/generate-archive.ts",
+    "archive": "node --experimental-strip-types scripts/dump-db.ts && node --experimental-strip-types scripts/generate-archive.ts"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.7.6",

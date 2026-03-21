@@ -95,6 +95,21 @@ rm -rf .wrangler/
 pnpm wrangler d1 execute sake-navi-db --remote --command "DROP TABLE IF EXISTS reviews; DROP TABLE IF EXISTS bookmarks; DROP TABLE IF EXISTS brewery_notes; DROP TABLE IF EXISTS sakes; DROP TABLE IF EXISTS breweries; DROP TABLE IF EXISTS users; DROP TABLE IF EXISTS d1_migrations;"
 ```
 
+### データアーカイブ
+
+イベント終了後、レビューデータを静的HTMLとしてアーカイブできます。
+
+```bash
+# リモートD1からデータダンプ + HTML生成（一括）
+pnpm archive
+
+# 個別実行
+pnpm archive:dump      # D1 → dist/archive/*.json
+pnpm archive:generate  # JSON → dist/archive/index.html
+```
+
+`dist/archive/index.html` をブラウザで開くと、フロアマップ・酒蔵一覧・タイムライン・ユーザー別レビュー・ランキングを閲覧できます。
+
 ## License
 
 [MIT](LICENSE)
