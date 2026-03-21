@@ -768,7 +768,8 @@ document.getElementById('user-select').addEventListener('change', (e) => {
 
 // --- 出力 ---
 const html = generateHTML();
-const outPath = join(DATA_DIR, 'index.html');
+const year = new Date().getFullYear();
+const outPath = join(DATA_DIR, `${year}.html`);
 writeFileSync(outPath, html);
 console.log(`Archive generated: ${outPath}`);
 console.log(

@@ -105,10 +105,10 @@ pnpm archive
 
 # 個別実行
 pnpm archive:dump      # D1 → dist/archive/*.json
-pnpm archive:generate  # JSON → dist/archive/index.html
+pnpm archive:generate  # JSON → dist/archive/{年}.html
 ```
 
-`dist/archive/index.html` をブラウザで開くと、フロアマップ・酒蔵一覧・タイムライン・ユーザー別レビュー・ランキングを閲覧できます。
+`dist/archive/2026.html` のように実行年のHTMLが生成されます。ブラウザで開くとフロアマップ・酒蔵一覧・タイムライン・ユーザー別レビュー・ランキングを閲覧できます。
 
 ## License
 
