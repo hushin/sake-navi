@@ -336,8 +336,8 @@ function generateBrewerySection(brewery: Brewery): string {
 
   const notesHtml =
     bNotes.length > 0
-      ? `<details class="notes-details">
-      <summary>酒蔵ノート (${bNotes.length}件)</summary>
+      ? `<div class="notes-section">
+      <div class="notes-heading">酒蔵ノート (${bNotes.length}件)</div>
       <div class="notes-list">${bNotes
         .map(
           (n) => `
@@ -349,7 +349,7 @@ function generateBrewerySection(brewery: Brewery): string {
         )
         .join('')}
       </div>
-    </details>`
+    </div>`
       : '';
 
   return `
@@ -600,8 +600,8 @@ header h1 { font-size: 1.4rem; }
 .tag { display: inline-block; font-size: 0.75rem; padding: 1px 8px; border-radius: 9999px; border: 1px solid; }
 
 /* ノート */
-details summary { cursor: pointer; font-size: 0.85rem; color: #3b82f6; padding: 4px 0; }
-details summary:hover { text-decoration: underline; }
+.notes-section { margin-top: 12px; border-top: 1px solid #e2e8f0; padding-top: 8px; }
+.notes-heading { font-size: 0.85rem; color: #3b82f6; font-weight: 600; margin-bottom: 4px; }
 .note { border-top: 1px solid #f1f5f9; padding: 8px 0; }
 .note-user { font-weight: 600; font-size: 0.85rem; }
 .note-date { font-size: 0.75rem; color: #94a3b8; margin-left: 8px; }
