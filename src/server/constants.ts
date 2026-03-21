@@ -14,4 +14,5 @@ export const VALID_TAGS: readonly string[] = [
   '苦味',
   '渋味',
   '発泡',
+  'フルーティ',
 ];

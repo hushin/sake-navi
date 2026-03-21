@@ -15,6 +15,7 @@ export const TAG_COLORS: Record<string, string> = {
   苦味: 'bg-emerald-100 text-emerald-800 border-emerald-300',
   渋味: 'bg-purple-100 text-purple-800 border-purple-300',
   発泡: 'bg-cyan-100 text-cyan-800 border-cyan-300',
+  フルーティ: 'bg-rose-100 text-rose-800 border-rose-300',
 };
 
 // タグごとの色設定（選択時 - TagSelector用）
@@ -30,6 +31,7 @@ export const SELECTED_TAG_COLORS: Record<string, string> = {
   苦味: 'bg-emerald-500 text-white border-emerald-600',
   渋味: 'bg-purple-500 text-white border-purple-600',
   発泡: 'bg-cyan-500 text-white border-cyan-600',
+  フルーティ: 'bg-rose-500 text-white border-rose-600',
 };
 
 // タグごとの色設定（ホバー時 - TagSelector用）
@@ -45,6 +47,7 @@ export const TAG_HOVER_COLORS: Record<string, string> = {
   苦味: 'hover:bg-emerald-200',
   渋味: 'hover:bg-purple-200',
   発泡: 'hover:bg-cyan-200',
+  フルーティ: 'hover:bg-rose-200',
 };
 
 /**

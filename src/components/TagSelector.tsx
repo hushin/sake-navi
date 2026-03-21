@@ -16,7 +16,7 @@ const EXCLUSIVE_GROUPS: Array<{ label: string; tags: string[] }> = [
 ];
 
 // その他のタグ（複数選択可）
-const OTHER_TAGS: string[] = ['酸味', '旨味', '熟成', '苦味', '渋味', 'にごり', '発泡'];
+const OTHER_TAGS: string[] = ['酸味', '旨味', '熟成', '苦味', '渋味', 'にごり', '発泡', 'フルーティ'];
 
 /**
  * タグ選択コンポーネント
