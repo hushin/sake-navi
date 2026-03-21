@@ -6,7 +6,8 @@ import { NoPrefetchLink as Link } from '@/components/NoPrefetchLink';
 import { searchSakes, type SakeSearchItem } from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
 import { UserMenu } from '@/components/UserMenu';
-import { BackIcon } from '@/components/icons';
+import { BackIcon, BookmarkIcon } from '@/components/icons';
+import { useBookmarks } from '@/hooks/useBookmarks';
 
 const CATEGORIES = ['清酒', 'リキュール', 'みりん', 'その他'] as const;
 
@@ -20,6 +21,7 @@ type Filters = {
 export default function SearchPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { bookmarkedSakeIds: bookmarkedSakes, toggleBookmark } = useBookmarks();
   const [items, setItems] = useState<SakeSearchItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -149,6 +151,14 @@ export default function SearchPage() {
     router.replace(`/search?${params.toString()}`);
   };
 
+  const handleToggleBookmark = async (sakeId: number) => {
+    try {
+      await toggleBookmark(sakeId);
+    } catch (err) {
+      console.error('ブックマーク操作エラー:', err);
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSearch();
@@ -251,31 +261,47 @@ export default function SearchPage() {
         ) : (
           <div className="space-y-2">
             {items.map((item) => (
-              <Link
+              <div
                 key={item.sakeId}
-                href={`/brewery/${item.brewery.breweryId}`}
-                className="block bg-white rounded-lg shadow-sm border border-slate-200 p-4 hover:shadow-md hover:border-blue-200 transition-all"
+                className="relative bg-white rounded-lg shadow-sm border border-slate-200 hover:shadow-md hover:border-blue-200 transition-all"
               >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-semibold text-slate-800 truncate">{item.name}</h3>
-                    <p className="text-sm text-slate-500 mt-0.5">{item.brewery.name}</p>
-                    {item.type && <p className="text-xs text-slate-400 mt-0.5">{item.type}</p>}
+                <Link
+                  href={`/brewery/${item.brewery.breweryId}`}
+                  className="block p-4 pr-12"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold text-slate-800 truncate">{item.name}</h3>
+                      <p className="text-sm text-slate-500 mt-0.5">{item.brewery.name}</p>
+                      {item.type && <p className="text-xs text-slate-400 mt-0.5">{item.type}</p>}
+                    </div>
+                    <div className="flex flex-wrap gap-1 shrink-0">
+                      {item.isLimited && (
+                        <span className="inline-block bg-amber-100 text-amber-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                          限定
+                        </span>
+                      )}
+                      {item.paidTastingPrice != null && (
+                        <span className="inline-block bg-purple-100 text-purple-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                          有料試飲 {item.paidTastingPrice}円
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex flex-wrap gap-1 shrink-0">
-                    {item.isLimited && (
-                      <span className="inline-block bg-amber-100 text-amber-800 text-xs font-medium px-2 py-0.5 rounded-full">
-                        限定
-                      </span>
-                    )}
-                    {item.paidTastingPrice != null && (
-                      <span className="inline-block bg-purple-100 text-purple-800 text-xs font-medium px-2 py-0.5 rounded-full">
-                        有料試飲 {item.paidTastingPrice}円
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </Link>
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => handleToggleBookmark(item.sakeId)}
+                  className={`absolute top-3 right-3 p-1.5 rounded-lg transition-colors cursor-pointer ${
+                    bookmarkedSakes.has(item.sakeId)
+                      ? 'text-amber-500 hover:text-amber-600'
+                      : 'text-slate-300 hover:text-amber-400'
+                  }`}
+                  title={bookmarkedSakes.has(item.sakeId) ? 'ブックマーク解除' : 'ブックマーク'}
+                >
+                  <BookmarkIcon />
+                </button>
+              </div>
             ))}
 
             {!hasReachedEnd && (
