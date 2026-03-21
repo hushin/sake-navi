@@ -30,57 +30,27 @@ export async function sendReviewNotification(
   try {
     const mapUrl = baseUrl ? `${baseUrl}/map?brewery=${data.breweryId}` : undefined;
 
+    const sakeName = [
+      data.sakeName,
+      data.sakeType ? `（${data.sakeType}）` : '',
+      data.isLimited ? '【限定】' : '',
+      data.paidTastingPrice ? `【有料試飲 ¥${data.paidTastingPrice}】` : '',
+    ]
+      .filter(Boolean)
+      .join(' ');
+
+    const titleParts: string[] = [
+      `🍶 [${data.userName}] No.${data.breweryId} ${data.breweryName}: ${sakeName} ${'⭐'.repeat(data.rating)}`,
+    ];
+    if (data.comment) titleParts.push(data.comment);
+    if (data.tags.length > 0) titleParts.push(data.tags.join(' '));
+
     const discordMessage = {
       embeds: [
         {
-          title: '🍶 新しいレビューが投稿されました',
+          title: titleParts.join('\n'),
           color: 0x3b82f6, // blue-500
           fields: [
-            {
-              name: '投稿者',
-              value: data.userName,
-              inline: true,
-            },
-            {
-              name: '酒蔵',
-              value: `No.${data.breweryId}: ${data.breweryName || '不明'}`,
-              inline: true,
-            },
-            {
-              name: 'お酒',
-              value: [
-                data.sakeName,
-                data.sakeType ? `（${data.sakeType}）` : '',
-                data.isLimited ? '【限定】' : '',
-                data.paidTastingPrice ? `【有料試飲 ¥${data.paidTastingPrice}】` : '',
-              ]
-                .filter(Boolean)
-                .join(' '),
-              inline: false,
-            },
-            {
-              name: '評価',
-              value: '⭐'.repeat(data.rating),
-              inline: true,
-            },
-            ...(data.tags.length > 0
-              ? [
-                  {
-                    name: 'タグ',
-                    value: data.tags.join(', '),
-                    inline: false,
-                  },
-                ]
-              : []),
-            ...(data.comment
-              ? [
-                  {
-                    name: 'コメント',
-                    value: data.comment,
-                    inline: false,
-                  },
-                ]
-              : []),
             ...(mapUrl
               ? [
                   {
