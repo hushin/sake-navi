@@ -16,6 +16,8 @@ import { BookmarkIcon } from '@/components/icons';
  * - 各酒蔵バッジに平均評価を表示（★表示）
  * - 未認証の場合は / へリダイレクト
  */
+const MAP_SCROLL_KEY = 'map-scroll-x';
+
 function MapPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -23,6 +25,7 @@ function MapPageContent() {
   const { bookmarkedBreweryIds, isLoading: bookmarksLoading } = useBookmarks();
   const [focusedBreweryId, setFocusedBreweryId] = useState<number | null>(null);
   const breweryRefs = useRef<Map<number, HTMLAnchorElement>>(new Map());
+  const mainRef = useRef<HTMLElement>(null);
 
   const loading = breweriesLoading || bookmarksLoading;
   const error = breweriesError;
@@ -45,6 +48,25 @@ function MapPageContent() {
       }
     }
   }, [searchParams]);
+
+  // スクロール位置の復元（ヒストリーバック時）
+  useEffect(() => {
+    const saved = sessionStorage.getItem(MAP_SCROLL_KEY);
+    if (saved && mainRef.current) {
+      mainRef.current.scrollLeft = Number(saved);
+    }
+  }, []);
+
+  // スクロール位置の保存
+  useEffect(() => {
+    const el = mainRef.current;
+    if (!el) return;
+    const handleScroll = () => {
+      sessionStorage.setItem(MAP_SCROLL_KEY, String(el.scrollLeft));
+    };
+    el.addEventListener('scroll', handleScroll, { passive: true });
+    return () => el.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // フォーカス対象の酒蔵にスクロール
   useEffect(() => {
@@ -126,7 +148,7 @@ function MapPageContent() {
       </header>
 
       {/* フロアマップ */}
-      <main className="overflow-x-auto">
+      <main ref={mainRef} className="overflow-x-auto">
         <div className="relative w-[1640px] min-h-[450px] mx-auto my-10">
           {/* 酒蔵バッジオーバーレイレイヤー */}
           <div className="absolute inset-0 pointer-events-none">
