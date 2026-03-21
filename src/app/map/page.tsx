@@ -49,14 +49,6 @@ function MapPageContent() {
     }
   }, [searchParams]);
 
-  // スクロール位置の復元（ヒストリーバック時）
-  useEffect(() => {
-    const saved = sessionStorage.getItem(MAP_SCROLL_KEY);
-    if (saved && mainRef.current) {
-      mainRef.current.scrollLeft = Number(saved);
-    }
-  }, []);
-
   // スクロール位置の保存
   useEffect(() => {
     const el = mainRef.current;
@@ -68,22 +60,23 @@ function MapPageContent() {
     return () => el.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // フォーカス対象の酒蔵にスクロール
+  // フォーカス対象の酒蔵にスクロール（優先）、なければ保存済み位置を復元
   useEffect(() => {
-    if (focusedBreweryId && breweries.length > 0) {
-      // データ読み込み完了後、少し遅延させてからスクロール
-      const timer = setTimeout(() => {
-        const element = breweryRefs.current.get(focusedBreweryId);
-        if (element) {
-          element.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center',
-            inline: 'center',
-          });
-        }
-      }, 100);
-
-      return () => clearTimeout(timer);
+    if (breweries.length === 0) return;
+    if (focusedBreweryId) {
+      const element = breweryRefs.current.get(focusedBreweryId);
+      if (element) {
+        element.scrollIntoView({
+          behavior: 'instant',
+          block: 'center',
+          inline: 'center',
+        });
+      }
+    } else {
+      const saved = sessionStorage.getItem(MAP_SCROLL_KEY);
+      if (saved && mainRef.current) {
+        mainRef.current.scrollLeft = Number(saved);
+      }
     }
   }, [focusedBreweryId, breweries]);
 
