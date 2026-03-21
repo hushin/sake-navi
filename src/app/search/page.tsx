@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { NoPrefetchLink as Link } from '@/components/NoPrefetchLink';
 import { searchSakes, type SakeSearchItem } from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
@@ -10,8 +10,16 @@ import { BackIcon } from '@/components/icons';
 
 const CATEGORIES = ['清酒', 'リキュール', 'みりん', 'その他'] as const;
 
+type Filters = {
+  q: string;
+  category: string;
+  isLimited: boolean;
+  hasPaidTasting: boolean;
+};
+
 export default function SearchPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [items, setItems] = useState<SakeSearchItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -20,13 +28,15 @@ export default function SearchPage() {
   const [hasReachedEnd, setHasReachedEnd] = useState(false);
 
   // フィルタ
-  const [query, setQuery] = useState('');
-  const [category, setCategory] = useState('');
-  const [isLimited, setIsLimited] = useState(false);
-  const [hasPaidTasting, setHasPaidTasting] = useState(false);
+  const [query, setQuery] = useState(() => searchParams.get('q') ?? '');
+  const [category, setCategory] = useState(() => searchParams.get('category') ?? '');
+  const [isLimited, setIsLimited] = useState(() => searchParams.get('isLimited') === 'true');
+  const [hasPaidTasting, setHasPaidTasting] = useState(
+    () => searchParams.get('hasPaidTasting') === 'true',
+  );
 
   // 検索時のフィルタ値を保持（無限スクロールで使う）
-  const appliedFiltersRef = useRef({
+  const appliedFiltersRef = useRef<Filters>({
     q: '',
     category: '',
     isLimited: false,
@@ -37,16 +47,7 @@ export default function SearchPage() {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    if (!isAuthenticated()) {
-      router.push('/');
-      return;
-    }
-    fetchSakes();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router]);
-
-  const fetchSakes = async (resetList = true) => {
+  const fetchSakes = useCallback(async (filters: Filters, resetList = true) => {
     try {
       if (resetList) {
         setIsLoading(true);
@@ -56,19 +57,13 @@ export default function SearchPage() {
       }
       setError(null);
 
-      // 検索時のフィルタ値を保存
-      appliedFiltersRef.current = {
-        q: query,
-        category,
-        isLimited,
-        hasPaidTasting,
-      };
+      appliedFiltersRef.current = filters;
 
       const response = await searchSakes({
-        q: query || undefined,
-        category: category || undefined,
-        isLimited: isLimited || undefined,
-        hasPaidTasting: hasPaidTasting || undefined,
+        q: filters.q || undefined,
+        category: filters.category || undefined,
+        isLimited: filters.isLimited || undefined,
+        hasPaidTasting: filters.hasPaidTasting || undefined,
       });
       setItems(response.items);
       setNextCursor(response.nextCursor);
@@ -78,7 +73,25 @@ export default function SearchPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  // URLクエリが変わったらフィルタ状態を同期してフェッチ
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push('/');
+      return;
+    }
+    const q = searchParams.get('q') ?? '';
+    const cat = searchParams.get('category') ?? '';
+    const limited = searchParams.get('isLimited') === 'true';
+    const paid = searchParams.get('hasPaidTasting') === 'true';
+    setQuery(q);
+    setCategory(cat);
+    setIsLimited(limited);
+    setHasPaidTasting(paid);
+    fetchSakes({ q, category: cat, isLimited: limited, hasPaidTasting: paid });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const fetchMore = useCallback(async () => {
     if (!nextCursor || isLoadingMore || hasReachedEnd) return;
@@ -128,7 +141,12 @@ export default function SearchPage() {
   }, [isLoading, hasReachedEnd, fetchMore]);
 
   const handleSearch = () => {
-    fetchSakes(true);
+    const params = new URLSearchParams();
+    if (query) params.set('q', query);
+    if (category) params.set('category', category);
+    if (isLimited) params.set('isLimited', 'true');
+    if (hasPaidTasting) params.set('hasPaidTasting', 'true');
+    router.replace(`/search?${params.toString()}`);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
