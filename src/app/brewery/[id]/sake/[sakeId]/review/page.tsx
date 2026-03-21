@@ -34,6 +34,7 @@ export default function ReviewPage() {
   const [rating, setRating] = useState<number>(0);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [comment, setComment] = useState<string>('');
+  const [notifyDiscord, setNotifyDiscord] = useState<boolean>(false);
 
   // 送信状態
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -101,6 +102,7 @@ export default function ReviewPage() {
         rating,
         tags: selectedTags.length > 0 ? selectedTags : undefined,
         comment: comment.trim() || undefined,
+        notifyDiscord,
       });
 
       // breweriesキャッシュに最新データを注入（hasUserReviewed を最新化）
@@ -213,6 +215,19 @@ export default function ReviewPage() {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                 />
                 <div className="mt-2 text-right text-sm text-gray-500">{comment.length} 文字</div>
+              </label>
+            </div>
+
+            {/* Discord通知 */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={notifyDiscord}
+                  onChange={(e) => setNotifyDiscord(e.target.checked)}
+                  className="w-5 h-5 rounded border-gray-300 text-blue-500 focus:ring-blue-500 cursor-pointer"
+                />
+                <span className="text-base font-medium text-gray-800">Discordに通知する</span>
               </label>
             </div>
 

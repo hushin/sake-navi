@@ -9,6 +9,7 @@ type UseAddBreweryNoteModalOptions = {
 export const useAddBreweryNoteModal = ({ breweryId, onSuccess }: UseAddBreweryNoteModalOptions) => {
   const [isOpen, setIsOpen] = useState(false);
   const [content, setContent] = useState('');
+  const [notifyDiscord, setNotifyDiscord] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,6 +20,7 @@ export const useAddBreweryNoteModal = ({ breweryId, onSuccess }: UseAddBreweryNo
   const close = () => {
     setIsOpen(false);
     setContent('');
+    setNotifyDiscord(true);
     setError(null);
   };
 
@@ -34,7 +36,7 @@ export const useAddBreweryNoteModal = ({ breweryId, onSuccess }: UseAddBreweryNo
     setError(null);
 
     try {
-      const newNote = await createBreweryNote(breweryId, content.trim());
+      const newNote = await createBreweryNote(breweryId, content.trim(), notifyDiscord);
       await onSuccess(newNote);
       close();
     } catch (err) {
@@ -76,6 +78,17 @@ export const useAddBreweryNoteModal = ({ breweryId, onSuccess }: UseAddBreweryNo
               />
               <p className="text-xs text-slate-500 mt-1 text-right">{content.length} / 500</p>
             </div>
+
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={notifyDiscord}
+                onChange={(e) => setNotifyDiscord(e.target.checked)}
+                disabled={isAdding}
+                className="w-4 h-4 rounded border-slate-300 text-green-600 focus:ring-green-500 cursor-pointer"
+              />
+              <span className="text-sm font-medium text-slate-700">Discordに通知する</span>
+            </label>
 
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">

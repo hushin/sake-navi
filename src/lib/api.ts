@@ -148,10 +148,14 @@ export async function getBreweryNotes(breweryId: number): Promise<BreweryNote[]>
 /**
  * 酒蔵ノート投稿
  */
-export async function createBreweryNote(breweryId: number, content: string): Promise<BreweryNote> {
+export async function createBreweryNote(
+  breweryId: number,
+  content: string,
+  notifyDiscord: boolean = true,
+): Promise<BreweryNote> {
   const res = await client.api.breweries[':id'].notes.$post({
     param: { id: String(breweryId) },
-    json: { content },
+    json: { content, notifyDiscord },
   });
 
   if (!res.ok) {
@@ -284,11 +288,12 @@ export async function createReview(
     rating: number;
     tags?: string[];
     comment?: string;
+    notifyDiscord?: boolean;
   },
 ): Promise<Omit<Review, 'user'>> {
   const res = await client.api.sakes[':id'].reviews.$post({
     param: { id: String(sakeId) },
-    json: data,
+    json: { ...data, notifyDiscord: data.notifyDiscord ?? false },
   });
 
   if (!res.ok) {

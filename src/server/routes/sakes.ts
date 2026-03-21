@@ -14,6 +14,7 @@ const createReviewSchema = z.object({
   rating: z.number().int().min(1).max(5, '評価は1-5の範囲で指定してください'),
   tags: z.array(z.string()).default([]),
   comment: z.string().optional(),
+  notifyDiscord: z.boolean().default(false),
 });
 
 const app = new Hono<AppEnv>()
@@ -175,7 +176,7 @@ const app = new Hono<AppEnv>()
       return c.json({ error: 'ユーザーIDが指定されていません' }, 401);
     }
 
-    const { rating, tags, comment } = c.req.valid('json');
+    const { rating, tags, comment, notifyDiscord } = c.req.valid('json');
 
     // タグのバリデーション
     const invalidTags = tags.filter((tag) => !VALID_TAGS.includes(tag));
@@ -226,7 +227,7 @@ const app = new Hono<AppEnv>()
     const env = await getCloudflareEnv();
     const webhookUrl = env.DISCORD_WEBHOOK_URL;
     const baseUrl = env.BASE_URL;
-    if (webhookUrl) {
+    if (notifyDiscord && webhookUrl) {
       const notificationData = {
         sakeName: sakeWithBrewery.name,
         sakeType: sakeWithBrewery.type,

@@ -161,6 +161,7 @@ const app = new Hono<AppEnv>()
       'json',
       z.object({
         content: z.string().min(1, 'コメントを入力してください'),
+        notifyDiscord: z.boolean().default(true),
       }),
     ),
     async (c) => {
@@ -176,7 +177,7 @@ const app = new Hono<AppEnv>()
         return c.json({ error: 'ユーザーIDが必要です' }, 401);
       }
 
-      const { content } = c.req.valid('json');
+      const { content, notifyDiscord } = c.req.valid('json');
 
       const brewery = await findBreweryOrThrow(db, breweryId);
       const user = await findUserOrThrow(db, userId);
@@ -195,7 +196,7 @@ const app = new Hono<AppEnv>()
       const env = await getCloudflareEnv();
       const webhookUrl = env.DISCORD_WEBHOOK_URL;
       const baseUrl = env.BASE_URL;
-      if (webhookUrl) {
+      if (notifyDiscord && webhookUrl) {
         const notificationData = {
           breweryName: brewery.name,
           breweryId: brewery.breweryId,
