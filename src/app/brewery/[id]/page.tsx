@@ -183,7 +183,7 @@ export default function BreweryDetailPage() {
             ← マップ
           </Link>
           <div className="flex-1">
-            <h1 className="text-xl font-bold text-slate-800">{breweryDetail.brewery.name}</h1>
+            <h1 className="text-xl font-bold text-slate-800">No.{breweryDetail.brewery.breweryId} {breweryDetail.brewery.name}</h1>
           </div>
           <OpenMapLink breweryId={breweryId} />
           <UserMenu />
