@@ -66,39 +66,101 @@ export const sakeUpdateSchema = z.object({
 export type SakeUpdateInput = z.infer<typeof sakeUpdateSchema>;
 
 /**
- * 銘柄の編集フォームの入力。
- * 金額は入力欄の都合で文字列で持ち、空文字を「未入力」として扱う（`toSakeUpdateInput` で変換する）。
+ * 出典 PDF に金額の記載が無く「有料試飲である」ことだけ分かる場合に、この値を入れる約束にしている。
+ * 金額そのものではないので、表示するときは `parsePaidTasting` を通す。
  */
-export const sakeEditSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, 'お酒の名前を入力してください')
-    .max(SAKE_NAME_MAX_LENGTH, `お酒の名前は ${SAKE_NAME_MAX_LENGTH} 文字までです`),
-  type: z.string().trim().max(SAKE_TYPE_MAX_LENGTH, `種類は ${SAKE_TYPE_MAX_LENGTH} 文字までです`),
-  category: sakeCategorySchema,
-  isLimited: z.boolean(),
-  paidTastingPrice: z
-    .string()
-    .trim()
-    .regex(/^\d*$/, '金額は数字で入力してください')
-    .refine((value) => value === '' || Number(value) > 0, '1 以上の金額を入力してください')
-    .refine(
-      (value) => value === '' || Number(value) <= SAKE_PAID_TASTING_PRICE_MAX,
-      '金額が大きすぎます',
-    ),
-});
+export const PAID_TASTING_PRICE_UNDETERMINED = 7;
+
+export type PaidTasting = {
+  hasPaidTasting: boolean;
+  /** 金額が分かっているときだけ数値。`null` は「金額は未確認」 */
+  price: number | null;
+};
+
+/** DB の生の値（`null` / `7` / 実額）をアプリの意味に解釈する */
+export function parsePaidTasting(value: number | null): PaidTasting {
+  if (value === null) {
+    return { hasPaidTasting: false, price: null };
+  }
+  if (value === PAID_TASTING_PRICE_UNDETERMINED) {
+    return { hasPaidTasting: true, price: null };
+  }
+  return { hasPaidTasting: true, price: value };
+}
+
+/** API の `category` は文字列なので、既知の区分に寄せる */
+export function toSakeCategory(value: string): SakeCategory {
+  return SAKE_CATEGORIES.find((category) => category === value) ?? '清酒';
+}
+
+/**
+ * 銘柄の編集フォームの入力。
+ *
+ * 金額は「有料試飲あり」のチェックと、金額の入力欄（文字列）に分けて持つ。
+ * チェックだけ入れて金額が空なら「金額は未確認」として `7` を保存する。
+ */
+export const sakeEditSchema = z
+  .object({
+    name: z
+      .string()
+      .trim()
+      .min(1, 'お酒の名前を入力してください')
+      .max(SAKE_NAME_MAX_LENGTH, `お酒の名前は ${SAKE_NAME_MAX_LENGTH} 文字までです`),
+    type: z
+      .string()
+      .trim()
+      .max(SAKE_TYPE_MAX_LENGTH, `種類は ${SAKE_TYPE_MAX_LENGTH} 文字までです`),
+    category: sakeCategorySchema,
+    isLimited: z.boolean(),
+    hasPaidTasting: z.boolean(),
+    paidTastingPrice: z.string().trim().regex(/^\d*$/, '金額は数字で入力してください'),
+  })
+  .refine(
+    (value) =>
+      !value.hasPaidTasting || value.paidTastingPrice === '' || Number(value.paidTastingPrice) > 0,
+    { path: ['paidTastingPrice'], message: '1 以上の金額を入力してください' },
+  )
+  .refine(
+    (value) =>
+      value.paidTastingPrice === '' ||
+      Number(value.paidTastingPrice) <= SAKE_PAID_TASTING_PRICE_MAX,
+    { path: ['paidTastingPrice'], message: '金額が大きすぎます' },
+  );
 
 export type SakeEditInput = z.infer<typeof sakeEditSchema>;
 
-/** フォームの値（文字列の金額）を API の入力（数値 or null）に変換する */
+/** 保存済みの値からフォームの初期値を作る */
+export function toSakeEditInput(sake: {
+  name: string;
+  type: string | null;
+  category: string;
+  isLimited: boolean;
+  paidTastingPrice: number | null;
+}): SakeEditInput {
+  const paidTasting = parsePaidTasting(sake.paidTastingPrice);
+
+  return {
+    name: sake.name,
+    type: sake.type ?? '',
+    category: toSakeCategory(sake.category),
+    isLimited: sake.isLimited,
+    hasPaidTasting: paidTasting.hasPaidTasting,
+    paidTastingPrice: paidTasting.price === null ? '' : String(paidTasting.price),
+  };
+}
+
+/** フォームの値を API の入力（数値 or null）に変換する */
 export function toSakeUpdateInput(value: SakeEditInput): SakeUpdateInput {
   return {
     name: value.name,
     type: value.type === '' ? null : value.type,
     category: value.category,
     isLimited: value.isLimited,
-    paidTastingPrice: value.paidTastingPrice === '' ? null : Number(value.paidTastingPrice),
+    paidTastingPrice: !value.hasPaidTasting
+      ? null
+      : value.paidTastingPrice === ''
+        ? PAID_TASTING_PRICE_UNDETERMINED
+        : Number(value.paidTastingPrice),
   };
 }
 

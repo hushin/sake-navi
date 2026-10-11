@@ -6,10 +6,9 @@ import {
   SAKE_PAID_TASTING_PRICE_MAX,
   SAKE_TYPE_MAX_LENGTH,
   sakeEditSchema,
-  type SakeCategory,
-  type SakeEditInput,
-  type SakeUpdateInput,
+  toSakeEditInput,
   toSakeUpdateInput,
+  type SakeUpdateInput,
 } from '@/shared/schemas/sake';
 
 function getErrorMessage(error: unknown): string {
@@ -30,14 +29,11 @@ type SakeForEdit = {
   paidTastingPrice: number | null;
 };
 
-/** API の `category` は文字列なので、既知の区分に寄せる */
-function toCategory(value: string): SakeCategory {
-  return SAKE_CATEGORIES.find((category) => category === value) ?? '清酒';
-}
-
 /**
  * 銘柄マスタの編集。身内で使うアプリなので、サインインしていれば誰でも編集できる。
- * 有料試飲の価格は会場で手入力して直す想定なので、空欄（未入力）を許す。
+ *
+ * 有料試飲は「あり／なし」と金額を分けて入力する。出典 PDF では金額が分からないものに
+ * 印として `7` が入っているので、チェックだけ入れて金額を空にするとその状態（金額未確認）を保つ。
  */
 export function SakeEditForm({
   sake,
@@ -51,13 +47,7 @@ export function SakeEditForm({
   onCancel: () => void;
 }) {
   const form = useForm({
-    defaultValues: {
-      name: sake.name,
-      type: sake.type ?? '',
-      category: toCategory(sake.category),
-      isLimited: sake.isLimited,
-      paidTastingPrice: sake.paidTastingPrice === null ? '' : String(sake.paidTastingPrice),
-    } satisfies SakeEditInput,
+    defaultValues: toSakeEditInput(sake),
     validators: {
       onChange: sakeEditSchema,
     },
@@ -153,22 +143,39 @@ export function SakeEditForm({
         )}
       </form.Field>
 
+      <form.Field name="hasPaidTasting">
+        {(field) => (
+          <div className="flex items-center gap-2">
+            <input
+              id="sake-has-paid-tasting"
+              type="checkbox"
+              checked={field.state.value}
+              onChange={(event) => field.handleChange(event.target.checked)}
+              className="size-4 accent-primary"
+            />
+            <Label htmlFor="sake-has-paid-tasting">有料試飲あり</Label>
+          </div>
+        )}
+      </form.Field>
+
       <form.Field name="paidTastingPrice">
         {(field) => {
           const error = field.state.meta.errors.map(getErrorMessage).join(', ');
+
           return (
             <div className="flex flex-col gap-2">
-              <Label htmlFor="sake-price">有料試飲の金額（円・未入力でよい）</Label>
+              <Label htmlFor="sake-price">有料試飲の金額（円）</Label>
               <Input
                 id="sake-price"
                 inputMode="numeric"
                 value={field.state.value}
                 onChange={(event) => field.handleChange(event.target.value)}
                 onBlur={field.handleBlur}
+                disabled={!form.state.values.hasPaidTasting}
                 maxLength={6}
-                placeholder="未入力"
+                placeholder="金額が分からないときは空欄"
                 aria-invalid={error.length > 0 || undefined}
-                className="max-w-40"
+                className="max-w-64"
               />
               {error.length > 0 && <p className="text-sm text-destructive">{error}</p>}
             </div>
@@ -185,7 +192,8 @@ export function SakeEditForm({
         </Button>
       </div>
       <p className="text-xs text-muted-foreground">
-        有料試飲の金額は会場で分かったら入力してください（最大 {SAKE_PAID_TASTING_PRICE_MAX} 円）。
+        「有料試飲あり」にチェックして金額を空にすると、金額未確認として保存します。
+        会場で金額が分かったら入力してください（最大 {SAKE_PAID_TASTING_PRICE_MAX} 円）。
       </p>
     </form>
   );

@@ -4,6 +4,7 @@ import { HttpResponse, http } from 'msw/http';
 import { delay } from 'msw/utils/delay';
 import { client } from '@/react-app/shared/api';
 import { createHandler, signedInSession } from '@/react-app/shared/lib';
+import { PAID_TASTING_PRICE_UNDETERMINED } from '@/shared/schemas/sake';
 
 export type SakeDetail = InferResponseType<(typeof client.api.sakes)[':id']['$get'], 200>;
 export type SakeReview = SakeDetail['reviews'][number];
@@ -18,7 +19,7 @@ const sakeBase = {
   type: '純米大吟醸',
   category: '清酒',
   isLimited: true,
-  paidTastingPrice: null,
+  paidTastingPrice: PAID_TASTING_PRICE_UNDETERMINED,
   brewery: { id: 3, name: '八海醸造', mapColumn: 12, mapRow: 6, area: 'Lower Green' },
 };
 

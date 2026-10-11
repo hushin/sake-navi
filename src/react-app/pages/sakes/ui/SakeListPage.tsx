@@ -4,7 +4,15 @@ import type { InferResponseType } from 'hono/client';
 import { type ReactNode, useRef } from 'react';
 import { client, useBookmarkToggle, useBookmarks, useSession } from '@/react-app/shared/api';
 import { cn } from '@/react-app/shared/lib';
-import { Badge, BookmarkButton, Button, Card, Input, StarRating } from '@/react-app/shared/ui';
+import {
+  Badge,
+  BookmarkButton,
+  Button,
+  Card,
+  Input,
+  PaidTastingBadge,
+  StarRating,
+} from '@/react-app/shared/ui';
 import { SAKE_CATEGORIES } from '@/shared/schemas/sake';
 
 export type SakeListSearch = {
@@ -207,9 +215,7 @@ function SakeListItemCard({
           {sake.type && <Badge variant="secondary">{sake.type}</Badge>}
           {sake.category !== '清酒' && <Badge variant="outline">{sake.category}</Badge>}
           {sake.isLimited && <Badge variant="destructive">限定</Badge>}
-          {sake.paidTastingPrice !== null && (
-            <Badge variant="outline">有料 ¥{sake.paidTastingPrice}</Badge>
-          )}
+          <PaidTastingBadge price={sake.paidTastingPrice} />
           {sake.reviewCount > 0 && (
             <span className="text-xs text-muted-foreground">レビュー {sake.reviewCount} 件</span>
           )}

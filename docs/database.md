@@ -22,10 +22,13 @@ pnpm db:seed          # 本番 D1 にマスタを入れる（--remote）
 - レビューは `UNIQUE(user_id, sake_id)` で 1 人 1 銘柄 1 件。重複投稿は 409 を返し、訂正は PUT で行う
 - タイムラインのカーソルは `<epoch ミリ秒>_<review id>` の複合（同一ミリ秒の取りこぼし防止）
 - **マスタ（銘柄）の編集はサインインしていれば誰でもできる**（`PUT /api/sakes/:id`。身内で使うアプリなので権限を分けない）
-- `sakes.paid_tasting_price` は会場で手入力する前提の nullable。未入力は `null`（「無料」とは区別しない）
-- マスタ（酒蔵 82・銘柄 563）は `db/seed-breweries.sql` / `db/seed-sakes.sql`。旧アプリの seed を丸ごと移植したもので、
-  `paid_tasting_price` も出典 PDF の値のまま入っている（`NULL` = 記載なし / `7` = 記載があったもの）。
-  実際の金額は会場で確認してアプリ内から入力し直す
+- `sakes.paid_tasting_price` の意味は 3 つ。`null` = 有料試飲なし / `7` = **有料試飲あり（金額は未確認）** /
+  それ以外 = その金額。`7` は出典 PDF で「有料試飲」とだけ書かれていたものに付いていた印で、金額ではない
+  - 生の値をそのまま表示せず、必ず `parsePaidTasting`（`src/shared/schemas/sake.ts`）を通して解釈する。
+    画面のバッジは `PaidTastingBadge`（`src/react-app/shared/ui`）に集約してある
+  - 編集フォームは「有料試飲あり」のチェックと金額を分けて入力し、チェックだけなら `7` を保存する
+    （`toSakeEditInput` / `toSakeUpdateInput`）
+- マスタ（酒蔵 82・銘柄 563）は `db/seed-breweries.sql` / `db/seed-sakes.sql`。旧アプリの seed を丸ごと移植したもの
 
 ## ハマりどころ
 

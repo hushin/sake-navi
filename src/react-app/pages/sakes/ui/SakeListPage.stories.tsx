@@ -54,6 +54,9 @@ export const Default: Story = {
     // 未評価のものは「未評価」
     await expect(canvas.getByText('未評価')).toBeVisible();
     await expect(canvas.getByText('限定')).toBeVisible();
+    // 金額が分かっているものと、有料試飲とだけ分かっているもの
+    await expect(canvas.getByText('有料試飲 ¥500')).toBeVisible();
+    await expect(canvas.getByText('有料試飲（金額未確認）')).toBeVisible();
     // 1 ページ 2 件なので 3 件目はまだ出ていない
     await expect(canvas.queryByText('杜氏の挑戦 シャルドネ')).not.toBeInTheDocument();
   },

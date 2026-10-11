@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { useBookmarkToggle, useBookmarks } from '@/react-app/shared/api';
 import { cn } from '@/react-app/shared/lib';
-import { Badge, BookmarkButton, Button, Card } from '@/react-app/shared/ui';
+import { Badge, BookmarkButton, Button, Card, PaidTastingBadge } from '@/react-app/shared/ui';
 
 /** 自分のブックマーク一覧。解除はこの画面からもできる（保存済みなのでトグルは解除だけ） */
 export function BookmarksPage() {
@@ -54,9 +54,7 @@ export function BookmarksPage() {
                     <Badge variant="outline">{bookmark.sake.category}</Badge>
                   )}
                   {bookmark.sake.isLimited && <Badge variant="destructive">限定</Badge>}
-                  {bookmark.sake.paidTastingPrice !== null && (
-                    <Badge variant="outline">有料 ¥{bookmark.sake.paidTastingPrice}</Badge>
-                  )}
+                  <PaidTastingBadge price={bookmark.sake.paidTastingPrice} />
                 </div>
               </div>
               <BookmarkButton

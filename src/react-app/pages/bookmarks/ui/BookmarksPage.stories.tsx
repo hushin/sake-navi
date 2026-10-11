@@ -22,7 +22,7 @@ export const Default: Story = {
   play: async ({ canvas }) => {
     await expect(await canvas.findByRole('link', { name: '八海山 純米大吟醸' })).toBeVisible();
     await expect(canvas.getByText('No.3 八海醸造')).toBeVisible();
-    await expect(canvas.getByText('有料 ¥500')).toBeVisible();
+    await expect(canvas.getByText('有料試飲 ¥500')).toBeVisible();
 
     await expect(canvas.getByRole('link', { name: '北雪 大吟醸YK35' })).toBeVisible();
     await expect(canvas.getByText('No.82 北雪酒造')).toBeVisible();

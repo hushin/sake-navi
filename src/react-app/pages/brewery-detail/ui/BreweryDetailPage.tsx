@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { client } from '@/react-app/shared/api';
-import { Badge, Button, Card, StarRating } from '@/react-app/shared/ui';
+import { Badge, Button, Card, PaidTastingBadge, StarRating } from '@/react-app/shared/ui';
 
 /** 酒蔵の詳細。出品酒をまとめて見て、お酒詳細（レビュー）へ進む */
 export function BreweryDetailPage({ breweryId }: { breweryId: number }) {
@@ -115,9 +115,7 @@ export function BreweryDetailPage({ breweryId }: { breweryId: number }) {
                     {sake.type && <Badge variant="secondary">{sake.type}</Badge>}
                     {sake.category !== '清酒' && <Badge variant="outline">{sake.category}</Badge>}
                     {sake.isLimited && <Badge variant="destructive">限定</Badge>}
-                    {sake.paidTastingPrice !== null && (
-                      <Badge variant="outline">有料 ¥{sake.paidTastingPrice}</Badge>
-                    )}
+                    <PaidTastingBadge price={sake.paidTastingPrice} />
                     {sake.myReviewId !== null && <Badge>レビュー済み</Badge>}
                     {sake.reviewCount > 0 && (
                       <span className="text-xs text-muted-foreground">

@@ -10,6 +10,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  PaidTastingBadge,
   StarRating,
 } from '@/react-app/shared/ui';
 import { filterReviewTags, type ReviewInput, type SakeUpdateInput } from '@/shared/schemas/sake';
@@ -198,11 +199,7 @@ export function SakeDetailPage({ sakeId }: { sakeId: number }) {
             {sake.type && <Badge variant="secondary">{sake.type}</Badge>}
             {sake.category !== '清酒' && <Badge variant="outline">{sake.category}</Badge>}
             {sake.isLimited && <Badge variant="destructive">限定</Badge>}
-            {sake.paidTastingPrice === null ? (
-              <span className="text-sm text-muted-foreground">有料試飲 未入力</span>
-            ) : (
-              <Badge variant="secondary">有料試飲 ¥{sake.paidTastingPrice}</Badge>
-            )}
+            <PaidTastingBadge price={sake.paidTastingPrice} />
             {sake.averageRating === null ? (
               <span className="text-sm text-muted-foreground">未評価</span>
             ) : (

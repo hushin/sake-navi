@@ -29,7 +29,7 @@ export const sakeFixtures: SakeListItem[] = [
     type: '大吟醸',
     category: '清酒',
     isLimited: true,
-    paidTastingPrice: null,
+    paidTastingPrice: 7,
     breweryId: 82,
     breweryName: '北雪酒造',
     reviewCount: 0,

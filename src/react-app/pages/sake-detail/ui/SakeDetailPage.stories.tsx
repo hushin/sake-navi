@@ -169,14 +169,19 @@ export const DeleteReview: Story = {
 
 export const EditSake: Story = {
   play: async ({ canvas, userEvent }) => {
-    await expect(await canvas.findByText('有料試飲 未入力')).toBeVisible();
+    // 出典 PDF では金額が分からず「有料試飲」とだけ書かれていた状態
+    await expect(await canvas.findByText('有料試飲（金額未確認）')).toBeVisible();
 
     await userEvent.click(canvas.getByRole('button', { name: '編集' }));
+
+    // 「有料試飲あり」はチェック済みで、金額は空になっている
+    await expect(await canvas.findByLabelText('有料試飲あり')).toBeChecked();
+    await expect(canvas.getByLabelText('有料試飲の金額（円）')).toHaveValue('');
 
     const name = await canvas.findByLabelText('名前');
     await userEvent.clear(name);
     await userEvent.type(name, '八海山 純米大吟醸 生');
-    await userEvent.type(canvas.getByLabelText('有料試飲の金額（円・未入力でよい）'), '500');
+    await userEvent.type(canvas.getByLabelText('有料試飲の金額（円）'), '500');
     await userEvent.click(canvas.getByRole('button', { name: '保存' }));
 
     // 保存すると表示が新しい内容に変わる
@@ -195,7 +200,7 @@ export const EditSakeValidationError: Story = {
     await userEvent.click(canvas.getByRole('button', { name: '編集' }));
 
     await userEvent.clear(await canvas.findByLabelText('名前'));
-    await userEvent.type(canvas.getByLabelText('有料試飲の金額（円・未入力でよい）'), '0');
+    await userEvent.type(canvas.getByLabelText('有料試飲の金額（円）'), '0');
     await userEvent.click(canvas.getByRole('button', { name: '保存' }));
 
     await expect(await canvas.findByText('お酒の名前を入力してください')).toBeVisible();
@@ -244,5 +249,30 @@ export const Bookmarked: Story = {
       'aria-pressed',
       'true',
     );
+  },
+};
+
+/** 金額が分からないまま「有料試飲あり」だけ保存できる */
+export const SaveUndeterminedPaidTasting: Story = {
+  play: async ({ canvas, userEvent }) => {
+    await canvas.findByRole('heading', { name: '八海山 純米大吟醸' });
+
+    await userEvent.click(canvas.getByRole('button', { name: '編集' }));
+    await userEvent.click(await canvas.findByRole('button', { name: '保存' }));
+
+    await expect(await canvas.findByText('有料試飲（金額未確認）')).toBeVisible();
+  },
+};
+
+/** チェックを外すと有料試飲の表示が消える */
+export const UncheckPaidTasting: Story = {
+  play: async ({ canvas, userEvent }) => {
+    await canvas.findByRole('heading', { name: '八海山 純米大吟醸' });
+
+    await userEvent.click(canvas.getByRole('button', { name: '編集' }));
+    await userEvent.click(await canvas.findByLabelText('有料試飲あり'));
+    await userEvent.click(canvas.getByRole('button', { name: '保存' }));
+
+    await waitFor(() => expect(canvas.queryByText(/有料試飲/)).not.toBeInTheDocument());
   },
 };
