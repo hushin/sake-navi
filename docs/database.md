@@ -23,8 +23,9 @@ pnpm db:seed          # 本番 D1 にマスタを入れる（--remote）
 - タイムラインのカーソルは `<epoch ミリ秒>_<review id>` の複合（同一ミリ秒の取りこぼし防止）
 - **マスタ（銘柄）の編集はサインインしていれば誰でもできる**（`PUT /api/sakes/:id`。身内で使うアプリなので権限を分けない）
 - `sakes.paid_tasting_price` は会場で手入力する前提の nullable。未入力は `null`（「無料」とは区別しない）
-- マスタ（酒蔵 82・銘柄 563）は `db/seed-breweries.sql` / `db/seed-sakes.sql`。旧アプリの seed を移植したもので、
-  `paid_tasting_price` の値（NULL / 7）は金額として使えなかったため取り込んでいない
+- マスタ（酒蔵 82・銘柄 563）は `db/seed-breweries.sql` / `db/seed-sakes.sql`。旧アプリの seed を丸ごと移植したもので、
+  `paid_tasting_price` も出典 PDF の値のまま入っている（`NULL` = 記載なし / `7` = 記載があったもの）。
+  実際の金額は会場で確認してアプリ内から入力し直す
 
 ## ハマりどころ
 

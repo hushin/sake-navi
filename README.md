@@ -189,5 +189,5 @@ pnpm test    # worker（D1 込みの route テスト）と story（interaction t
 `db/seed-breweries.sql`（酒蔵・ブース番号とマップのグリッド位置）と
 `db/seed-sakes.sql`（銘柄）は旧アプリから移植したもの。
 
-有料試飲の金額（`sakes.paid_tasting_price`）は**会場に行くまで分からない**ため、seed では未入力（NULL）にしてある。
-当日その場でお酒の詳細画面の「編集」から手入力して直す（旧 seed の 7 は金額として使えなかったので取り込んでいない）。
+有料試飲の金額（`sakes.paid_tasting_price`）は**会場に行くまで分からない**ので、旧アプリの seed の値をそのまま入れてある
+（`NULL` = 記載なし / `7` = 出典 PDF に記載があったもの）。当日その場でお酒の詳細画面の「編集」から実際の金額に直す。
