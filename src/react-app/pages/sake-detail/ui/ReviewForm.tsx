@@ -9,6 +9,7 @@ export type ReviewFormValues = {
   tags: ReviewTag[];
   /** 未入力は undefined（zod スキーマの input 型に合わせる） */
   comment?: string;
+  notifyDiscord: boolean;
 };
 
 function getErrorMessage(error: unknown): string {
@@ -29,6 +30,7 @@ export function ReviewForm({
   isSubmitting,
   isDeleting,
   submitLabel,
+  showNotifyDiscord,
   onSubmit,
   onDelete,
 }: {
@@ -36,6 +38,8 @@ export function ReviewForm({
   isSubmitting: boolean;
   isDeleting?: boolean;
   submitLabel: string;
+  /** 新規投稿のときだけ Discord 通知のチェックを出す（編集では通知しない） */
+  showNotifyDiscord?: boolean;
   onSubmit: (values: ReviewFormValues) => Promise<void>;
   onDelete?: () => void;
 }) {
@@ -46,7 +50,12 @@ export function ReviewForm({
     },
     onSubmit: async ({ value }) => {
       const comment = (value.comment ?? '').trim();
-      await onSubmit({ rating: value.rating, tags: value.tags, comment });
+      await onSubmit({
+        rating: value.rating,
+        tags: value.tags,
+        comment,
+        notifyDiscord: value.notifyDiscord,
+      });
     },
   });
 
@@ -113,6 +122,23 @@ export function ReviewForm({
           );
         }}
       </form.Field>
+
+      {showNotifyDiscord && (
+        <form.Field name="notifyDiscord">
+          {(field) => (
+            <div className="flex items-center gap-2">
+              <input
+                id="review-notify-discord"
+                type="checkbox"
+                checked={field.state.value}
+                onChange={(event) => field.handleChange(event.target.checked)}
+                className="size-4 accent-primary"
+              />
+              <Label htmlFor="review-notify-discord">Discord に通知する</Label>
+            </div>
+          )}
+        </form.Field>
+      )}
 
       <div className="flex items-center gap-2">
         <Button type="submit" size="lg" disabled={isSubmitting}>

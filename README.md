@@ -9,19 +9,21 @@
 - 🔐 **Google でサインイン**（許可リスト制。オーナーがアプリ内でメンバーを追加する）
 - 🏷️ **ニックネーム登録**（初回サインイン後に決める。以降の表示はこの名前）
 - 🗺️ **フロアマップ**（会場のブース配置から酒蔵を探す。平均評価と自分がレビュー済みかを表示）
-- 🔍 **お酒の一覧・検索**（銘柄名・酒蔵名の部分一致、区分、限定品）
-- 🏪 **酒蔵詳細**（出品酒の一覧。お酒詳細とマップへの導線）
+- 🔍 **お酒の一覧・検索**（銘柄名・酒蔵名の部分一致、区分、限定品、有料試飲あり、金額未入力）
+- 🏪 **酒蔵詳細**（出品酒の一覧。お酒詳細とマップへの導線、当日の銘柄を追加できる）
+- 📝 **酒蔵ノート**（列の長さ・売り切れ・混雑など、酒以外の一次情報を共有）
 - ⭐ **レビューの投稿・編集・削除**（星 5 段階＋タグ＋コメント、1 人 1 銘柄 1 件）
 - ✏️ **銘柄の編集**（名前・種類・区分・限定・有料試飲の金額。身内で使うアプリなので誰でも編集できる）
 - 🔖 **ブックマーク**（気になった銘柄を保存して、一覧・詳細・ブックマーク画面から見返す）
 - 🕒 **タイムライン**（新しい順。カーソルで続きを読む）
+- 📊 **レビュー一覧**（新着順／評価順の並び替え、タグの AND 絞り込み、自分のレビューだけ）
+- 🔔 **Discord 通知**（レビューは既定 OFF、酒蔵ノートは既定 ON。Webhook を設定したときだけ送る）
 - 👥 **メンバー管理**（オーナーが Google アカウントを追加・削除）
 - 📚 **酒蔵・銘柄マスタ**（旧アプリの seed を移植。`pnpm db:seed:local` で投入）
 
 ## これから足すもの
 
-酒蔵ノート / お酒の追加（ユーザー投稿の銘柄）/ Discord 通知 / 静的 HTML アーカイブ /
-レビュー一覧（並び替え・タグ絞り込み）/ 検索の強化（有料試飲フィルタ・平均評価）/ 酒蔵マスタの編集
+静的 HTML アーカイブ / 酒蔵マスタの編集 / （必要になったら）ニックネームの一意化
 
 ## 技術スタック
 
@@ -97,6 +99,7 @@ cp .dev.vars.example .dev.vars
 | `GOOGLE_CLIENT_ID`     | 手順 2 の Client ID                                                    |
 | `GOOGLE_CLIENT_SECRET` | 手順 2 の Client Secret                                                |
 | `ALLOWED_EMAILS`       | **最初にサインインする自分の Google アドレス**（カンマ区切りで複数可） |
+| `DISCORD_WEBHOOK_URL`  | Discord の Webhook URL（未設定なら通知しない。任意）                   |
 
 `ALLOWED_EMAILS` に載っているアカウントだけがサインインでき、**最初にサインインした人がオーナー**になる。
 
@@ -135,6 +138,8 @@ pnpm wrangler secret put BETTER_AUTH_SECRET
 pnpm wrangler secret put GOOGLE_CLIENT_ID
 pnpm wrangler secret put GOOGLE_CLIENT_SECRET
 pnpm wrangler secret put ALLOWED_EMAILS
+# Discord に投稿を流す場合だけ（未設定なら通知しない）
+pnpm wrangler secret put DISCORD_WEBHOOK_URL
 
 # 4. デプロイ（Google 側に本番のリダイレクト URI を追加しておく）
 pnpm build && pnpm deploy
@@ -192,3 +197,12 @@ pnpm test    # worker（D1 込みの route テスト）と story（interaction t
 有料試飲は `sakes.paid_tasting_price` で持つ。`NULL` = 有料試飲なし / `7` = **有料試飲あり（金額は未確認）** /
 それ以外 = その金額。`7` は出典 PDF で金額が分からなかったものに付いていた印なので、`¥7` とは表示しない。
 金額が分かったら、お酒の詳細画面の「編集」からその場で入力して直す。
+
+## Discord 通知
+
+`DISCORD_WEBHOOK_URL` を設定すると、レビューと酒蔵ノートの投稿を Discord に流す。
+投稿フォームの「Discord に通知する」で 1 件ごとに切り替えられる（レビューは既定 OFF、ノートは既定 ON）。
+通知は `c.executionCtx.waitUntil()` で送るので、投稿のレスポンスは待たない（失敗しても投稿は成功扱い）。
+
+Discord 側は チャンネル設定 → 連携サービス → ウェブフック から URL を作れる。
+ローカルで試すときは `.dev.vars` に、本番は `wrangler secret put DISCORD_WEBHOOK_URL` で登録する。

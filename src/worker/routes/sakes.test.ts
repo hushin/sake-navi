@@ -1,4 +1,4 @@
-import { env } from 'cloudflare:test';
+import { createExecutionContext, env, waitOnExecutionContext } from 'cloudflare:test';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { type AuthUser } from '../auth';
@@ -6,6 +6,7 @@ import { type AuthEnv } from '../auth/middleware';
 import { breweries, sakes } from '../db/schema';
 import { app } from '../index';
 import { insertTestUser, resetDatabase, testDb, withSession } from '../test/database';
+import { parseWebhookBody } from '../test/webhook';
 import sakesRoute from './sakes';
 
 const listSchema = z.object({
@@ -249,6 +250,55 @@ describe('sakes routes', () => {
       env,
     );
     expect(unknownSake.status).toBe(404);
+  });
+
+  it('POST /api/sakes/:id/reviews は notifyDiscord のときだけ Discord に通知する', async () => {
+    const fetchMock = vi.fn(
+      async (_input: RequestInfo | URL, _init?: RequestInit) => new Response(null, { status: 204 }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const context = createExecutionContext();
+    const res = await authedApp(owner).request(
+      '/sakes/1/reviews',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating: 5, comment: '華やか', notifyDiscord: true }),
+      },
+      env,
+      context,
+    );
+    expect(res.status).toBe(201);
+
+    // `waitUntil` に積まれた通知を待ってから本文を見る
+    await waitOnExecutionContext(context);
+    expect(fetchMock).toHaveBeenCalledOnce();
+
+    const content = parseWebhookBody(fetchMock.mock.calls[0]?.[1]);
+    expect(content).toContain(owner.name);
+    expect(content).toContain('雪中貯蔵 純米生原酒');
+    expect(content).toContain('No.1 関原酒造');
+    expect(content).toContain('⭐⭐⭐⭐⭐');
+    expect(content).toContain('http://localhost:5173/map?brewery=1');
+
+    // 既定（チェックなし）では通知しない
+    const silentContext = createExecutionContext();
+    const silent = await authedApp(member).request(
+      '/sakes/1/reviews',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating: 3 }),
+      },
+      env,
+      silentContext,
+    );
+    expect(silent.status).toBe(201);
+    await waitOnExecutionContext(silentContext);
+    expect(fetchMock).toHaveBeenCalledOnce();
+
+    vi.unstubAllGlobals();
   });
 
   it('PUT /api/sakes/:id はサインインしていれば誰でも銘柄を編集できる', async () => {

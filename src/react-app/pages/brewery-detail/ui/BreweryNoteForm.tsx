@@ -3,8 +3,8 @@ import { useId } from 'react';
 import { Button, Label, Textarea } from '@/react-app/shared/ui';
 import {
   BREWERY_NOTE_MAX_LENGTH,
-  breweryNoteInputSchema,
-  type BreweryNoteInput,
+  breweryNoteFormSchema,
+  type BreweryNoteFormInput,
 } from '@/shared/schemas/brewery-note';
 
 function getErrorMessage(error: unknown): string {
@@ -24,23 +24,27 @@ export function BreweryNoteForm({
   initialComment = '',
   submitLabel,
   isSubmitting,
+  showNotifyDiscord = true,
   onSubmit,
   onCancel,
 }: {
   initialComment?: string;
   submitLabel: string;
   isSubmitting: boolean;
-  onSubmit: (input: BreweryNoteInput) => Promise<void>;
+  /** 編集では通知しないので隠す（新規投稿のときだけ出す） */
+  showNotifyDiscord?: boolean;
+  onSubmit: (input: BreweryNoteFormInput) => Promise<void>;
   onCancel?: () => void;
 }) {
   const textareaId = useId();
   const form = useForm({
-    defaultValues: { comment: initialComment },
+    // ノートの通知は既定 ON（売り切れなどの情報は早く届けたい）
+    defaultValues: { comment: initialComment, notifyDiscord: true },
     validators: {
-      onChange: breweryNoteInputSchema,
+      onChange: breweryNoteFormSchema,
     },
     onSubmit: async ({ value }) => {
-      await onSubmit({ comment: value.comment.trim() });
+      await onSubmit({ comment: value.comment.trim(), notifyDiscord: value.notifyDiscord });
     },
   });
 
@@ -80,6 +84,23 @@ export function BreweryNoteForm({
           );
         }}
       </form.Field>
+
+      {showNotifyDiscord && (
+        <form.Field name="notifyDiscord">
+          {(field) => (
+            <div className="flex items-center gap-2">
+              <input
+                id="brewery-note-notify-discord"
+                type="checkbox"
+                checked={field.state.value}
+                onChange={(event) => field.handleChange(event.target.checked)}
+                className="size-4 accent-primary"
+              />
+              <Label htmlFor="brewery-note-notify-discord">Discord に通知する</Label>
+            </div>
+          )}
+        </form.Field>
+      )}
 
       <div className="flex items-center gap-2">
         <Button type="submit" size="lg" disabled={isSubmitting}>

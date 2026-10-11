@@ -94,6 +94,9 @@ export const PostNote: Story = {
   play: async ({ canvas, userEvent }) => {
     await canvas.findByText('酒蔵ノート（2）');
 
+    // ノートの通知は既定 ON（売り切れ情報などを早く共有する）
+    await expect(canvas.getByLabelText('Discord に通知する')).toBeChecked();
+
     await userEvent.type(canvas.getByLabelText('ノート'), '今は並ばずに入れる。');
     await userEvent.click(canvas.getByRole('button', { name: 'ノートを投稿' }));
 

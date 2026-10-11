@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { client, useSession } from '@/react-app/shared/api';
 import { formatRelativeTime } from '@/react-app/shared/lib';
 import { Button, Card } from '@/react-app/shared/ui';
-import type { BreweryNoteInput } from '@/shared/schemas/brewery-note';
+import type { BreweryNoteFormInput } from '@/shared/schemas/brewery-note';
 import { BreweryNoteForm } from './BreweryNoteForm';
 
 const NOTES_SKELETON_WIDTHS = ['w-2/3', 'w-1/2'];
@@ -37,7 +37,7 @@ export function BreweryNotes({ breweryId }: { breweryId: number }) {
     queryClient.invalidateQueries({ queryKey: ['brewery-notes', breweryId] });
 
   const createNote = useMutation({
-    mutationFn: async (input: BreweryNoteInput) => {
+    mutationFn: async (input: BreweryNoteFormInput) => {
       const res = await client.api.breweries[':id'].notes.$post({
         param: { id: String(breweryId) },
         json: input,
@@ -54,7 +54,7 @@ export function BreweryNotes({ breweryId }: { breweryId: number }) {
   });
 
   const updateNote = useMutation({
-    mutationFn: async ({ noteId, input }: { noteId: number; input: BreweryNoteInput }) => {
+    mutationFn: async ({ noteId, input }: { noteId: number; input: BreweryNoteFormInput }) => {
       const res = await client.api.breweries[':id'].notes[':noteId'].$put({
         param: { id: String(breweryId), noteId: String(noteId) },
         json: input,
@@ -156,6 +156,7 @@ export function BreweryNotes({ breweryId }: { breweryId: number }) {
                   initialComment={note.comment}
                   submitLabel="更新する"
                   isSubmitting={updateNote.isPending}
+                  showNotifyDiscord={false}
                   onSubmit={async (input) => {
                     await updateNote.mutateAsync({ noteId: note.id, input });
                   }}

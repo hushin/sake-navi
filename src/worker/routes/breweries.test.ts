@@ -1,4 +1,4 @@
-import { env } from 'cloudflare:test';
+import { createExecutionContext, env, waitOnExecutionContext } from 'cloudflare:test';
 import { eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { z } from 'zod';
@@ -7,6 +7,7 @@ import { type AuthEnv } from '../auth/middleware';
 import { breweries, breweryNotes, reviews, sakes, user as userTable } from '../db/schema';
 import { app } from '../index';
 import { insertTestUser, resetDatabase, testDb, withSession } from '../test/database';
+import { parseWebhookBody } from '../test/webhook';
 import breweriesRoute from './breweries';
 
 const listSchema = z.object({
@@ -290,7 +291,8 @@ describe('breweries routes', () => {
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ comment: '  今なら空いている  ' }),
+        // 通知は別のテストで確認する（ここでは通知しない）
+        body: JSON.stringify({ comment: '  今なら空いている  ', notifyDiscord: false }),
       },
       env,
     );
@@ -336,6 +338,54 @@ describe('breweries routes', () => {
         )
       ).status,
     ).toBe(404);
+  });
+
+  it('POST /:id/notes は既定で Discord に通知し、チェックを外すと通知しない', async () => {
+    const fetchMock = vi.fn(
+      async (_input: RequestInfo | URL, _init?: RequestInit) => new Response(null, { status: 204 }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const context = createExecutionContext();
+    const res = await authedApp(member).request(
+      '/breweries/1/notes',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ comment: '今は並ばずに入れる' }),
+      },
+      env,
+      context,
+    );
+    expect(res.status).toBe(201);
+
+    // `waitUntil` に積まれた通知を待ってから本文を見る
+    await waitOnExecutionContext(context);
+    expect(fetchMock).toHaveBeenCalledOnce();
+
+    const content = parseWebhookBody(fetchMock.mock.calls[0]?.[1]);
+    expect(content).toContain(member.name);
+    expect(content).toContain('No.1 関原酒造');
+    expect(content).toContain('今は並ばずに入れる');
+    expect(content).toContain('http://localhost:5173/map?brewery=1');
+
+    // チェックを外したときは送らない
+    const silentContext = createExecutionContext();
+    const silent = await authedApp(member).request(
+      '/breweries/1/notes',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ comment: '静かに投稿', notifyDiscord: false }),
+      },
+      env,
+      silentContext,
+    );
+    expect(silent.status).toBe(201);
+    await waitOnExecutionContext(silentContext);
+    expect(fetchMock).toHaveBeenCalledOnce();
+
+    vi.unstubAllGlobals();
   });
 
   it('PUT /:id/notes/:noteId は本人だけが編集でき、別の酒蔵のノートは 404', async () => {

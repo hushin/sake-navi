@@ -13,6 +13,7 @@ import {
 } from '../repositories/brewery-notes';
 import { findBreweryById, listBreweries, listSakesForBrewery } from '../repositories/breweries';
 import { findSakeById, insertSake } from '../repositories/sakes';
+import { sendBreweryNoteNotification } from '../services/discord';
 import { parseIdParam } from './params';
 
 /**
@@ -68,15 +69,30 @@ const app = new Hono<AuthEnv>()
     }
 
     const db = createDb(c.env);
-    if (!(await findBreweryById(db, breweryId))) {
+    const brewery = await findBreweryById(db, breweryId);
+    if (!brewery) {
       return c.json({ error: 'Not Found' }, 404);
     }
 
+    const input = c.req.valid('json');
     const note = await insertBreweryNote(db, {
       userId: user.id,
       breweryId,
-      comment: c.req.valid('json').comment,
+      comment: input.comment,
     });
+
+    // Discord 通知はレスポンスを待たせない（`waitUntil` の中で失敗しても投稿は成功扱い）
+    if (input.notifyDiscord) {
+      c.executionCtx.waitUntil(
+        sendBreweryNoteNotification(c.env, {
+          breweryId: brewery.id,
+          breweryName: brewery.name,
+          comment: note.comment,
+          userName: user.nickname ?? user.name,
+        }),
+      );
+    }
+
     return c.json(note, 201);
   })
   .put('/:id/notes/:noteId', requireAuth, zValidator('json', breweryNoteInputSchema), async (c) => {

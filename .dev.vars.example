@@ -14,3 +14,7 @@ GOOGLE_CLIENT_SECRET=""
 # ここに載せたアカウントだけが最初にサインインでき、最初の 1 人がオーナーになる。
 # 2 人目以降はアプリ内の「メンバー」画面から追加する。
 ALLOWED_EMAILS=""
+
+# 投稿を Discord に通知する Webhook（未設定なら通知しない）。
+# Discord のチャンネル設定 → 連携サービス → ウェブフック から作れる。
+DISCORD_WEBHOOK_URL=""

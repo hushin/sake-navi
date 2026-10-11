@@ -5,6 +5,7 @@ import { type AuthEnv, requireAuth } from '../auth/middleware';
 import { createDb } from '../db';
 import * as reviewsRepository from '../repositories/reviews';
 import { findSakeById, listSakes, updateSake } from '../repositories/sakes';
+import { sendReviewNotification } from '../services/discord';
 import { parseIdParam } from './params';
 
 const app = new Hono<AuthEnv>()
@@ -59,14 +60,31 @@ const app = new Hono<AuthEnv>()
     }
 
     const db = createDb(c.env);
-    if (!(await findSakeById(db, sakeId))) {
+    const sake = await findSakeById(db, sakeId);
+    if (!sake) {
       return c.json({ error: 'Not Found' }, 404);
     }
 
+    const input = c.req.valid('json');
     // 1 人 1 銘柄 1 件。すでに投稿済みなら 409（UI は編集に誘導する）
-    const review = await reviewsRepository.insertReview(db, user.id, sakeId, c.req.valid('json'));
+    const review = await reviewsRepository.insertReview(db, user.id, sakeId, input);
     if (!review) {
       return c.json({ error: 'Conflict' }, 409);
+    }
+
+    // Discord 通知はレスポンスを待たせない（`waitUntil` の中で失敗しても投稿は成功扱い）
+    if (input.notifyDiscord) {
+      c.executionCtx.waitUntil(
+        sendReviewNotification(c.env, {
+          sakeName: sake.name,
+          breweryId: sake.brewery.id,
+          breweryName: sake.brewery.name,
+          rating: review.rating,
+          tags: review.tags,
+          comment: review.comment,
+          userName: user.nickname ?? user.name,
+        }),
+      );
     }
 
     return c.json(review, 201);

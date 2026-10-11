@@ -187,13 +187,16 @@ export const reviewInputSchema = z.object({
     .trim()
     .max(REVIEW_COMMENT_MAX_LENGTH, `コメントは ${REVIEW_COMMENT_MAX_LENGTH} 文字までです`)
     .optional(),
+  /** Discord への通知。レビューは頻度が高いので既定は OFF（ノートは既定 ON） */
+  notifyDiscord: z.boolean().default(false),
 });
 
 export type ReviewInput = z.infer<typeof reviewInputSchema>;
 
-/** レビューフォームの入力。`reviewInputSchema` からタグの省略を外しただけ */
+/** レビューフォームの入力。`reviewInputSchema` から default を外しただけ */
 export const reviewFormSchema = reviewInputSchema.extend({
   tags: z.array(reviewTagSchema).max(REVIEW_TAGS.length),
+  notifyDiscord: z.boolean(),
 });
 
 export type ReviewFormInput = z.infer<typeof reviewFormSchema>;

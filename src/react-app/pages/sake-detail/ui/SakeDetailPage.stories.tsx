@@ -72,6 +72,8 @@ export const MyReviewExists: Story = {
     );
     await expect(canvas.getByRole('button', { name: '更新する' })).toBeVisible();
     await expect(canvas.getByRole('button', { name: 'レビューを削除' })).toBeVisible();
+    // 編集では通知しないのでチェックを出さない
+    await expect(canvas.queryByLabelText('Discord に通知する')).not.toBeInTheDocument();
   },
 };
 
@@ -125,6 +127,9 @@ export const PostReview: Story = {
     await userEvent.click(canvas.getByRole('radio', { name: '星5' }));
     await userEvent.click(canvas.getByRole('button', { name: '辛口' }));
     await userEvent.type(canvas.getByLabelText('コメント（任意）'), 'キレがあって美味しい');
+    // 通知は既定 OFF。チェックを入れると投稿時に Discord へ流す
+    await expect(canvas.getByLabelText('Discord に通知する')).not.toBeChecked();
+    await userEvent.click(canvas.getByLabelText('Discord に通知する'));
     await userEvent.click(canvas.getByRole('button', { name: '投稿する' }));
 
     // 投稿後は自分のレビューとして編集モードに切り替わる

@@ -24,6 +24,8 @@ export default defineConfig({
           GOOGLE_CLIENT_ID: 'test-client-id',
           GOOGLE_CLIENT_SECRET: 'test-client-secret',
           ALLOWED_EMAILS: 'owner@example.com',
+          // 通知は fetch をモックして確認する（送信先はテストで差し替えない）
+          DISCORD_WEBHOOK_URL: 'https://discord.example/webhook',
         },
       },
     }),

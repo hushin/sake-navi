@@ -232,8 +232,11 @@ export function SakeDetailPage({ sakeId }: { sakeId: number }) {
                 rating: myReview?.rating ?? 0,
                 tags: filterReviewTags(myReview?.tags ?? []),
                 comment: myReview?.comment ?? '',
+                // レビューの通知は既定 OFF（投稿のたびに流れると邪魔なので）
+                notifyDiscord: false,
               }}
               submitLabel={myReview ? '更新する' : '投稿する'}
+              showNotifyDiscord={myReview === null}
               isSubmitting={saveReview.isPending}
               isDeleting={deleteReview.isPending}
               onSubmit={async (values) => {
@@ -244,6 +247,7 @@ export function SakeDetailPage({ sakeId }: { sakeId: number }) {
                     rating: values.rating,
                     tags: values.tags,
                     comment: comment.length > 0 ? comment : undefined,
+                    notifyDiscord: values.notifyDiscord,
                   },
                 });
               }}
