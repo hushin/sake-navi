@@ -1,0 +1,16 @@
+# better-auth のセッション署名鍵。`openssl rand -base64 32` などで生成する
+BETTER_AUTH_SECRET=""
+
+# アプリのベース URL。ローカルは Vite dev server の URL
+# （ローカルでは wrangler.json の vars より .dev.vars が優先される）
+BETTER_AUTH_URL="http://localhost:5173"
+
+# Google Cloud で作成した OAuth クライアント。
+# 承認済みリダイレクト URI に http://localhost:5173/api/auth/callback/google を登録する
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
+
+# 最初にサインインできる Google アカウント（カンマ区切り）。
+# ここに載せたアカウントだけが最初にサインインでき、最初の 1 人がオーナーになる。
+# 2 人目以降はアプリ内の「メンバー」画面から追加する。
+ALLOWED_EMAILS=""
