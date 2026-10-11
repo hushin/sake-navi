@@ -20,10 +20,11 @@
 - 🔔 **Discord 通知**（レビューは既定 OFF、酒蔵ノートは既定 ON。Webhook を設定したときだけ送る）
 - 👥 **メンバー管理**（オーナーが Google アカウントを追加・削除）
 - 📚 **酒蔵・銘柄マスタ**（旧アプリの seed を移植。`pnpm db:seed:local` で投入）
+- 📦 **静的 HTML アーカイブ**（イベント後にレビューを 1 枚の HTML に固めて共有）
 
 ## これから足すもの
 
-静的 HTML アーカイブ / 酒蔵マスタの編集 / （必要になったら）ニックネームの一意化
+酒蔵マスタの編集 / （必要になったら）ニックネームの一意化
 
 ## 技術スタック
 
@@ -156,6 +157,7 @@ pnpm build && pnpm deploy
 ```bash
 pnpm dev / build / check / test / lint / fmt / storybook
 pnpm db:generate / db:migrate:local / db:seed:local / db:migrate / db:seed
+pnpm archive / archive:dump / archive:generate
 ```
 
 一覧と開発の決まりごとは [AGENTS.md](./AGENTS.md) にまとめてある。
@@ -177,6 +179,7 @@ src/
 └── shared/            # worker と react-app の共通コード（zod スキーマ・定数）
 db/                    # マスタ投入用の seed SQL
 drizzle/               # drizzle-kit が生成したマイグレーション（コミット対象）
+scripts/               # アーカイブ生成（node --experimental-strip-types で実行）
 ```
 
 ## テスト
@@ -197,6 +200,22 @@ pnpm test    # worker（D1 込みの route テスト）と story（interaction t
 有料試飲は `sakes.paid_tasting_price` で持つ。`NULL` = 有料試飲なし / `7` = **有料試飲あり（金額は未確認）** /
 それ以外 = その金額。`7` は出典 PDF で金額が分からなかったものに付いていた印なので、`¥7` とは表示しない。
 金額が分かったら、お酒の詳細画面の「編集」からその場で入力して直す。
+
+## アーカイブ（静的 HTML）
+
+イベント後にレビューを 1 枚の HTML に固めて共有する。マップ・酒蔵一覧（検索つき）・
+タイムライン・ユーザー別レビュー・ランキング／統計が入った、サーバ不要の 1 ファイル。
+
+```bash
+pnpm archive               # ダンプ + 生成（本番 D1 を読むので Cloudflare の認証が要る）
+pnpm archive:dump          # D1 → dist/archive/*.json
+pnpm archive:generate      # JSON → dist/archive/{実行年}.html
+pnpm archive:dump --local  # ローカルの D1 で試す
+```
+
+マップの配置計算は画面と共通の `src/react-app/shared/lib/map-layout.ts` を使う
+（旧実装は画面とアーカイブに同じ計算をコピーしていて二重管理になっていた）。
+出力先の `dist/` は gitignore 済み。
 
 ## Discord 通知
 

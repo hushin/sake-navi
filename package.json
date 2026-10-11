@@ -25,7 +25,10 @@
     "db:migrate": "wrangler d1 migrations apply DB --remote",
     "db:seed:local": "wrangler d1 execute DB --local --file=./db/seed-breweries.sql && wrangler d1 execute DB --local --file=./db/seed-sakes.sql",
     "db:seed": "wrangler d1 execute DB --remote --file=./db/seed-breweries.sql && wrangler d1 execute DB --remote --file=./db/seed-sakes.sql",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "archive:dump": "node --experimental-strip-types scripts/archive-dump.ts",
+    "archive:generate": "node --experimental-strip-types scripts/archive-generate.ts",
+    "archive": "pnpm archive:dump && pnpm archive:generate"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
