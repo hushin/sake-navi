@@ -1,0 +1,135 @@
+import { useForm } from '@tanstack/react-form';
+import type { ReviewTag } from '@/shared/schemas/sake';
+import { REVIEW_COMMENT_MAX_LENGTH, reviewFormSchema } from '@/shared/schemas/sake';
+import { Button, Label, StarRating, Textarea } from '@/react-app/shared/ui';
+import { TagSelector } from './TagSelector';
+
+export type ReviewFormValues = {
+  rating: number;
+  tags: ReviewTag[];
+  /** 未入力は undefined（zod スキーマの input 型に合わせる） */
+  comment?: string;
+};
+
+function getErrorMessage(error: unknown): string {
+  if (error != null && typeof error === 'object' && 'message' in error) {
+    const { message } = error;
+    if (typeof message === 'string') {
+      return message;
+    }
+  }
+  return '';
+}
+
+/**
+ * レビューの投稿と編集を兼ねる。`initialValues` に自分のレビューを渡すと編集モードになる。
+ */
+export function ReviewForm({
+  initialValues,
+  isSubmitting,
+  isDeleting,
+  submitLabel,
+  onSubmit,
+  onDelete,
+}: {
+  initialValues: ReviewFormValues;
+  isSubmitting: boolean;
+  isDeleting?: boolean;
+  submitLabel: string;
+  onSubmit: (values: ReviewFormValues) => Promise<void>;
+  onDelete?: () => void;
+}) {
+  const form = useForm({
+    defaultValues: initialValues,
+    validators: {
+      onChange: reviewFormSchema,
+    },
+    onSubmit: async ({ value }) => {
+      const comment = (value.comment ?? '').trim();
+      await onSubmit({ rating: value.rating, tags: value.tags, comment });
+    },
+  });
+
+  return (
+    <form
+      className="flex flex-col gap-5"
+      onSubmit={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        void form.handleSubmit();
+      }}
+    >
+      <form.Field name="rating">
+        {(field) => {
+          const error = field.state.meta.errors.map(getErrorMessage).join(', ');
+
+          return (
+            <div className="flex flex-col gap-2">
+              <span className="text-sm font-medium">評価</span>
+              <StarRating
+                value={field.state.value}
+                onChange={(rating) => field.handleChange(rating)}
+                size="xl"
+              />
+              {error.length > 0 && <p className="text-sm text-destructive">{error}</p>}
+            </div>
+          );
+        }}
+      </form.Field>
+
+      <form.Field name="tags">
+        {(field) => (
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium">タグ（任意）</span>
+            <TagSelector value={field.state.value} onChange={(tags) => field.handleChange(tags)} />
+          </div>
+        )}
+      </form.Field>
+
+      <form.Field name="comment">
+        {(field) => {
+          const error = field.state.meta.errors.map(getErrorMessage).join(', ');
+
+          return (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="review-comment">コメント（任意）</Label>
+              <Textarea
+                id="review-comment"
+                value={field.state.value ?? ''}
+                onChange={(event) => field.handleChange(event.target.value)}
+                onBlur={field.handleBlur}
+                rows={4}
+                maxLength={REVIEW_COMMENT_MAX_LENGTH}
+                placeholder="飲んだ感想を残す"
+                aria-invalid={error.length > 0 || undefined}
+              />
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm text-destructive">{error}</p>
+                <p className="shrink-0 text-xs text-muted-foreground">
+                  {field.state.value?.length ?? 0} / {REVIEW_COMMENT_MAX_LENGTH}
+                </p>
+              </div>
+            </div>
+          );
+        }}
+      </form.Field>
+
+      <div className="flex items-center gap-2">
+        <Button type="submit" size="lg" disabled={isSubmitting}>
+          {isSubmitting ? '保存中…' : submitLabel}
+        </Button>
+        {onDelete && (
+          <Button
+            type="button"
+            variant="destructive"
+            size="lg"
+            disabled={isDeleting}
+            onClick={onDelete}
+          >
+            {isDeleting ? '削除中…' : 'レビューを削除'}
+          </Button>
+        )}
+      </div>
+    </form>
+  );
+}
