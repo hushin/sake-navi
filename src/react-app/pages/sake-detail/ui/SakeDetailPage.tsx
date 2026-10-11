@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
+import { useState } from 'react';
 import { client, useSession } from '@/react-app/shared/api';
 import {
   Badge,
@@ -10,8 +11,9 @@ import {
   CardTitle,
   StarRating,
 } from '@/react-app/shared/ui';
-import { filterReviewTags, type ReviewInput } from '@/shared/schemas/sake';
+import { filterReviewTags, type ReviewInput, type SakeUpdateInput } from '@/shared/schemas/sake';
 import { ReviewForm } from './ReviewForm';
+import { SakeEditForm } from './SakeEditForm';
 import { ReviewList } from './ReviewList';
 
 /** Hono RPC のレスポンスから、status のリテラル型に依存せずエラーだけ見るための最小の形 */
@@ -35,6 +37,7 @@ function errorMessage(error: unknown): string {
 export function SakeDetailPage({ sakeId }: { sakeId: number }) {
   const queryClient = useQueryClient();
   const { data: session } = useSession();
+  const [isEditing, setIsEditing] = useState(false);
 
   const sakeQuery = useQuery({
     queryKey: ['sake', sakeId],
@@ -86,6 +89,24 @@ export function SakeDetailPage({ sakeId }: { sakeId: number }) {
     },
   });
 
+  /** 銘柄マスタの更新（身内で使うアプリなので誰でも編集できる） */
+  const updateSake = useMutation({
+    mutationFn: async (input: SakeUpdateInput) => {
+      const res = await client.api.sakes[':id'].$put({
+        param: { id: String(sakeId) },
+        json: input,
+      });
+      ensureOk(res, 'お酒の情報を保存できませんでした', 'お酒の情報を保存できませんでした');
+      return res.json();
+    },
+    onSuccess: (updated) => {
+      // 詳細は同じ形で返ってくるので、そのまま差し替える
+      queryClient.setQueryData(['sake', sakeId], updated);
+      void queryClient.invalidateQueries({ queryKey: ['sakes'] });
+      setIsEditing(false);
+    },
+  });
+
   if (sakeQuery.isPending) {
     return <SakeDetailSkeleton />;
   }
@@ -115,7 +136,10 @@ export function SakeDetailPage({ sakeId }: { sakeId: number }) {
   const myReview = session
     ? (sake.reviews.find((review) => review.userId === session.user.id) ?? null)
     : null;
-  const mutationError = errorMessage(saveReview.error) || errorMessage(deleteReview.error);
+  const mutationError =
+    errorMessage(saveReview.error) ||
+    errorMessage(deleteReview.error) ||
+    errorMessage(updateSake.error);
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
@@ -124,25 +148,56 @@ export function SakeDetailPage({ sakeId }: { sakeId: number }) {
       </Link>
 
       <header className="flex flex-col gap-2">
-        <p className="text-sm text-muted-foreground">
-          No.{sake.brewery.id} {sake.brewery.name}
-        </p>
-        <h1 className="text-2xl font-semibold tracking-tight">{sake.name}</h1>
-        <div className="flex flex-wrap items-center gap-2">
-          {sake.type && <Badge variant="secondary">{sake.type}</Badge>}
-          {sake.category !== '清酒' && <Badge variant="outline">{sake.category}</Badge>}
-          {sake.isLimited && <Badge variant="destructive">限定</Badge>}
-          {sake.averageRating === null ? (
-            <span className="text-sm text-muted-foreground">未評価</span>
-          ) : (
-            <span className="flex items-center gap-1.5">
-              <StarRating value={Math.round(sake.averageRating)} size="sm" />
-              <span className="text-sm tabular-nums">
-                {sake.averageRating.toFixed(1)}（{sake.reviewCount} 件）
-              </span>
-            </span>
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 flex-col gap-1">
+            <p className="text-sm text-muted-foreground">
+              No.{sake.brewery.id} {sake.brewery.name}
+            </p>
+            <h1 className="text-2xl font-semibold tracking-tight break-words">{sake.name}</h1>
+          </div>
+          {!isEditing && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="shrink-0"
+              onClick={() => setIsEditing(true)}
+            >
+              編集
+            </Button>
           )}
         </div>
+
+        {isEditing ? (
+          <SakeEditForm
+            sake={sake}
+            isSubmitting={updateSake.isPending}
+            onCancel={() => setIsEditing(false)}
+            onSubmit={async (input) => {
+              await updateSake.mutateAsync(input);
+            }}
+          />
+        ) : (
+          <div className="flex flex-wrap items-center gap-2">
+            {sake.type && <Badge variant="secondary">{sake.type}</Badge>}
+            {sake.category !== '清酒' && <Badge variant="outline">{sake.category}</Badge>}
+            {sake.isLimited && <Badge variant="destructive">限定</Badge>}
+            {sake.paidTastingPrice === null ? (
+              <span className="text-sm text-muted-foreground">有料試飲 未入力</span>
+            ) : (
+              <Badge variant="secondary">有料試飲 ¥{sake.paidTastingPrice}</Badge>
+            )}
+            {sake.averageRating === null ? (
+              <span className="text-sm text-muted-foreground">未評価</span>
+            ) : (
+              <span className="flex items-center gap-1.5">
+                <StarRating value={Math.round(sake.averageRating)} size="sm" />
+                <span className="text-sm tabular-nums">
+                  {sake.averageRating.toFixed(1)}（{sake.reviewCount} 件）
+                </span>
+              </span>
+            )}
+          </div>
+        )}
       </header>
 
       <Card>

@@ -1,5 +1,5 @@
 import { and, asc, eq, gt, or, sql } from 'drizzle-orm';
-import type { SakeListQuery } from '@/shared/schemas/sake';
+import type { SakeListQuery, SakeUpdateInput } from '@/shared/schemas/sake';
 import type { Db } from '../db';
 import { breweries, reviews, sakes } from '../db/schema';
 
@@ -14,6 +14,7 @@ const sakeListItemColumns = {
   type: sakes.type,
   category: sakes.category,
   isLimited: sakes.isLimited,
+  paidTastingPrice: sakes.paidTastingPrice,
   breweryId: breweries.id,
   breweryName: breweries.name,
   reviewCount: sql<number>`count(${reviews.id})`,
@@ -26,6 +27,7 @@ export type SakeListItem = {
   type: string | null;
   category: string;
   isLimited: boolean;
+  paidTastingPrice: number | null;
   breweryId: number;
   breweryName: string;
   reviewCount: number;
@@ -72,6 +74,7 @@ export async function listSakes(
       sakes.type,
       sakes.category,
       sakes.isLimited,
+      sakes.paidTastingPrice,
       breweries.id,
       breweries.name,
     )
@@ -99,6 +102,7 @@ export type SakeDetail = {
   type: string | null;
   category: string;
   isLimited: boolean;
+  paidTastingPrice: number | null;
   brewery: Brewery;
   reviewCount: number;
   averageRating: number | null;
@@ -112,6 +116,7 @@ export async function findSakeById(db: Db, sakeId: number): Promise<SakeDetail |
       type: sakes.type,
       category: sakes.category,
       isLimited: sakes.isLimited,
+      paidTastingPrice: sakes.paidTastingPrice,
       breweryId: breweries.id,
       breweryName: breweries.name,
       breweryMapColumn: breweries.mapColumn,
@@ -130,6 +135,7 @@ export async function findSakeById(db: Db, sakeId: number): Promise<SakeDetail |
       sakes.type,
       sakes.category,
       sakes.isLimited,
+      sakes.paidTastingPrice,
       breweries.id,
       breweries.name,
       breweries.mapColumn,
@@ -147,6 +153,7 @@ export async function findSakeById(db: Db, sakeId: number): Promise<SakeDetail |
     type: row.type,
     category: row.category,
     isLimited: row.isLimited,
+    paidTastingPrice: row.paidTastingPrice,
     brewery: {
       id: row.breweryId,
       name: row.breweryName,
@@ -157,4 +164,24 @@ export async function findSakeById(db: Db, sakeId: number): Promise<SakeDetail |
     reviewCount: row.reviewCount,
     averageRating: row.averageRating,
   };
+}
+
+/**
+ * 銘柄マスタの更新。身内で使うアプリなので、サインインしていれば誰でも編集できる
+ * （`is_custom` のような追加者限定の区別はしない）。
+ */
+export async function updateSake(db: Db, sakeId: number, input: SakeUpdateInput): Promise<boolean> {
+  const rows = await db
+    .update(sakes)
+    .set({
+      name: input.name,
+      type: input.type,
+      category: input.category,
+      isLimited: input.isLimited,
+      paidTastingPrice: input.paidTastingPrice,
+    })
+    .where(eq(sakes.id, sakeId))
+    .returning({ id: sakes.id });
+
+  return rows.length > 0;
 }

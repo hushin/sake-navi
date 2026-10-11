@@ -150,3 +150,53 @@ export const DeleteReview: Story = {
     );
   },
 };
+
+export const EditSake: Story = {
+  play: async ({ canvas, userEvent }) => {
+    await expect(await canvas.findByText('有料試飲 未入力')).toBeVisible();
+
+    await userEvent.click(canvas.getByRole('button', { name: '編集' }));
+
+    const name = await canvas.findByLabelText('名前');
+    await userEvent.clear(name);
+    await userEvent.type(name, '八海山 純米大吟醸 生');
+    await userEvent.type(canvas.getByLabelText('有料試飲の金額（円・未入力でよい）'), '500');
+    await userEvent.click(canvas.getByRole('button', { name: '保存' }));
+
+    // 保存すると表示が新しい内容に変わる
+    await expect(
+      await canvas.findByRole('heading', { name: '八海山 純米大吟醸 生' }),
+    ).toBeVisible();
+    await expect(canvas.getByText('有料試飲 ¥500')).toBeVisible();
+    await expect(canvas.queryByRole('button', { name: '保存' })).not.toBeInTheDocument();
+  },
+};
+
+export const EditSakeValidationError: Story = {
+  play: async ({ canvas, userEvent }) => {
+    await canvas.findByRole('heading', { name: '八海山 純米大吟醸' });
+
+    await userEvent.click(canvas.getByRole('button', { name: '編集' }));
+
+    await userEvent.clear(await canvas.findByLabelText('名前'));
+    await userEvent.type(canvas.getByLabelText('有料試飲の金額（円・未入力でよい）'), '0');
+    await userEvent.click(canvas.getByRole('button', { name: '保存' }));
+
+    await expect(await canvas.findByText('お酒の名前を入力してください')).toBeVisible();
+    await expect(canvas.getByText('1 以上の金額を入力してください')).toBeVisible();
+  },
+};
+
+export const CancelEditSake: Story = {
+  play: async ({ canvas, userEvent }) => {
+    await canvas.findByRole('heading', { name: '八海山 純米大吟醸' });
+
+    await userEvent.click(canvas.getByRole('button', { name: '編集' }));
+    await userEvent.clear(await canvas.findByLabelText('名前'));
+    await userEvent.type(canvas.getByLabelText('名前'), '保存しない名前');
+    await userEvent.click(canvas.getByRole('button', { name: 'キャンセル' }));
+
+    await expect(canvas.getByRole('heading', { name: '八海山 純米大吟醸' })).toBeVisible();
+    await expect(canvas.queryByText('保存しない名前')).not.toBeInTheDocument();
+  },
+};

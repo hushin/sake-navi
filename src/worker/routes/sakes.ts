@@ -1,10 +1,10 @@
 import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
-import { reviewInputSchema, sakeListQuerySchema } from '@/shared/schemas/sake';
+import { reviewInputSchema, sakeListQuerySchema, sakeUpdateSchema } from '@/shared/schemas/sake';
 import { type AuthEnv, requireAuth } from '../auth/middleware';
 import { createDb } from '../db';
 import * as reviewsRepository from '../repositories/reviews';
-import { findSakeById, listSakes } from '../repositories/sakes';
+import { findSakeById, listSakes, updateSake } from '../repositories/sakes';
 
 /** `:id` は数値のみ。Hono RPC の param 型を壊さないよう validator は使わずここで変換する */
 function parseSakeId(value: string | undefined): number | null {
@@ -26,6 +26,28 @@ const app = new Hono<AuthEnv>()
     }
 
     const db = createDb(c.env);
+    const sake = await findSakeById(db, sakeId);
+    if (!sake) {
+      return c.json({ error: 'Not Found' }, 404);
+    }
+
+    return c.json({ ...sake, reviews: await reviewsRepository.listReviewsForSake(db, sakeId) });
+  })
+  /**
+   * 銘柄マスタの編集。身内で使うアプリなので、サインインしていれば誰でも編集できる
+   * （有料試飲の価格を会場で手入力して直す用途を想定）。
+   */
+  .put('/:id', requireAuth, zValidator('json', sakeUpdateSchema), async (c) => {
+    const sakeId = parseSakeId(c.req.param('id'));
+    if (sakeId === null) {
+      return c.json({ error: 'Not Found' }, 404);
+    }
+
+    const db = createDb(c.env);
+    if (!(await updateSake(db, sakeId, c.req.valid('json')))) {
+      return c.json({ error: 'Not Found' }, 404);
+    }
+
     const sake = await findSakeById(db, sakeId);
     if (!sake) {
       return c.json({ error: 'Not Found' }, 404);

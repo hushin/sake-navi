@@ -183,6 +183,9 @@ function SakeListItemCard({ sake }: { sake: SakeListItem }) {
           {sake.type && <Badge variant="secondary">{sake.type}</Badge>}
           {sake.category !== '清酒' && <Badge variant="outline">{sake.category}</Badge>}
           {sake.isLimited && <Badge variant="destructive">限定</Badge>}
+          {sake.paidTastingPrice !== null && (
+            <Badge variant="outline">有料 ¥{sake.paidTastingPrice}</Badge>
+          )}
           {sake.reviewCount > 0 && (
             <span className="text-xs text-muted-foreground">レビュー {sake.reviewCount} 件</span>
           )}

@@ -16,6 +16,7 @@ const listSchema = z.object({
       type: z.string().nullable(),
       category: z.string(),
       isLimited: z.boolean(),
+      paidTastingPrice: z.number().nullable(),
       breweryId: z.number(),
       breweryName: z.string(),
       reviewCount: z.number(),
@@ -37,6 +38,10 @@ const reviewSchema = z.object({
 const detailSchema = z.object({
   id: z.number(),
   name: z.string(),
+  type: z.string().nullable(),
+  category: z.string(),
+  isLimited: z.boolean(),
+  paidTastingPrice: z.number().nullable(),
   brewery: z.object({ id: z.number(), name: z.string() }),
   reviewCount: z.number(),
   averageRating: z.number().nullable(),
@@ -49,6 +54,7 @@ function authedApp(user: AuthUser) {
 
 describe('sakes routes', () => {
   let owner: AuthUser;
+  let member: AuthUser;
 
   beforeEach(async () => {
     await resetDatabase();
@@ -88,6 +94,11 @@ describe('sakes routes', () => {
       name: '新潟 花子',
       email: 'owner@example.com',
       role: 'owner',
+    });
+    member = await insertTestUser(db, {
+      id: 'user-member',
+      name: '長岡 太郎',
+      email: 'taro@example.com',
     });
   });
 
@@ -222,5 +233,97 @@ describe('sakes routes', () => {
       env,
     );
     expect(unknownSake.status).toBe(404);
+  });
+
+  it('PUT /api/sakes/:id はサインインしていれば誰でも銘柄を編集できる', async () => {
+    const res = await authedApp(member).request(
+      '/sakes/1',
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: '雪中貯蔵 純米生原酒（会場で確認）',
+          type: '純米酒',
+          category: '清酒',
+          isLimited: true,
+          paidTastingPrice: 500,
+        }),
+      },
+      env,
+    );
+
+    expect(res.status).toBe(200);
+    expect(detailSchema.parse(await res.json())).toMatchObject({
+      name: '雪中貯蔵 純米生原酒（会場で確認）',
+      isLimited: true,
+      paidTastingPrice: 500,
+    });
+
+    // 一覧にも反映される
+    const list = listSchema.parse(await (await app.request('/api/sakes?limit=1', {}, env)).json());
+    expect(list.items[0]).toMatchObject({ isLimited: true, paidTastingPrice: 500 });
+  });
+
+  it('PUT /api/sakes/:id は金額と種類を未入力（null）に戻せる', async () => {
+    const res = await authedApp(member).request(
+      '/sakes/1',
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: '雪中貯蔵 純米生原酒',
+          type: null,
+          category: '清酒',
+          isLimited: false,
+          paidTastingPrice: null,
+        }),
+      },
+      env,
+    );
+
+    expect(res.status).toBe(200);
+    expect(detailSchema.parse(await res.json())).toMatchObject({
+      type: null,
+      isLimited: false,
+      paidTastingPrice: null,
+    });
+  });
+
+  it('PUT /api/sakes/:id は未ログインなら 401、未知の id は 404、入力を検証する', async () => {
+    const body = JSON.stringify({
+      name: '雪中貯蔵 純米生原酒',
+      type: null,
+      category: '清酒',
+      isLimited: false,
+      paidTastingPrice: null,
+    });
+    const headers = { 'Content-Type': 'application/json' };
+
+    const anonymous = await app.request('/api/sakes/1', { method: 'PUT', headers, body }, env);
+    expect(anonymous.status).toBe(401);
+
+    const notFound = await authedApp(member).request(
+      '/sakes/999',
+      { method: 'PUT', headers, body },
+      env,
+    );
+    expect(notFound.status).toBe(404);
+
+    const invalid = await authedApp(member).request(
+      '/sakes/1',
+      {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({
+          name: '',
+          type: null,
+          category: '清酒',
+          isLimited: false,
+          paidTastingPrice: -1,
+        }),
+      },
+      env,
+    );
+    expect(invalid.status).toBe(400);
   });
 });

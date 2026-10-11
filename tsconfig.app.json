@@ -29,6 +29,6 @@
     }
   },
   "include": ["src/react-app", "src/shared"],
-  // react-app 配下の *.test.ts は Workers runtime で動くので tsconfig.test.json 側で型を付ける
-  "exclude": ["src/react-app/**/*.test.ts"]
+  // *.test.ts は Workers runtime で動くので、vitest の型が入る tsconfig.worker / tsconfig.test 側で型を付ける
+  "exclude": ["src/react-app/**/*.test.ts", "src/shared/**/*.test.ts"]
 }

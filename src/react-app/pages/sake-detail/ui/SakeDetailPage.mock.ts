@@ -18,6 +18,7 @@ const sakeBase = {
   type: '純米大吟醸',
   category: '清酒',
   isLimited: true,
+  paidTastingPrice: null,
   brewery: { id: 3, name: '八海醸造', mapColumn: 12, mapRow: 6, area: 'Lower Green' },
 };
 
@@ -90,6 +91,18 @@ const successHandlers = [
     status: 200,
     output: detail,
   })),
+
+  createHandler({ path: '/api/sakes/:id', method: '$put' })(({ input }) => {
+    detail = {
+      ...detail,
+      name: input.json.name,
+      type: input.json.type,
+      category: input.json.category,
+      isLimited: input.json.isLimited,
+      paidTastingPrice: input.json.paidTastingPrice,
+    };
+    return { status: 200, output: detail };
+  }),
 
   createHandler({ path: '/api/sakes/:id/reviews', method: '$post' })(({ input }) => {
     savedCount += 1;
