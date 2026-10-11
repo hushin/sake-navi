@@ -148,4 +148,3 @@ src/
 | react-app のレイヤー構成（Feature-Sliced Design）       | `fsd` skill                                  |
 | UI コンポーネント追加                                   | `shadcn-ui` skill, `docs/shadcn-ui-setup.md` |
 | セットアップ（D1・Google OAuth・デプロイ）              | `README.md`                                  |
-| 残タスクの移行計画（新しいセッションで着手する）        | `ai-out/plans.md`                            |
