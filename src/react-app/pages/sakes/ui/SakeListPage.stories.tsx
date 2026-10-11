@@ -1,6 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/tanstack-react';
 import { useState } from 'react';
 import { expect, fn, waitFor } from 'storybook/test';
+import {
+  bookmarkHandlers,
+  refetchSession,
+  resetBookmarks,
+  sessionHandlers,
+} from '@/react-app/shared/lib';
 import { SakeListPage } from './SakeListPage';
 import { resetSakes, sakeListHandlers } from './SakeListPage.mock';
 
@@ -17,12 +23,20 @@ const meta = {
     search: { q: '', category: '' },
     onSearchChange: fn(),
   },
+  // ストアに残った前の story のセッションを捨ててから msw のモックを読ませる
+  loaders: [refetchSession],
   beforeEach: [
     () => {
       resetSakes();
+      // ブックマークは空から始める（トグルで保存される様子を確認する）
+      resetBookmarks([]);
     },
     ({ msw }) => {
-      msw.use(...sakeListHandlers.success);
+      msw.use(
+        ...sessionHandlers.signedIn,
+        ...sakeListHandlers.success,
+        ...bookmarkHandlers.success,
+      );
     },
   ],
 } satisfies Meta<typeof SakeListPage>;
@@ -108,5 +122,26 @@ export const FilterByCategory: Story = {
 
     await expect(await canvas.findByText('杜氏の挑戦 シャルドネ')).toBeVisible();
     await waitFor(() => expect(canvas.queryByText('八海山 純米大吟醸')).not.toBeInTheDocument());
+  },
+};
+
+export const ToggleBookmark: Story = {
+  play: async ({ canvas, userEvent }) => {
+    await canvas.findByText('八海山 純米大吟醸');
+
+    // まだ保存していないので「追加」だけが出ている
+    await expect(canvas.getAllByRole('button', { name: 'ブックマークに追加' })).toHaveLength(2);
+
+    await userEvent.click(canvas.getAllByRole('button', { name: 'ブックマークに追加' })[0]);
+
+    // 押した銘柄だけが保存済みに変わる
+    await expect(await canvas.findByRole('button', { name: 'ブックマークを解除' })).toBeVisible();
+    await expect(canvas.getAllByRole('button', { name: 'ブックマークに追加' })).toHaveLength(1);
+
+    // もう一度押すと解除できる
+    await userEvent.click(canvas.getByRole('button', { name: 'ブックマークを解除' }));
+    await waitFor(() =>
+      expect(canvas.getAllByRole('button', { name: 'ブックマークに追加' })).toHaveLength(2),
+    );
   },
 };

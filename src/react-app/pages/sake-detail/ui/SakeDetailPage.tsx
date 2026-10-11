@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
-import { client, useSession } from '@/react-app/shared/api';
+import { client, useBookmarkToggle, useBookmarks, useSession } from '@/react-app/shared/api';
 import {
   Badge,
+  BookmarkButton,
   Button,
   Card,
   CardContent,
@@ -38,6 +39,11 @@ export function SakeDetailPage({ sakeId }: { sakeId: number }) {
   const queryClient = useQueryClient();
   const { data: session } = useSession();
   const [isEditing, setIsEditing] = useState(false);
+
+  // 未サインインだと 401 になるので、セッションがあるときだけブックマークを取る
+  const bookmarks = useBookmarks({ enabled: Boolean(session) });
+  const { toggle, pendingSakeId } = useBookmarkToggle();
+  const isBookmarked = bookmarks.sakeIds.has(sakeId);
 
   const sakeQuery = useQuery({
     queryKey: ['sake', sakeId],
@@ -155,16 +161,20 @@ export function SakeDetailPage({ sakeId }: { sakeId: number }) {
             </p>
             <h1 className="text-2xl font-semibold tracking-tight break-words">{sake.name}</h1>
           </div>
-          {!isEditing && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="shrink-0"
-              onClick={() => setIsEditing(true)}
-            >
-              編集
-            </Button>
-          )}
+          <div className="flex shrink-0 items-center gap-1">
+            {session && (
+              <BookmarkButton
+                isBookmarked={isBookmarked}
+                isPending={pendingSakeId === sakeId}
+                onToggle={() => toggle(sakeId, isBookmarked)}
+              />
+            )}
+            {!isEditing && (
+              <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                編集
+              </Button>
+            )}
+          </div>
         </div>
 
         {isEditing ? (

@@ -1,6 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/tanstack-react';
 import { expect, waitFor, within } from 'storybook/test';
-import { refetchSession, sessionHandlers } from '@/react-app/shared/lib';
+import {
+  bookmarkFixtures,
+  bookmarkHandlers,
+  refetchSession,
+  resetBookmarks,
+  sessionHandlers,
+} from '@/react-app/shared/lib';
 import { SakeDetailPage } from './SakeDetailPage';
 import { includeMyReview, resetSakeDetail, sakeDetailHandlers } from './SakeDetailPage.mock';
 
@@ -12,9 +18,14 @@ const meta = {
   beforeEach: [
     () => {
       resetSakeDetail();
+      resetBookmarks([]);
     },
     ({ msw }) => {
-      msw.use(...sessionHandlers.signedIn, ...sakeDetailHandlers.success);
+      msw.use(
+        ...sessionHandlers.signedIn,
+        ...sakeDetailHandlers.success,
+        ...bookmarkHandlers.success,
+      );
     },
   ],
 } satisfies Meta<typeof SakeDetailPage>;
@@ -198,5 +209,35 @@ export const CancelEditSake: Story = {
 
     await expect(canvas.getByRole('heading', { name: '八海山 純米大吟醸' })).toBeVisible();
     await expect(canvas.queryByText('保存しない名前')).not.toBeInTheDocument();
+  },
+};
+
+export const ToggleBookmark: Story = {
+  play: async ({ canvas, userEvent }) => {
+    await canvas.findByRole('heading', { name: '八海山 純米大吟醸' });
+
+    // まだ保存していないので「追加」が出る
+    await userEvent.click(await canvas.findByRole('button', { name: 'ブックマークに追加' }));
+
+    await expect(await canvas.findByRole('button', { name: 'ブックマークを解除' })).toBeVisible();
+
+    // もう一度押すと解除できる
+    await userEvent.click(canvas.getByRole('button', { name: 'ブックマークを解除' }));
+    await expect(await canvas.findByRole('button', { name: 'ブックマークに追加' })).toBeVisible();
+  },
+};
+
+export const Bookmarked: Story = {
+  beforeEach: () => {
+    resetBookmarks(bookmarkFixtures);
+  },
+  play: async ({ canvas }) => {
+    await canvas.findByRole('heading', { name: '八海山 純米大吟醸' });
+
+    // 保存済みの銘柄（id 3）は「解除」の状態で出る
+    await expect(await canvas.findByRole('button', { name: 'ブックマークを解除' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
   },
 };

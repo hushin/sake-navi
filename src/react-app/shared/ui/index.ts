@@ -1,4 +1,5 @@
 export { Badge, badgeVariants } from './badge';
+export { BookmarkButton } from './bookmark-button';
 export { Button, buttonVariants } from './button';
 export {
   Card,

@@ -2,9 +2,9 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import type { InferResponseType } from 'hono/client';
 import { type ReactNode, useRef } from 'react';
-import { client } from '@/react-app/shared/api';
+import { client, useBookmarkToggle, useBookmarks, useSession } from '@/react-app/shared/api';
 import { cn } from '@/react-app/shared/lib';
-import { Badge, Button, Card, Input, StarRating } from '@/react-app/shared/ui';
+import { Badge, BookmarkButton, Button, Card, Input, StarRating } from '@/react-app/shared/ui';
 import { SAKE_CATEGORIES } from '@/shared/schemas/sake';
 
 export type SakeListSearch = {
@@ -28,6 +28,11 @@ export function SakeListPage({
 }) {
   const keywordRef = useRef<HTMLInputElement>(null);
   const keyword = search.q ?? '';
+
+  // 未サインインだと 401 になるので、セッションがあるときだけブックマークを取る
+  const { data: session } = useSession();
+  const bookmarks = useBookmarks({ enabled: Boolean(session) });
+  const { toggle, pendingSakeId } = useBookmarkToggle();
 
   const category = SAKE_CATEGORIES.find((value) => value === search.category);
 
@@ -112,7 +117,14 @@ export function SakeListPage({
         <div className="flex flex-col gap-4">
           <ul className="flex flex-col gap-3">
             {items.map((sake) => (
-              <SakeListItemCard key={sake.id} sake={sake} />
+              <SakeListItemCard
+                key={sake.id}
+                sake={sake}
+                canBookmark={Boolean(session)}
+                isBookmarked={bookmarks.sakeIds.has(sake.id)}
+                isBookmarkPending={pendingSakeId === sake.id}
+                onToggleBookmark={() => toggle(sake.id, bookmarks.sakeIds.has(sake.id))}
+              />
             ))}
           </ul>
           {sakesQuery.hasNextPage && (
@@ -153,13 +165,25 @@ function CategoryButton({
   );
 }
 
-function SakeListItemCard({ sake }: { sake: SakeListItem }) {
+function SakeListItemCard({
+  sake,
+  canBookmark,
+  isBookmarked,
+  isBookmarkPending,
+  onToggleBookmark,
+}: {
+  sake: SakeListItem;
+  canBookmark: boolean;
+  isBookmarked: boolean;
+  isBookmarkPending: boolean;
+  onToggleBookmark: () => void;
+}) {
   return (
-    <li>
+    <li className="flex items-start gap-2 rounded-xl border border-border bg-card p-4 transition-colors focus-within:bg-muted/50 hover:bg-muted/50">
       <Link
         to="/sakes/$sakeId"
         params={{ sakeId: String(sake.id) }}
-        className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4 transition-colors hover:bg-muted/50"
+        className="flex min-w-0 flex-1 flex-col gap-2"
       >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -191,6 +215,14 @@ function SakeListItemCard({ sake }: { sake: SakeListItem }) {
           )}
         </div>
       </Link>
+      {canBookmark && (
+        <BookmarkButton
+          isBookmarked={isBookmarked}
+          isPending={isBookmarkPending}
+          onToggle={onToggleBookmark}
+          className="shrink-0"
+        />
+      )}
     </li>
   );
 }

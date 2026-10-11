@@ -14,12 +14,15 @@ export function Header() {
         <Link to="/sakes" className="text-sm font-semibold tracking-tight">
           酒ナビ
         </Link>
-        <nav className="flex items-center">
+        <nav className="flex items-center overflow-x-auto">
           <Link to="/sakes" className={navLinkClass}>
             お酒
           </Link>
           <Link to="/timeline" className={navLinkClass}>
             タイムライン
+          </Link>
+          <Link to="/bookmarks" className={navLinkClass}>
+            ブックマーク
           </Link>
           <Link to="/settings" className={navLinkClass}>
             メンバー

@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BookmarksRouteImport } from './routes/bookmarks'
 import { Route as SakesRouteImport } from './routes/sakes'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SignInRouteImport } from './routes/sign-in'
@@ -20,6 +21,11 @@ import { Route as SakesSakeIdRouteImport } from './routes/sakes.$sakeId'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BookmarksRoute = BookmarksRouteImport.update({
+  id: '/bookmarks',
+  path: '/bookmarks',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SakesRoute = SakesRouteImport.update({
@@ -55,6 +61,7 @@ const SakesSakeIdRoute = SakesSakeIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/bookmarks': typeof BookmarksRoute
   '/sakes': typeof SakesRouteWithChildren
   '/settings': typeof SettingsRoute
   '/sign-in': typeof SignInRoute
@@ -64,6 +71,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/bookmarks': typeof BookmarksRoute
   '/sakes': typeof SakesRouteWithChildren
   '/settings': typeof SettingsRoute
   '/sign-in': typeof SignInRoute
@@ -74,6 +82,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/bookmarks': typeof BookmarksRoute
   '/sakes': typeof SakesRouteWithChildren
   '/settings': typeof SettingsRoute
   '/sign-in': typeof SignInRoute
@@ -85,6 +94,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/bookmarks'
     | '/sakes'
     | '/settings'
     | '/sign-in'
@@ -94,6 +104,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/bookmarks'
     | '/sakes'
     | '/settings'
     | '/sign-in'
@@ -103,6 +114,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/bookmarks'
     | '/sakes'
     | '/settings'
     | '/sign-in'
@@ -113,6 +125,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BookmarksRoute: typeof BookmarksRoute
   SakesRoute: typeof SakesRouteWithChildren
   SettingsRoute: typeof SettingsRoute
   SignInRoute: typeof SignInRoute
@@ -127,6 +140,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bookmarks': {
+      id: '/bookmarks'
+      path: '/bookmarks'
+      fullPath: '/bookmarks'
+      preLoaderRoute: typeof BookmarksRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sakes': {
@@ -186,6 +206,7 @@ const SakesRouteWithChildren = SakesRoute._addFileChildren(SakesRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BookmarksRoute: BookmarksRoute,
   SakesRoute: SakesRouteWithChildren,
   SettingsRoute: SettingsRoute,
   SignInRoute: SignInRoute,

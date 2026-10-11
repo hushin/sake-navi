@@ -15,6 +15,13 @@
       "when": 1791719850760,
       "tag": "0001_add_nickname_and_paid_tasting_price",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1791722650830,
+      "tag": "0002_add_bookmarks",
+      "breakpoints": true
     }
   ]
 }

@@ -86,6 +86,30 @@ export const reviews = sqliteTable(
 );
 
 /**
+ * 気になった銘柄の保存（あとで見返す用）。1 人 1 銘柄 1 件。
+ * 酒蔵ではなく銘柄に紐づける（同じ酒蔵でも銘柄ごとに興味が分かれるため）。
+ */
+export const bookmarks = sqliteTable(
+  'bookmarks',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    sakeId: integer('sake_id')
+      .notNull()
+      .references(() => sakes.id, { onDelete: 'cascade' }),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' })
+      .notNull()
+      .default(currentTimestampMs),
+  },
+  (table) => [
+    // 一覧の `WHERE user_id = ?` はこの index の左端で効くので、user_id 単独の index は張らない
+    uniqueIndex('bookmarks_user_id_sake_id_unique').on(table.userId, table.sakeId),
+  ],
+);
+
+/**
  * サインインを許可する Google アカウント。
  * 初回（オーナー）は環境変数 `ALLOWED_EMAILS` で入れ、以降はアプリ内から追加する。
  */

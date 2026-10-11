@@ -25,6 +25,10 @@ export const SignedIn: Story = {
       'href',
       '/timeline',
     );
+    await expect(canvas.getByRole('link', { name: 'ブックマーク' })).toHaveAttribute(
+      'href',
+      '/bookmarks',
+    );
     await expect(await canvas.findByText('新潟 花子')).toBeVisible();
     await expect(canvas.getByRole('button', { name: 'サインアウト' })).toBeVisible();
   },

@@ -167,6 +167,15 @@ export async function findSakeById(db: Db, sakeId: number): Promise<SakeDetail |
 }
 
 /**
+ * 銘柄が存在するかだけを見る。ブックマークの登録前チェックのように、
+ * 集計（レビュー件数・平均評価）が要らない用途で使う。
+ */
+export async function sakeExists(db: Db, sakeId: number): Promise<boolean> {
+  const [row] = await db.select({ id: sakes.id }).from(sakes).where(eq(sakes.id, sakeId));
+  return row !== undefined;
+}
+
+/**
  * 銘柄マスタの更新。身内で使うアプリなので、サインインしていれば誰でも編集できる
  * （`is_custom` のような追加者限定の区別はしない）。
  */

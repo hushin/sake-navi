@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { createAuth } from './auth';
 import { type AuthEnv, sessionMiddleware } from './auth/middleware';
+import bookmarksRoute from './routes/bookmarks';
 import membersRoute from './routes/members';
 import reviewsRoute from './routes/reviews';
 import sakesRoute from './routes/sakes';
@@ -15,6 +16,7 @@ const app = new Hono<AuthEnv>()
   .route('/sakes', sakesRoute)
   .route('/reviews', reviewsRoute)
   .route('/timeline', timelineRoute)
+  .route('/bookmarks', bookmarksRoute)
   .route('/members', membersRoute);
 
 // run_worker_first: ["/api/*"] により /api/* だけが Worker に到達する

@@ -5,14 +5,7 @@ import { type AuthEnv, requireAuth } from '../auth/middleware';
 import { createDb } from '../db';
 import * as reviewsRepository from '../repositories/reviews';
 import { findSakeById, listSakes, updateSake } from '../repositories/sakes';
-
-/** `:id` は数値のみ。Hono RPC の param 型を壊さないよう validator は使わずここで変換する */
-function parseSakeId(value: string | undefined): number | null {
-  if (value === undefined || !/^[1-9]\d*$/.test(value)) {
-    return null;
-  }
-  return Number(value);
-}
+import { parseIdParam } from './params';
 
 const app = new Hono<AuthEnv>()
   .get('/', zValidator('query', sakeListQuerySchema), async (c) => {
@@ -20,7 +13,7 @@ const app = new Hono<AuthEnv>()
     return c.json(page);
   })
   .get('/:id', async (c) => {
-    const sakeId = parseSakeId(c.req.param('id'));
+    const sakeId = parseIdParam(c.req.param('id'));
     if (sakeId === null) {
       return c.json({ error: 'Not Found' }, 404);
     }
@@ -38,7 +31,7 @@ const app = new Hono<AuthEnv>()
    * （有料試飲の価格を会場で手入力して直す用途を想定）。
    */
   .put('/:id', requireAuth, zValidator('json', sakeUpdateSchema), async (c) => {
-    const sakeId = parseSakeId(c.req.param('id'));
+    const sakeId = parseIdParam(c.req.param('id'));
     if (sakeId === null) {
       return c.json({ error: 'Not Found' }, 404);
     }
@@ -57,7 +50,7 @@ const app = new Hono<AuthEnv>()
   })
   .post('/:id/reviews', requireAuth, zValidator('json', reviewInputSchema), async (c) => {
     const user = c.get('user');
-    const sakeId = parseSakeId(c.req.param('id'));
+    const sakeId = parseIdParam(c.req.param('id'));
     if (!user) {
       return c.json({ error: 'Unauthorized' }, 401);
     }
