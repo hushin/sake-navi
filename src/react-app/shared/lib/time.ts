@@ -1,21 +1,23 @@
-const JST_OFFSET_MS = 9 * 60 * 60 * 1000;
-
 const MINUTE_MS = 60 * 1000;
 const HOUR_MS = 60 * MINUTE_MS;
 const DAY_MS = 24 * HOUR_MS;
+
+// hourCycle を固定しないと、ICU のロケール既定によっては 12 時間表記（午前/午後）になる
+const jstDateTimeFormat = new Intl.DateTimeFormat('ja-JP', {
+  timeZone: 'Asia/Tokyo',
+  month: 'short',
+  day: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+});
 
 /**
  * 会場は日本なので、端末のタイムゾーンに依存せず JST で表示する
  * （CI と手元で表示が変わらないようにする意図もある）。
  */
 export function formatJstDateTime(value: string | number | Date): string {
-  const date = new Date(new Date(value).getTime() + JST_OFFSET_MS);
-  const month = date.getUTCMonth() + 1;
-  const day = date.getUTCDate();
-  const hours = String(date.getUTCHours()).padStart(2, '0');
-  const minutes = String(date.getUTCMinutes()).padStart(2, '0');
-
-  return `${month}/${day} ${hours}:${minutes}`;
+  return jstDateTimeFormat.format(new Date(value));
 }
 
 /** タイムライン用の相対表記。1 週間より古いものは日時で表示する */
