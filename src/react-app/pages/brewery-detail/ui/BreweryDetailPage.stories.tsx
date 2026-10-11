@@ -57,6 +57,39 @@ export const Default: Story = {
   },
 };
 
+export const AddSake: Story = {
+  play: async ({ canvas, userEvent }) => {
+    await canvas.findByText('出品酒（3）');
+
+    await userEvent.click(canvas.getByRole('button', { name: '酒を追加' }));
+    await userEvent.type(canvas.getByLabelText('名前'), 'しぼりたて生原酒');
+    await userEvent.type(canvas.getByLabelText('種類（任意）'), '純米');
+    await userEvent.click(canvas.getByLabelText('限定品'));
+    await userEvent.click(canvas.getByRole('button', { name: '追加する' }));
+
+    // 追加できたことが伝わり、その場でレビューへ進める
+    await expect(await canvas.findByText('しぼりたて生原酒 を追加しました。')).toBeVisible();
+    await expect(canvas.getByRole('link', { name: 'レビューを書く' })).toHaveAttribute(
+      'href',
+      '/sakes/100',
+    );
+    // 一覧にも反映される
+    await expect(await canvas.findByText('出品酒（4）')).toBeVisible();
+    await expect(await canvas.findByRole('link', { name: /しぼりたて生原酒/ })).toBeVisible();
+  },
+};
+
+export const AddSakeValidationError: Story = {
+  play: async ({ canvas, userEvent }) => {
+    await canvas.findByText('出品酒（3）');
+
+    await userEvent.click(canvas.getByRole('button', { name: '酒を追加' }));
+    await userEvent.click(canvas.getByRole('button', { name: '追加する' }));
+
+    await expect(await canvas.findByText('お酒の名前を入力してください')).toBeVisible();
+  },
+};
+
 export const PostNote: Story = {
   play: async ({ canvas, userEvent }) => {
     await canvas.findByText('酒蔵ノート（2）');

@@ -1,11 +1,20 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { client } from '@/react-app/shared/api';
+import { useState } from 'react';
+import { client, useSession } from '@/react-app/shared/api';
+import { SakeForm } from '@/react-app/features/sake-form';
 import { Badge, Button, Card, PaidTastingBadge, StarRating } from '@/react-app/shared/ui';
+import type { SakeUpdateInput } from '@/shared/schemas/sake';
 import { BreweryNotes } from './BreweryNotes';
 
 /** 酒蔵の詳細。出品酒をまとめて見て、お酒詳細（レビュー）へ進む */
 export function BreweryDetailPage({ breweryId }: { breweryId: number }) {
+  const queryClient = useQueryClient();
+  const { data: session } = useSession();
+  const [isAddingSake, setIsAddingSake] = useState(false);
+  /** 追加した銘柄。一覧に反映したあと、レビューへ進む導線を出す */
+  const [createdSake, setCreatedSake] = useState<{ id: number; name: string } | null>(null);
+
   const breweryQuery = useQuery({
     queryKey: ['brewery', breweryId],
     queryFn: async () => {
@@ -17,6 +26,26 @@ export function BreweryDetailPage({ breweryId }: { breweryId: number }) {
         throw new Error('酒蔵の情報を取得できませんでした');
       }
       return res.json();
+    },
+  });
+
+  /** マスタに無い銘柄（当日の限定酒など）をその場で追加する */
+  const createSake = useMutation({
+    mutationFn: async (input: SakeUpdateInput) => {
+      const res = await client.api.breweries[':id'].sakes.$post({
+        param: { id: String(breweryId) },
+        json: input,
+      });
+      if (!res.ok) {
+        throw new Error('お酒を追加できませんでした');
+      }
+      return res.json();
+    },
+    onSuccess: async (created) => {
+      setIsAddingSake(false);
+      setCreatedSake({ id: created.id, name: created.name });
+      await queryClient.invalidateQueries({ queryKey: ['brewery', breweryId] });
+      void queryClient.invalidateQueries({ queryKey: ['sakes'] });
     },
   });
 
@@ -80,7 +109,46 @@ export function BreweryDetailPage({ breweryId }: { breweryId: number }) {
       </header>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-semibold">出品酒（{sakes.length}）</h2>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold">出品酒（{sakes.length}）</h2>
+          {session && !isAddingSake && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setCreatedSake(null);
+                setIsAddingSake(true);
+              }}
+            >
+              酒を追加
+            </Button>
+          )}
+        </div>
+        {isAddingSake && (
+          <SakeForm
+            submitLabel="追加する"
+            isSubmitting={createSake.isPending}
+            onCancel={() => setIsAddingSake(false)}
+            onSubmit={async (input) => {
+              await createSake.mutateAsync(input);
+            }}
+          />
+        )}
+        {createSake.error instanceof Error && (
+          <p className="text-sm text-destructive">{createSake.error.message}</p>
+        )}
+        {createdSake && (
+          <div className="flex flex-wrap items-center gap-3 rounded-xl border border-primary/40 bg-primary/5 p-4">
+            <p className="text-sm font-medium">{createdSake.name} を追加しました。</p>
+            <Button
+              size="sm"
+              className="shrink-0"
+              render={<Link to="/sakes/$sakeId" params={{ sakeId: String(createdSake.id) }} />}
+            >
+              レビューを書く
+            </Button>
+          </div>
+        )}
         {sakes.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border py-12 text-center">
             <p className="text-sm font-medium">出品酒がまだ登録されていません</p>

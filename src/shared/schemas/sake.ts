@@ -66,6 +66,14 @@ export const sakeUpdateSchema = z.object({
 export type SakeUpdateInput = z.infer<typeof sakeUpdateSchema>;
 
 /**
+ * 銘柄の新規追加（酒蔵詳細の「酒を追加」）。編集と同じ項目を送る。
+ * `is_custom = true` と追加者は route 側でセッションから入れる。
+ */
+export const sakeCreateSchema = sakeUpdateSchema;
+
+export type SakeCreateInput = z.infer<typeof sakeCreateSchema>;
+
+/**
  * 出典 PDF に金額の記載が無く「有料試飲である」ことだけ分かる場合に、この値を入れる約束にしている。
  * 金額そのものではないので、表示するときは `parsePaidTasting` を通す。
  */

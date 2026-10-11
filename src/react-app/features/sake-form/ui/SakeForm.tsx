@@ -8,6 +8,7 @@ import {
   sakeEditSchema,
   toSakeEditInput,
   toSakeUpdateInput,
+  type SakeEditInput,
   type SakeUpdateInput,
 } from '@/shared/schemas/sake';
 
@@ -29,25 +30,38 @@ type SakeForEdit = {
   paidTastingPrice: number | null;
 };
 
+/** 新規追加の初期値（酒蔵詳細の「酒を追加」で使う） */
+const emptySakeEditInput: SakeEditInput = {
+  name: '',
+  type: '',
+  category: '清酒',
+  isLimited: false,
+  hasPaidTasting: false,
+  paidTastingPrice: '',
+};
+
 /**
- * 銘柄マスタの編集。身内で使うアプリなので、サインインしていれば誰でも編集できる。
+ * 銘柄の編集と新規追加を兼ねる。身内で使うアプリなので、サインインしていれば誰でも使える。
  *
  * 有料試飲は「あり／なし」と金額を分けて入力する。出典 PDF では金額が分からないものに
  * 印として `7` が入っているので、チェックだけ入れて金額を空にするとその状態（金額未確認）を保つ。
  */
-export function SakeEditForm({
+export function SakeForm({
   sake,
+  submitLabel,
   isSubmitting,
   onSubmit,
   onCancel,
 }: {
-  sake: SakeForEdit;
+  /** 編集する銘柄。省略すると新規追加になる */
+  sake?: SakeForEdit;
+  submitLabel: string;
   isSubmitting: boolean;
   onSubmit: (input: SakeUpdateInput) => Promise<void>;
-  onCancel: () => void;
+  onCancel?: () => void;
 }) {
   const form = useForm({
-    defaultValues: toSakeEditInput(sake),
+    defaultValues: sake ? toSakeEditInput(sake) : emptySakeEditInput,
     validators: {
       onChange: sakeEditSchema,
     },
@@ -77,6 +91,7 @@ export function SakeEditForm({
                 onChange={(event) => field.handleChange(event.target.value)}
                 onBlur={field.handleBlur}
                 maxLength={SAKE_NAME_MAX_LENGTH}
+                placeholder="当日の限定酒など"
                 aria-invalid={error.length > 0 || undefined}
               />
               {error.length > 0 && <p className="text-sm text-destructive">{error}</p>}
@@ -185,11 +200,13 @@ export function SakeEditForm({
 
       <div className="flex items-center gap-2">
         <Button type="submit" size="lg" disabled={isSubmitting}>
-          {isSubmitting ? '保存中…' : '保存'}
+          {isSubmitting ? '保存中…' : submitLabel}
         </Button>
-        <Button type="button" variant="ghost" size="lg" onClick={onCancel}>
-          キャンセル
-        </Button>
+        {onCancel && (
+          <Button type="button" variant="ghost" size="lg" onClick={onCancel}>
+            キャンセル
+          </Button>
+        )}
       </div>
       <p className="text-xs text-muted-foreground">
         「有料試飲あり」にチェックして金額を空にすると、金額未確認として保存します。

@@ -1,4 +1,5 @@
 import { env } from 'cloudflare:test';
+import { eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { type AuthUser } from '../auth';
@@ -64,6 +65,18 @@ const notesSchema = z.object({
 });
 
 const noteSchema = notesSchema.shape.items.element;
+
+const createdSakeSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  type: z.string().nullable(),
+  category: z.string(),
+  isLimited: z.boolean(),
+  paidTastingPrice: z.number().nullable(),
+  brewery: z.object({ id: z.number(), name: z.string() }),
+  reviewCount: z.number(),
+  averageRating: z.number().nullable(),
+});
 
 describe('breweries routes', () => {
   let member: AuthUser;
@@ -416,5 +429,102 @@ describe('breweries routes', () => {
     expect(
       (await authedApp(member).request('/breweries/1/notes/2', { method: 'DELETE' }, env)).status,
     ).toBe(404);
+  });
+
+  it('POST /:id/sakes はサインインしていれば銘柄を追加できる', async () => {
+    const guest = new Hono<AuthEnv>()
+      .use('*', withSession(null))
+      .route('/breweries', breweriesRoute);
+    expect(
+      (
+        await guest.request(
+          '/breweries/1/sakes',
+          { method: 'POST', body: JSON.stringify({ name: '限定酒' }) },
+          env,
+        )
+      ).status,
+    ).toBe(401);
+
+    const res = await authedApp(member).request(
+      '/breweries/1/sakes',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: '  しぼりたて生原酒  ',
+          type: '純米',
+          category: '清酒',
+          isLimited: true,
+          paidTastingPrice: 7,
+        }),
+      },
+      env,
+    );
+    expect(res.status).toBe(201);
+
+    const sake = createdSakeSchema.parse(await res.json());
+    expect(sake).toMatchObject({
+      name: 'しぼりたて生原酒',
+      type: '純米',
+      category: '清酒',
+      isLimited: true,
+      paidTastingPrice: 7,
+      brewery: { id: 1, name: '関原酒造' },
+      reviewCount: 0,
+      averageRating: null,
+    });
+
+    // 追加者と「ユーザー投稿の銘柄」であることが残る
+    const [row] = await testDb()
+      .select({ isCustom: sakes.isCustom, addedBy: sakes.addedBy })
+      .from(sakes)
+      .where(eq(sakes.id, sake.id));
+    expect(row).toEqual({ isCustom: true, addedBy: member.id });
+
+    // 酒蔵の出品酒一覧にも出る
+    const detail = detailSchema.parse(
+      await (await authedApp(member).request('/breweries/1', {}, env)).json(),
+    );
+    expect(detail.sakes.map((item) => item.id)).toContain(sake.id);
+
+    // 未知の酒蔵は 404、区分が変なら 400
+    expect(
+      (
+        await authedApp(member).request(
+          '/breweries/999/sakes',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: '限定酒',
+              type: null,
+              category: '清酒',
+              isLimited: false,
+              paidTastingPrice: null,
+            }),
+          },
+          env,
+        )
+      ).status,
+    ).toBe(404);
+    expect(
+      (
+        await authedApp(member).request(
+          '/breweries/1/sakes',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: '限定酒',
+              type: null,
+              category: 'ビール',
+              isLimited: false,
+              paidTastingPrice: null,
+            }),
+          },
+          env,
+        )
+      ).status,
+    ).toBe(400);
   });
 });

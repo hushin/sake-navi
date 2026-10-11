@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
 import { client, useBookmarkToggle, useBookmarks, useSession } from '@/react-app/shared/api';
+import { SakeForm } from '@/react-app/features/sake-form';
 import {
   Badge,
   BookmarkButton,
@@ -15,7 +16,6 @@ import {
 } from '@/react-app/shared/ui';
 import { filterReviewTags, type ReviewInput, type SakeUpdateInput } from '@/shared/schemas/sake';
 import { ReviewForm } from './ReviewForm';
-import { SakeEditForm } from './SakeEditForm';
 import { ReviewList } from './ReviewList';
 
 /** Hono RPC のレスポンスから、status のリテラル型に依存せずエラーだけ見るための最小の形 */
@@ -186,8 +186,9 @@ export function SakeDetailPage({ sakeId }: { sakeId: number }) {
         </div>
 
         {isEditing ? (
-          <SakeEditForm
+          <SakeForm
             sake={sake}
+            submitLabel="保存"
             isSubmitting={updateSake.isPending}
             onCancel={() => setIsEditing(false)}
             onSubmit={async (input) => {

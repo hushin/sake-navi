@@ -39,6 +39,10 @@ export const sakes = sqliteTable(
      * 会場で手入力して直す。旧アプリの seed にあった 7 は金額として使えないため移行していない。
      */
     paidTastingPrice: integer('paid_tasting_price'),
+    /** マスタの seed に無く、ユーザーが会場で追加した銘柄（当日の限定酒など） */
+    isCustom: integer('is_custom', { mode: 'boolean' }).notNull().default(false),
+    /** 追加したユーザー。削除しても銘柄は残すので `set null` */
+    addedBy: text('added_by').references(() => user.id, { onDelete: 'set null' }),
     createdAt: integer('created_at', { mode: 'timestamp_ms' })
       .notNull()
       .default(currentTimestampMs),

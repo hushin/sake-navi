@@ -11,6 +11,10 @@ export type BreweryNote = InferResponseType<
   (typeof client.api.breweries)[':id']['notes']['$get'],
   200
 >['items'][number];
+export type BrewerySakeDetail = InferResponseType<
+  (typeof client.api.breweries)[':id']['sakes']['$post'],
+  201
+>;
 
 const brewery = {
   id: 3,
@@ -80,6 +84,7 @@ export const noteFixtures: BreweryNote[] = [
 
 let notes: BreweryNote[] = [...noteFixtures];
 let nextNoteId = 100;
+let nextSakeId = 100;
 
 /** story ごとにストアを初期化する（`beforeEach` から呼ぶ） */
 export function resetBreweryDetail(
@@ -89,6 +94,7 @@ export function resetBreweryDetail(
   sakes = [...initialSakes];
   notes = [...initialNotes];
   nextNoteId = 100;
+  nextSakeId = 100;
 }
 
 const successHandlers = [
@@ -134,6 +140,22 @@ const successHandlers = [
 
     notes = notes.filter((note) => note.id !== noteId);
     return { status: 200, output: { id: noteId } };
+  }),
+
+  createHandler({ path: '/api/breweries/:id/sakes', method: '$post' })(({ input }) => {
+    const created: BrewerySakeDetail = {
+      id: nextSakeId++,
+      name: input.json.name,
+      type: input.json.type,
+      category: input.json.category,
+      isLimited: input.json.isLimited,
+      paidTastingPrice: input.json.paidTastingPrice,
+      brewery,
+      reviewCount: 0,
+      averageRating: null,
+    };
+    sakes = [...sakes, { ...created, myReviewId: null }];
+    return { status: 201, output: created };
   }),
 ];
 

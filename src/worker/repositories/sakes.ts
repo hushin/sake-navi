@@ -187,6 +187,37 @@ export async function sakeExists(db: Db, sakeId: number): Promise<boolean> {
 }
 
 /**
+ * マスタの seed に無い銘柄をユーザーが会場で追加する（当日の限定酒など）。
+ * `is_custom` を立てて追加者を残す。削除は作らない（必要になったらレビューごと消すか確認する）。
+ *
+ * 追加した銘柄の id を返す。呼び出し側が詳細（`findSakeById`）を取り直して 201 を返す。
+ */
+export async function insertSake(
+  db: Db,
+  input: { breweryId: number; addedBy: string; sake: SakeUpdateInput },
+): Promise<number> {
+  const rows = await db
+    .insert(sakes)
+    .values({
+      breweryId: input.breweryId,
+      name: input.sake.name,
+      type: input.sake.type,
+      category: input.sake.category,
+      isLimited: input.sake.isLimited,
+      paidTastingPrice: input.sake.paidTastingPrice,
+      isCustom: true,
+      addedBy: input.addedBy,
+    })
+    .returning({ id: sakes.id });
+
+  const created = rows[0];
+  if (!created) {
+    throw new Error('追加した銘柄の id を取得できませんでした');
+  }
+  return created.id;
+}
+
+/**
  * 銘柄マスタの更新。身内で使うアプリなので、サインインしていれば誰でも編集できる
  * （`is_custom` のような追加者限定の区別はしない）。
  */
