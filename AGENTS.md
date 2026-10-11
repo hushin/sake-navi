@@ -31,4 +31,5 @@
 | Hono RPC の型（`InferResponseType` / `zValidator`） | `docs/hono-rpc-types.md` |
 | セットアップ（D1・Google OAuth・デプロイ）          | `README.md`              |
 
-画面・コンポーネント・テストの追加は skill に分けてある（`fsd` / `testing` / `storybook-testing` / `shadcn-ui`）。
+画面・遷移・コンポーネント・テストの追加は skill に分けてある
+（`fsd` / `tanstack-router` / `testing` / `storybook-testing` / `shadcn-ui`）。

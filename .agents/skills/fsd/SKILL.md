@@ -1,29 +1,35 @@
 ---
 name: fsd
-description: Use when adding, moving, or reviewing screens/components under src/react-app. Covers the Feature-Sliced Design (FSD) layering this project uses for the React SPA — app/pages/shared layers, slice segments and public APIs, route file thinness, story/mock colocation, and the steiger structural linter. Trigger when the user mentions FSD, Feature-Sliced Design, app layer, pages layer, shared layer, slice, segment, steiger, or adds a new page/route.
+description: Use when adding, moving, or reviewing screens/components under src/react-app. Covers the Feature-Sliced Design (FSD) layering this project uses for the React SPA — app/pages/widgets/features/shared layers, slice segments and public APIs, route file thinness, story/mock colocation, and the steiger structural linter. Trigger when the user mentions FSD, Feature-Sliced Design, app layer, pages layer, widgets, features, shared layer, slice, segment, steiger, or adds a new page/route.
 ---
 
 # FSD Skill — react-app のレイヤー構成
 
 `src/react-app` は [Feature-Sliced Design](https://fsd.how/)（[公式 skill](https://github.com/feature-sliced/skills/blob/master/feature-sliced-design/SKILL.md) 準拠）で構成する。
 
-現状導入済みのレイヤーは **app / pages / shared** の最小構成。widgets / features / entities は未導入
-（公式ガイドでも「シンプルに始める、必要になったら抽出する」が原則。複数箇所で実際に使われ、境界が安定するまで作らない）。
+導入済みのレイヤーは **app / pages / widgets / features / shared**。`entities` はまだ無い。
+公式ガイドでも「シンプルに始める、必要になったら抽出する」が原則なので、先回りして空ディレクトリを作らない
+（`widgets/review-card` と `features/sake-form` は、実際に 2 ページから使うことになった時点で切り出した例）。
 構造の逸脱は [`steiger`](https://github.com/feature-sliced/steiger) で検出する。`pnpm lint` に含まれる。
 
 ## レイヤーと依存方向
 
 ```
-app/     (プロバイダー初期化、ルーター設定、root layout)
+app/      (プロバイダー初期化、ルーター設定、root layout)
    ↓ 参照してよい
-pages/   (画面全体。スライスは URL セグメント単位)
+pages/    (画面全体。スライスは URL セグメント単位)
    ↓ 参照してよい
-shared/  (UI キット、共通ユーティリティ、API クライアント。ビジネスロジックなし)
+widgets/  (複数ページで使う大きな UI ブロック。例: review-card)
+   ↓ 参照してよい
+features/ (複数ページから呼ばれる「操作」。例: sake-form)
+   ↓ 参照してよい
+shared/   (UI キット、共通ユーティリティ、API クライアント。ビジネスロジックなし)
 ```
 
 - 上位レイヤーは下位レイヤーを import してよいが、逆は禁止（`shared/` が `pages/` を import するなど）
-- `pages/<slice>/` 同士は互いを import しない（スライス間の水平参照禁止）。共通ロジックが必要になったら `shared/` に上げる
-- 複数ページで使う大きな UI ブロックや、複数箇所で使うユーザー操作・ドメインモデルが実際に出てきたら、その時点で `widgets/` `features/` `entities/` の導入を検討する（今は時期尚早なので作らない。詳細は本 skill 末尾）
+- 同じレイヤーのスライス同士は互いを import しない（`pages/sakes` が `pages/review-detail` を import するなど）。
+  共通ロジックが必要になったら下のレイヤー（`shared/` や `widgets/`）に下ろす
+- `widgets/` `features/` は「実際に 2 箇所以上から使われ、境界が安定した」時点で切り出す（詳細は本 skill 末尾）
 
 ### routes/ は FSD レイヤーではない
 
@@ -39,7 +45,7 @@ src/react-app/
 ├── routes/                      # route 定義のみ（薄い）
 │   ├── __root.tsx                #   app/layouts の RootLayout を参照
 │   ├── sakes.tsx                  #   pages/sakes の SakeListPage を参照
-│   └── sakes.$sakeId.tsx          #   pages/sake-detail の SakeDetailPage を参照
+│   └── sakes_.$sakeId.tsx         #   pages/sake-detail の SakeDetailPage を参照（`_` でネスト回避）
 ├── app/
 │   ├── bootstrap/                # provider 初期化（"providers" は steiger の禁止セグメント名なので不可）
 │   │   ├── AppProviders.tsx        #   QueryClientProvider + RouterProvider
@@ -59,6 +65,14 @@ src/react-app/
 │   │   └── index.ts               # public API
 │   └── home/
 │       ├── ui/HomePage.tsx
+│       └── index.ts
+├── widgets/
+│   └── review-card/             # タイムラインとレビュー一覧で共有するカード
+│       ├── ui/ReviewCard.tsx
+│       └── index.ts
+├── features/
+│   └── sake-form/               # 銘柄の追加（酒蔵詳細）と編集（お酒詳細）で共有するフォーム
+│       ├── ui/SakeForm.tsx
 │       └── index.ts
 └── shared/
     ├── ui/                       # shadcn/ui コンポーネント
@@ -89,6 +103,10 @@ segment 名は「何であるか（本質）」ではなく「何のためか（
 
 ## route ファイルの書き方
 
+`src/react-app/routes/` は FSD の app 相当だが別物として扱い、`Route` の定義だけを書く。
+ファイル名と URL の対応、ネストの罠（`_` で外す）、search params、`beforeLoad` のガード、
+code splitting は routing 固有の知識なので **`tanstack-router` skill** に分けてある。
+
 ```tsx
 // src/react-app/routes/sakes.tsx
 import { createFileRoute } from '@tanstack/react-router';
@@ -109,29 +127,12 @@ export const Route = createRootRoute({
 });
 ```
 
-route ファイルに `Route` 以外の export を増やさない（増やすと TanStack Router の code-splitting が効かなくなる）。
-
-### 子ルートにしたくないときは `_` でネストを外す
-
-file-based routing では `sakes.tsx` と `sakes.$sakeId.tsx` を置くと、`$sakeId` は `/sakes` の
-**子ルート**になる。親の画面に `<Outlet />` が無いと子が描画されず、
-「一覧から詳細へ遷移しても一覧のまま」という壊れ方をする（実際に起きた）。
-
-一覧と詳細のように独立した画面にしたいときは、子側のファイル名に `_` を付けてネストを外す
-（URL は同じ `/sakes/$sakeId` のまま）:
-
-- `sakes.tsx` … `/sakes`
-- `sakes_.$sakeId.tsx` … `/sakes/$sakeId`（`/sakes` の子ではない）
-
-story は画面を直接描画するのでこの事故を検出できない（story 用のルーターには実ルートが無い）。
-route を足したら `pnpm dev` で実際に遷移を確かめる。
-
 ## 新規ページ追加の手順
 
 1. `src/react-app/pages/<slice-name>/ui/` を作成
 2. `<PageName>.tsx` に画面本体を実装。UI は `@/react-app/shared/ui`、API 呼び出しは `@/react-app/shared/api` から import
 3. `index.ts` に `export { <PageName> } from './ui/<PageName>';` を書く
-4. `src/react-app/routes/<slice-name>.tsx` を作成し、`@/react-app/pages/<slice-name>` から component を import して `Route` を定義するだけにする
+4. `src/react-app/routes/<slice-name>.tsx` を作成し、`@/react-app/pages/<slice-name>` から component を import して `Route` を定義するだけにする（書き方は `tanstack-router` skill）
 5. story / MSW モックが必要なら `pages/<slice-name>/ui/` に colocation する
 6. `pnpm lint`（内部で `steiger ./src/react-app` を実行）で構造違反がないか確認する
 7. `routeTree.gen.ts` を再生成する（route を足したら一度 build する。自動生成だがコミット対象で、手編集はしない）
@@ -150,9 +151,9 @@ route を足したら `pnpm dev` で実際に遷移を確かめる。
 - 複数箇所で **実際に** 使われていて境界が安定して初めて、`widgets/` `features/` `entities/` への抽出を検討する
 - ファイル名はドメイン中心にする（`types.ts` `utils.ts` ではなく `user.ts` `fetch-profile.ts` のように）
 
-## 将来 widgets / features / entities を導入する場合
+## widgets / features / entities を足すとき
 
-- `widgets/`: 複数ページで再利用される大きな UI ブロックが実際に出てきたら
-- `features/`: 複数ページ・複数 widget から呼ばれる「操作」（例: フォーム送信、いいねボタン）が重複してきたら
+- `widgets/`: 複数ページで再利用される大きな UI ブロック（例: `review-card` — タイムラインとレビュー一覧）
+- `features/`: 複数ページ・複数 widget から呼ばれる「操作」（例: `sake-form` — 追加と編集）。フォーム送信やいいねボタンが重複してきたら
 - `entities/`: ドメインオブジェクト（例: Todo, User）ごとの型・API・表示ロジックをまとめる必要が出てきたら。ただし CRUD だけなら `shared/api/` で十分（entity を作る理由にはならない）
 - どのレイヤーも「今困っているか」で判断し、先回りして空ディレクトリを作らない
