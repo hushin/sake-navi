@@ -110,6 +110,31 @@ export const bookmarks = sqliteTable(
 );
 
 /**
+ * 酒蔵ノート。列の長さ・売り切れ・混雑など、酒以外の一次情報を共有する。
+ * 誰でも投稿でき、編集・削除は本人だけ（route 側で 403 にする）。
+ */
+export const breweryNotes = sqliteTable(
+  'brewery_notes',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    breweryId: integer('brewery_id')
+      .notNull()
+      .references(() => breweries.id, { onDelete: 'cascade' }),
+    comment: text('comment').notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' })
+      .notNull()
+      .default(currentTimestampMs),
+  },
+  (table) => [
+    // 酒蔵詳細は `WHERE brewery_id = ?` + `ORDER BY created_at DESC` で引く
+    index('brewery_notes_brewery_id_created_at_idx').on(table.breweryId, table.createdAt),
+  ],
+);
+
+/**
  * サインインを許可する Google アカウント。
  * 初回（オーナー）は環境変数 `ALLOWED_EMAILS` で入れ、以降はアプリ内から追加する。
  */

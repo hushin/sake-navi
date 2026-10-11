@@ -3,7 +3,7 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import { type AuthUser } from '../auth';
 import { type AuthEnv } from '../auth/middleware';
-import { breweries, reviews, sakes } from '../db/schema';
+import { breweries, breweryNotes, reviews, sakes, user as userTable } from '../db/schema';
 import { app } from '../index';
 import { insertTestUser, resetDatabase, testDb, withSession } from '../test/database';
 import breweriesRoute from './breweries';
@@ -50,6 +50,21 @@ const detailSchema = z.object({
   ),
 });
 
+const notesSchema = z.object({
+  items: z.array(
+    z.object({
+      id: z.number(),
+      userId: z.string(),
+      userName: z.string(),
+      breweryId: z.number(),
+      comment: z.string(),
+      createdAt: z.string(),
+    }),
+  ),
+});
+
+const noteSchema = notesSchema.shape.items.element;
+
 describe('breweries routes', () => {
   let member: AuthUser;
   let other: AuthUser;
@@ -89,6 +104,22 @@ describe('breweries routes', () => {
       { id: 'review-1', userId: member.id, sakeId: 1, rating: 5, tags: [] },
       { id: 'review-2', userId: member.id, sakeId: 2, rating: 3, tags: [] },
       { id: 'review-3', userId: other.id, sakeId: 3, rating: 4, tags: [] },
+    ]);
+    await db.insert(breweryNotes).values([
+      {
+        id: 1,
+        userId: other.id,
+        breweryId: 1,
+        comment: '列が長い。',
+        createdAt: new Date('2026-10-11T02:00:00Z'),
+      },
+      {
+        id: 2,
+        userId: member.id,
+        breweryId: 1,
+        comment: '売り切れ間近。',
+        createdAt: new Date('2026-10-11T03:00:00Z'),
+      },
     ]);
   });
 
@@ -197,5 +228,193 @@ describe('breweries routes', () => {
 
     expect((await app.request('/api/breweries/999', {}, env)).status).toBe(404);
     expect((await app.request('/api/breweries/abc', {}, env)).status).toBe(404);
+  });
+
+  it('GET /:id/notes はノートを新しい順に返し、未サインインでも読める', async () => {
+    const res = await app.request('/api/breweries/1/notes', {}, env);
+    expect(res.status).toBe(200);
+
+    const body = notesSchema.parse(await res.json());
+    expect(body.items.map((note) => [note.id, note.comment])).toEqual([
+      [2, '売り切れ間近。'],
+      [1, '列が長い。'],
+    ]);
+    // 表示名は新潟 花子ではなくニックネームを優先する
+    await testDb().update(userTable).set({ nickname: 'はなこ' });
+    const renamed = notesSchema.parse(
+      await (await app.request('/api/breweries/1/notes', {}, env)).json(),
+    );
+    expect(renamed.items[0]?.userName).toBe('はなこ');
+
+    // 出品酒もノートも無い酒蔵は空配列、未知の id は 404
+    expect(
+      notesSchema.parse(await (await app.request('/api/breweries/5/notes', {}, env)).json()).items,
+    ).toEqual([]);
+    expect((await app.request('/api/breweries/999/notes', {}, env)).status).toBe(404);
+    expect((await app.request('/api/breweries/abc/notes', {}, env)).status).toBe(404);
+  });
+
+  it('POST /:id/notes はサインインが要り、投稿したノートを返す', async () => {
+    const guest = new Hono<AuthEnv>()
+      .use('*', withSession(null))
+      .route('/breweries', breweriesRoute);
+    expect(
+      (
+        await guest.request(
+          '/breweries/1/notes',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ comment: '混雑なし' }),
+          },
+          env,
+        )
+      ).status,
+    ).toBe(401);
+
+    const res = await authedApp(member).request(
+      '/breweries/1/notes',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ comment: '  今なら空いている  ' }),
+      },
+      env,
+    );
+    expect(res.status).toBe(201);
+
+    const note = noteSchema.parse(await res.json());
+    expect(note).toMatchObject({
+      userId: member.id,
+      userName: member.name,
+      breweryId: 1,
+      // 前後の空白は落とす
+      comment: '今なら空いている',
+    });
+    expect(
+      notesSchema.parse(await (await app.request('/api/breweries/1/notes', {}, env)).json())
+        .items[0]?.id,
+    ).toBe(note.id);
+
+    // 空のコメントは zod が弾く
+    expect(
+      (
+        await authedApp(member).request(
+          '/breweries/1/notes',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ comment: '   ' }),
+          },
+          env,
+        )
+      ).status,
+    ).toBe(400);
+    expect(
+      (
+        await authedApp(member).request(
+          '/breweries/999/notes',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ comment: '混雑なし' }),
+          },
+          env,
+        )
+      ).status,
+    ).toBe(404);
+  });
+
+  it('PUT /:id/notes/:noteId は本人だけが編集でき、別の酒蔵のノートは 404', async () => {
+    const res = await authedApp(member).request(
+      '/breweries/1/notes/2',
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ comment: '完売しました' }),
+      },
+      env,
+    );
+    expect(res.status).toBe(200);
+    expect(noteSchema.parse(await res.json())).toMatchObject({
+      id: 2,
+      userId: member.id,
+      comment: '完売しました',
+    });
+
+    // 他人のノートは編集できない
+    expect(
+      (
+        await authedApp(member).request(
+          '/breweries/1/notes/1',
+          {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ comment: '書き換え' }),
+          },
+          env,
+        )
+      ).status,
+    ).toBe(403);
+
+    // 自分のノートでも、URL の酒蔵が違えば404
+    expect(
+      (
+        await authedApp(member).request(
+          '/breweries/82/notes/2',
+          {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ comment: '書き換え' }),
+          },
+          env,
+        )
+      ).status,
+    ).toBe(404);
+    expect(
+      (
+        await authedApp(member).request(
+          '/breweries/1/notes/999',
+          {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ comment: '書き換え' }),
+          },
+          env,
+        )
+      ).status,
+    ).toBe(404);
+    // ノート id が数値でない場合も 404
+    expect(
+      (
+        await authedApp(member).request(
+          '/breweries/1/notes/abc',
+          {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ comment: '書き換え' }),
+          },
+          env,
+        )
+      ).status,
+    ).toBe(404);
+  });
+
+  it('DELETE /:id/notes/:noteId は本人だけが削除できる', async () => {
+    expect(
+      (await authedApp(member).request('/breweries/1/notes/1', { method: 'DELETE' }, env)).status,
+    ).toBe(403);
+
+    const res = await authedApp(member).request('/breweries/1/notes/2', { method: 'DELETE' }, env);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ id: 2 });
+
+    const remaining = notesSchema.parse(
+      await (await app.request('/api/breweries/1/notes', {}, env)).json(),
+    );
+    expect(remaining.items.map((note) => note.id)).toEqual([1]);
+    expect(
+      (await authedApp(member).request('/breweries/1/notes/2', { method: 'DELETE' }, env)).status,
+    ).toBe(404);
   });
 });

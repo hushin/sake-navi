@@ -3,10 +3,14 @@ import type { RequestHandler } from 'msw';
 import { HttpResponse, http } from 'msw/http';
 import { delay } from 'msw/utils/delay';
 import { client } from '@/react-app/shared/api';
-import { createHandler } from '@/react-app/shared/lib';
+import { createHandler, signedInSessionWithNickname } from '@/react-app/shared/lib';
 
 export type BreweryDetail = InferResponseType<(typeof client.api.breweries)[':id']['$get'], 200>;
 export type BrewerySake = BreweryDetail['sakes'][number];
+export type BreweryNote = InferResponseType<
+  (typeof client.api.breweries)[':id']['notes']['$get'],
+  200
+>['items'][number];
 
 const brewery = {
   id: 3,
@@ -54,9 +58,37 @@ export const sakeFixtures: BrewerySake[] = [
 
 let sakes: BrewerySake[] = [...sakeFixtures];
 
+/** ログイン中のユーザー（`signedInSessionWithNickname`）のノートと、他の人のノート */
+export const noteFixtures: BreweryNote[] = [
+  {
+    id: 2,
+    userId: signedInSessionWithNickname.user.id,
+    userName: 'はなこ',
+    breweryId: 3,
+    comment: '列が長い。今なら空いている。',
+    createdAt: '2026-10-11T06:00:00.000Z',
+  },
+  {
+    id: 1,
+    userId: 'user-2',
+    userName: '長岡 太郎',
+    breweryId: 3,
+    comment: '14 時時点で売り切れ。',
+    createdAt: '2026-10-11T05:00:00.000Z',
+  },
+];
+
+let notes: BreweryNote[] = [...noteFixtures];
+let nextNoteId = 100;
+
 /** story ごとにストアを初期化する（`beforeEach` から呼ぶ） */
-export function resetBreweryDetail(initialSakes: BrewerySake[] = sakeFixtures): void {
+export function resetBreweryDetail(
+  initialSakes: BrewerySake[] = sakeFixtures,
+  initialNotes: BreweryNote[] = noteFixtures,
+): void {
   sakes = [...initialSakes];
+  notes = [...initialNotes];
+  nextNoteId = 100;
 }
 
 const successHandlers = [
@@ -64,6 +96,45 @@ const successHandlers = [
     status: 200,
     output: { brewery, sakes },
   })),
+
+  createHandler({ path: '/api/breweries/:id/notes', method: '$get' })(() => ({
+    status: 200,
+    output: { items: notes },
+  })),
+
+  createHandler({ path: '/api/breweries/:id/notes', method: '$post' })(({ input }) => {
+    const note: BreweryNote = {
+      id: nextNoteId++,
+      userId: signedInSessionWithNickname.user.id,
+      userName: signedInSessionWithNickname.user.nickname,
+      breweryId: brewery.id,
+      comment: input.json.comment,
+      createdAt: '2026-10-11T06:30:00.000Z',
+    };
+    notes = [note, ...notes];
+    return { status: 201, output: note };
+  }),
+
+  createHandler({ path: '/api/breweries/:id/notes/:noteId', method: '$put' })(({ input }) => {
+    const existing = notes.find((note) => note.id === Number(input.param.noteId));
+    if (!existing) {
+      return { status: 404, output: { error: 'Not Found' } };
+    }
+
+    const updated = { ...existing, comment: input.json.comment };
+    notes = notes.map((note) => (note.id === updated.id ? updated : note));
+    return { status: 200, output: updated };
+  }),
+
+  createHandler({ path: '/api/breweries/:id/notes/:noteId', method: '$delete' })(({ input }) => {
+    const noteId = Number(input.param.noteId);
+    if (!notes.some((note) => note.id === noteId)) {
+      return { status: 404, output: { error: 'Not Found' } };
+    }
+
+    notes = notes.filter((note) => note.id !== noteId);
+    return { status: 200, output: { id: noteId } };
+  }),
 ];
 
 /** レスポンスが返らないケース（ローディング表示の確認用） */
@@ -71,6 +142,10 @@ const loadingHandlers = [
   createHandler({ path: '/api/breweries/:id', method: '$get' })(async () => {
     await delay('infinite');
     return { status: 200, output: { brewery, sakes } };
+  }),
+  createHandler({ path: '/api/breweries/:id/notes', method: '$get' })(async () => {
+    await delay('infinite');
+    return { status: 200, output: { items: notes } };
   }),
 ];
 
@@ -84,6 +159,7 @@ const notFoundHandlers = [
 /** route の型に存在しない status を返すため、ここだけは msw の http をそのまま使う */
 const errorHandlers = [
   http.get('/api/breweries/:id', () => new HttpResponse(null, { status: 500 })),
+  http.get('/api/breweries/:id/notes', () => new HttpResponse(null, { status: 500 })),
 ];
 
 /** story から使うハンドラ一式 */

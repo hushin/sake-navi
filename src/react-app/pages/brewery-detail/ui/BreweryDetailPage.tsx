@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { client } from '@/react-app/shared/api';
 import { Badge, Button, Card, PaidTastingBadge, StarRating } from '@/react-app/shared/ui';
+import { BreweryNotes } from './BreweryNotes';
 
 /** 酒蔵の詳細。出品酒をまとめて見て、お酒詳細（レビュー）へ進む */
 export function BreweryDetailPage({ breweryId }: { breweryId: number }) {
@@ -129,6 +130,8 @@ export function BreweryDetailPage({ breweryId }: { breweryId: number }) {
           </ul>
         )}
       </section>
+
+      <BreweryNotes breweryId={breweryId} />
     </div>
   );
 }

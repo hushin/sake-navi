@@ -16,6 +16,7 @@ export function testDb(): Db {
 export async function resetDatabase(): Promise<void> {
   await env.DB.exec(
     [
+      'DELETE FROM brewery_notes',
       'DELETE FROM bookmarks',
       'DELETE FROM reviews',
       'DELETE FROM sakes',
