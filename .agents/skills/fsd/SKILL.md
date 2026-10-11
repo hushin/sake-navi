@@ -111,6 +111,21 @@ export const Route = createRootRoute({
 
 route ファイルに `Route` 以外の export を増やさない（増やすと TanStack Router の code-splitting が効かなくなる）。
 
+### 子ルートにしたくないときは `_` でネストを外す
+
+file-based routing では `sakes.tsx` と `sakes.$sakeId.tsx` を置くと、`$sakeId` は `/sakes` の
+**子ルート**になる。親の画面に `<Outlet />` が無いと子が描画されず、
+「一覧から詳細へ遷移しても一覧のまま」という壊れ方をする（実際に起きた）。
+
+一覧と詳細のように独立した画面にしたいときは、子側のファイル名に `_` を付けてネストを外す
+（URL は同じ `/sakes/$sakeId` のまま）:
+
+- `sakes.tsx` … `/sakes`
+- `sakes_.$sakeId.tsx` … `/sakes/$sakeId`（`/sakes` の子ではない）
+
+story は画面を直接描画するのでこの事故を検出できない（story 用のルーターには実ルートが無い）。
+route を足したら `pnpm dev` で実際に遷移を確かめる。
+
 ## 新規ページ追加の手順
 
 1. `src/react-app/pages/<slice-name>/ui/` を作成
