@@ -219,3 +219,38 @@ export const timelineQuerySchema = z.object({
 });
 
 export type TimelineQuery = z.infer<typeof timelineQuerySchema>;
+
+/** レビュー一覧の並び順。`rating` だけカーソルの持ち方が違う（repository を参照） */
+export const REVIEW_SORTS = ['latest', 'rating'] as const;
+
+export const reviewSortSchema = z.enum(REVIEW_SORTS);
+
+export type ReviewSort = (typeof REVIEW_SORTS)[number];
+
+/**
+ * レビュー一覧（横断検索）の取得条件。
+ *
+ * `tags` はカンマ区切りで、指定したタグを**すべて**含むレビューだけを返す（AND）。
+ * カーソルは並び順によって形式が違うので、そのまま API に返してもらう。
+ */
+export const reviewListQuerySchema = z.object({
+  sort: reviewSortSchema.default('latest'),
+  tags: z.string().trim().max(200).optional(),
+  userId: z.string().trim().max(100).optional(),
+  cursor: z.string().optional(),
+  limit: z.coerce.number().int().min(1).max(50).default(20),
+});
+
+export type ReviewListQuery = z.infer<typeof reviewListQuerySchema>;
+
+/** `tags=甘口,濃醇` を、現在のタグ定義に合うものだけに絞って分解する */
+export function parseReviewTags(value: string | undefined): ReviewTag[] {
+  if (!value) {
+    return [];
+  }
+
+  return value
+    .split(',')
+    .map((tag) => tag.trim())
+    .filter((tag): tag is ReviewTag => reviewTagSchema.safeParse(tag).success);
+}

@@ -24,6 +24,9 @@ export function Header() {
           <Link to="/timeline" className={navLinkClass}>
             タイムライン
           </Link>
+          <Link to="/reviews" search={{ sort: 'rating' }} className={navLinkClass}>
+            レビュー
+          </Link>
           <Link to="/bookmarks" className={navLinkClass}>
             ブックマーク
           </Link>

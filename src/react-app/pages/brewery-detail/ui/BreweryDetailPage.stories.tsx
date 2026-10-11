@@ -64,10 +64,10 @@ export const PostNote: Story = {
     await userEvent.type(canvas.getByLabelText('ノート'), '今は並ばずに入れる。');
     await userEvent.click(canvas.getByRole('button', { name: 'ノートを投稿' }));
 
+    // 投稿できたら入力欄は空に戻る（先に待たないと、入力値が findByText に拾われる）
+    await waitFor(() => expect(canvas.getByLabelText('ノート')).toHaveValue(''));
     await expect(await canvas.findByText('今は並ばずに入れる。')).toBeVisible();
     await expect(canvas.getByText('酒蔵ノート（3）')).toBeVisible();
-    // 投稿できたら入力欄は空に戻る
-    await expect(canvas.getByLabelText('ノート')).toHaveValue('');
   },
 };
 
@@ -82,6 +82,8 @@ export const EditNote: Story = {
     await userEvent.type(textarea, '列は短くなった。');
     await userEvent.click(canvas.getByRole('button', { name: '更新する' }));
 
+    // 編集欄が閉じてから、一覧の文言を確認する
+    await waitFor(() => expect(canvas.queryAllByLabelText('ノート')).toHaveLength(1));
     await expect(await canvas.findByText('列は短くなった。')).toBeVisible();
     await waitFor(() =>
       expect(canvas.queryByText('列が長い。今なら空いている。')).not.toBeInTheDocument(),

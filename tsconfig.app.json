@@ -6,7 +6,7 @@
     // 実際のトランスパイルは Vite が行うので、ここは型チェックの範囲を決めるだけ。
     "target": "ES2022",
     "useDefineForClassFields": true,
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": ["ES2022", "ES2023.Array", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
     "types": ["./worker-configuration.d.ts", "msw-storybook-addon/types"],

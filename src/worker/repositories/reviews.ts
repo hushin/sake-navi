@@ -1,5 +1,5 @@
 import { and, desc, eq, lt, or, sql } from 'drizzle-orm';
-import type { ReviewInput } from '@/shared/schemas/sake';
+import { parseReviewTags, type ReviewInput, type ReviewListQuery } from '@/shared/schemas/sake';
 import type { Db } from '../db';
 import { breweries, reviews, sakes, user } from '../db/schema';
 
@@ -108,7 +108,7 @@ export async function deleteReview(db: Db, reviewId: string): Promise<boolean> {
   return rows.length > 0;
 }
 
-export type TimelineItem = {
+export type ReviewFeedItem = {
   id: string;
   rating: number;
   tags: string[];
@@ -120,15 +120,64 @@ export type TimelineItem = {
   brewery: { id: number; name: string };
 };
 
+/** 一覧系（タイムライン・レビュー検索）で共通の選択列。user / sakes / breweries を join する */
+const reviewFeedColumns = {
+  ...reviewColumns,
+  userName: sql<string>`coalesce(${user.nickname}, ${user.name})`,
+  userImage: user.image,
+  sakeName: sakes.name,
+  breweryId: breweries.id,
+  breweryName: breweries.name,
+};
+
+function reviewFeedQuery(db: Db) {
+  return db
+    .select(reviewFeedColumns)
+    .from(reviews)
+    .innerJoin(user, eq(user.id, reviews.userId))
+    .innerJoin(sakes, eq(sakes.id, reviews.sakeId))
+    .innerJoin(breweries, eq(breweries.id, sakes.breweryId));
+}
+
+type ReviewFeedRow = {
+  id: string;
+  userId: string;
+  sakeId: number;
+  rating: number;
+  tags: string[];
+  comment: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  userName: string;
+  userImage: string | null;
+  sakeName: string;
+  breweryId: number;
+  breweryName: string;
+};
+
+function toReviewFeedItem(row: ReviewFeedRow): ReviewFeedItem {
+  return {
+    id: row.id,
+    rating: row.rating,
+    tags: row.tags,
+    comment: row.comment,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+    user: { id: row.userId, name: row.userName, image: row.userImage },
+    sake: { id: row.sakeId, name: row.sakeName },
+    brewery: { id: row.breweryId, name: row.breweryName },
+  };
+}
+
 /**
- * 複合カーソル。`created_at` はミリ秒精度だが、同一ミリ秒の投稿を取りこぼさないよう
+ * `created_at` はミリ秒精度だが、同一ミリ秒の投稿を取りこぼさないよう
  * id を第 2 キーにした `<epoch ミリ秒>_<review id>` を使う。
  */
-function encodeTimelineCursor(item: { createdAt: Date; id: string }): string {
+function encodeLatestCursor(item: { createdAt: Date; id: string }): string {
   return `${item.createdAt.getTime()}_${item.id}`;
 }
 
-function parseTimelineCursor(cursor: string): { createdAt: Date; id: string } | null {
+function parseLatestCursor(cursor: string): { createdAt: Date; id: string } | null {
   const separator = cursor.indexOf('_');
   if (separator <= 0) {
     return null;
@@ -143,53 +192,121 @@ function parseTimelineCursor(cursor: string): { createdAt: Date; id: string } | 
   return { createdAt: new Date(milliseconds), id };
 }
 
+function latestCursorCondition(cursor: { createdAt: Date; id: string }) {
+  return or(
+    lt(reviews.createdAt, cursor.createdAt),
+    and(eq(reviews.createdAt, cursor.createdAt), lt(reviews.id, cursor.id)),
+  );
+}
+
+/**
+ * 評価順のカーソルは `rating DESC, created_at DESC, id DESC` に合わせた
+ * `<rating>_<epoch ミリ秒>_<review id>`。旧実装は評価順でも created_at だけを見ていて
+ * 2 ページ目以降が壊れていたので、ソートごとにカーソルの持ち方を変えている。
+ */
+function encodeRatingCursor(item: { rating: number; createdAt: Date; id: string }): string {
+  return `${item.rating}_${item.createdAt.getTime()}_${item.id}`;
+}
+
+function parseRatingCursor(cursor: string): { rating: number; createdAt: Date; id: string } | null {
+  const firstSeparator = cursor.indexOf('_');
+  const secondSeparator = cursor.indexOf('_', firstSeparator + 1);
+  if (firstSeparator <= 0 || secondSeparator <= firstSeparator + 1) {
+    return null;
+  }
+
+  const rating = Number(cursor.slice(0, firstSeparator));
+  const milliseconds = Number(cursor.slice(firstSeparator + 1, secondSeparator));
+  const id = cursor.slice(secondSeparator + 1);
+  if (!Number.isInteger(rating) || !Number.isInteger(milliseconds) || id.length === 0) {
+    return null;
+  }
+
+  return { rating, createdAt: new Date(milliseconds), id };
+}
+
+function ratingCursorCondition(cursor: { rating: number; createdAt: Date; id: string }) {
+  return or(
+    lt(reviews.rating, cursor.rating),
+    and(eq(reviews.rating, cursor.rating), lt(reviews.createdAt, cursor.createdAt)),
+    and(
+      eq(reviews.rating, cursor.rating),
+      eq(reviews.createdAt, cursor.createdAt),
+      lt(reviews.id, cursor.id),
+    ),
+  );
+}
+
 /** 新着レビューの一覧（タイムライン）。古い方へ向かって辿る */
 export async function listTimeline(
   db: Db,
   params: { cursor?: string; limit: number },
-): Promise<{ items: TimelineItem[]; nextCursor: string | null }> {
-  const cursor = params.cursor ? parseTimelineCursor(params.cursor) : null;
-  const condition = cursor
-    ? or(
-        lt(reviews.createdAt, cursor.createdAt),
-        and(eq(reviews.createdAt, cursor.createdAt), lt(reviews.id, cursor.id)),
-      )
-    : undefined;
+): Promise<{ items: ReviewFeedItem[]; nextCursor: string | null }> {
+  const cursor = params.cursor ? parseLatestCursor(params.cursor) : null;
 
-  const rows = await db
-    .select({
-      ...reviewColumns,
-      userId: reviews.userId,
-      userName: sql<string>`coalesce(${user.nickname}, ${user.name})`,
-      userImage: user.image,
-      sakeId: sakes.id,
-      sakeName: sakes.name,
-      breweryId: breweries.id,
-      breweryName: breweries.name,
-    })
-    .from(reviews)
-    .innerJoin(user, eq(user.id, reviews.userId))
-    .innerJoin(sakes, eq(sakes.id, reviews.sakeId))
-    .innerJoin(breweries, eq(breweries.id, sakes.breweryId))
-    .where(condition)
+  const rows = await reviewFeedQuery(db)
+    .where(cursor ? latestCursorCondition(cursor) : undefined)
     .orderBy(desc(reviews.createdAt), desc(reviews.id))
     .limit(params.limit + 1);
 
   const page = rows.slice(0, params.limit);
-  const items: TimelineItem[] = page.map((row) => ({
-    id: row.id,
-    rating: row.rating,
-    tags: row.tags,
-    comment: row.comment,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-    user: { id: row.userId, name: row.userName, image: row.userImage },
-    sake: { id: row.sakeId, name: row.sakeName },
-    brewery: { id: row.breweryId, name: row.breweryName },
-  }));
-
   const last = page.at(-1);
-  const nextCursor = rows.length > params.limit && last ? encodeTimelineCursor(last) : null;
+  const nextCursor = rows.length > params.limit && last ? encodeLatestCursor(last) : null;
 
-  return { items, nextCursor };
+  return { items: page.map(toReviewFeedItem), nextCursor };
+}
+
+/**
+ * 全レビューを横断して見る（並び替え・タグの AND 絞り込み・ユーザー絞り込み）。
+ * 評価順の 2 ページ目以降も正しく辿れるよう、カーソルは並び順ごとに形式が違う。
+ */
+export async function listReviews(
+  db: Db,
+  query: ReviewListQuery,
+): Promise<{ items: ReviewFeedItem[]; nextCursor: string | null }> {
+  const conditions = [];
+
+  // タグは AND（指定したタグをすべて含むレビューだけを返す）
+  for (const tag of parseReviewTags(query.tags)) {
+    conditions.push(
+      sql`EXISTS (SELECT 1 FROM json_each(${reviews.tags}) WHERE json_each.value = ${tag})`,
+    );
+  }
+  if (query.userId) {
+    conditions.push(eq(reviews.userId, query.userId));
+  }
+
+  if (query.sort === 'rating') {
+    const cursor = query.cursor ? parseRatingCursor(query.cursor) : null;
+    if (cursor) {
+      conditions.push(ratingCursorCondition(cursor));
+    }
+  } else {
+    const cursor = query.cursor ? parseLatestCursor(query.cursor) : null;
+    if (cursor) {
+      conditions.push(latestCursorCondition(cursor));
+    }
+  }
+
+  const orderBy =
+    query.sort === 'rating'
+      ? [desc(reviews.rating), desc(reviews.createdAt), desc(reviews.id)]
+      : [desc(reviews.createdAt), desc(reviews.id)];
+
+  const rows = await reviewFeedQuery(db)
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .orderBy(...orderBy)
+    .limit(query.limit + 1);
+
+  const page = rows.slice(0, query.limit);
+  const last = page.at(-1);
+  const hasMore = rows.length > query.limit;
+  const nextCursor =
+    hasMore && last
+      ? query.sort === 'rating'
+        ? encodeRatingCursor(last)
+        : encodeLatestCursor(last)
+      : null;
+
+  return { items: page.map(toReviewFeedItem), nextCursor };
 }

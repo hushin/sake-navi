@@ -1,11 +1,7 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { Link } from '@tanstack/react-router';
-import type { InferResponseType } from 'hono/client';
 import { client } from '@/react-app/shared/api';
-import { formatRelativeTime } from '@/react-app/shared/lib';
-import { Badge, Button, StarRating } from '@/react-app/shared/ui';
-
-type TimelineItem = InferResponseType<(typeof client.api.timeline)['$get'], 200>['items'][number];
+import { Button } from '@/react-app/shared/ui';
+import { ReviewCard } from '@/react-app/widgets/review-card';
 
 export function TimelinePage() {
   const timelineQuery = useInfiniteQuery({
@@ -45,7 +41,7 @@ export function TimelinePage() {
         <div className="flex flex-col gap-4">
           <ul className="flex flex-col gap-3">
             {items.map((item) => (
-              <TimelineCard key={item.id} item={item} now={now} />
+              <ReviewCard key={item.id} item={item} now={now} />
             ))}
           </ul>
           {timelineQuery.hasNextPage && (
@@ -61,44 +57,6 @@ export function TimelinePage() {
         </div>
       )}
     </div>
-  );
-}
-
-function TimelineCard({ item, now }: { item: TimelineItem; now: number }) {
-  return (
-    <li className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4">
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-medium">{item.user.name}</span>
-        <span className="text-xs text-muted-foreground">
-          {formatRelativeTime(item.createdAt, now)}
-        </span>
-        <StarRating value={item.rating} size="sm" className="ml-auto" />
-      </div>
-      <div className="flex flex-col gap-0.5">
-        <Link
-          to="/sakes/$sakeId"
-          params={{ sakeId: String(item.sake.id) }}
-          className="text-sm font-medium hover:underline"
-        >
-          {item.sake.name}
-        </Link>
-        <p className="text-xs text-muted-foreground">
-          No.{item.brewery.id} {item.brewery.name}
-        </p>
-      </div>
-      {item.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {item.tags.map((tag) => (
-            <Badge key={tag} variant="secondary">
-              {tag}
-            </Badge>
-          ))}
-        </div>
-      )}
-      {item.comment && (
-        <p className="text-sm leading-6 break-words whitespace-pre-wrap">{item.comment}</p>
-      )}
-    </li>
   );
 }
 

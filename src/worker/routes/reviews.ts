@@ -1,17 +1,21 @@
 import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
-import { reviewInputSchema } from '@/shared/schemas/sake';
+import { reviewInputSchema, reviewListQuerySchema } from '@/shared/schemas/sake';
 import { type AuthEnv, requireAuth } from '../auth/middleware';
 import { createDb } from '../db';
-import { deleteReview, findReviewById, updateReview } from '../repositories/reviews';
+import { deleteReview, findReviewById, listReviews, updateReview } from '../repositories/reviews';
 
 /**
- * 既存レビューの編集・削除。自分のレビュー以外は 403。
+ * レビューの横断検索（並び替え・タグ絞り込み）と、既存レビューの編集・削除。
+ * 一覧は誰でも見られる。編集・削除は自分のレビュー以外を 403 にする。
  * 投稿（作成）は銘柄に紐づくので `sakes` route 側にある。
  */
 const app = new Hono<AuthEnv>()
-  .use('*', requireAuth)
-  .put('/:id', zValidator('json', reviewInputSchema), async (c) => {
+  .get('/', zValidator('query', reviewListQuerySchema), async (c) => {
+    const page = await listReviews(createDb(c.env), c.req.valid('query'));
+    return c.json(page);
+  })
+  .put('/:id', requireAuth, zValidator('json', reviewInputSchema), async (c) => {
     const user = c.get('user');
     if (!user) {
       return c.json({ error: 'Unauthorized' }, 401);
@@ -33,7 +37,7 @@ const app = new Hono<AuthEnv>()
 
     return c.json(updated);
   })
-  .delete('/:id', async (c) => {
+  .delete('/:id', requireAuth, async (c) => {
     const user = c.get('user');
     if (!user) {
       return c.json({ error: 'Unauthorized' }, 401);
