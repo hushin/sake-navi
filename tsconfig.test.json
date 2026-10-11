@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.worker.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo",
+    "types": ["./worker-configuration.d.ts", "vitest/globals", "@cloudflare/vitest-plugin/types"]
+  },
+  // react-app 配下の *.test.ts も Workers runtime で実行されるため、ここで型を付ける
+  // （DOM が要るものは story にする。`storybook-testing` skill 参照）
+  "include": ["src/worker/**/*.test.ts", "src/react-app/**/*.test.ts"]
+}

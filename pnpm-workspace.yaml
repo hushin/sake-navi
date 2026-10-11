@@ -1,0 +1,12 @@
+minimumReleaseAge: 2880
+
+allowBuilds:
+  esbuild: true
+  workerd: true
+  sharp: true
+
+# better-auth → @better-auth/core が依存する @opentelemetry/semantic-conventions は、
+# pnpm の厳格な node_modules 構造だとプロジェクトルートから解決できない。
+# vitest の deps.optimizer でバンドルさせるために root へ公開ホイストする。
+publicHoistPattern:
+  - '@opentelemetry/semantic-conventions'
