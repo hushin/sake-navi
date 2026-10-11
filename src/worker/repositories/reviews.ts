@@ -1,4 +1,4 @@
-import { and, desc, eq, lt, or } from 'drizzle-orm';
+import { and, desc, eq, lt, or, sql } from 'drizzle-orm';
 import type { ReviewInput } from '@/shared/schemas/sake';
 import type { Db } from '../db';
 import { breweries, reviews, sakes, user } from '../db/schema';
@@ -33,7 +33,12 @@ const reviewColumns = {
 /** 新しい順。同日時の並びを安定させるため id も降順で見る */
 export async function listReviewsForSake(db: Db, sakeId: number): Promise<ReviewWithUser[]> {
   return db
-    .select({ ...reviewColumns, userName: user.name, userImage: user.image })
+    .select({
+      ...reviewColumns,
+      // アプリ内の表示名はニックネームを優先する
+      userName: sql<string>`coalesce(${user.nickname}, ${user.name})`,
+      userImage: user.image,
+    })
     .from(reviews)
     .innerJoin(user, eq(user.id, reviews.userId))
     .where(eq(reviews.sakeId, sakeId))
@@ -155,7 +160,7 @@ export async function listTimeline(
     .select({
       ...reviewColumns,
       userId: reviews.userId,
-      userName: user.name,
+      userName: sql<string>`coalesce(${user.nickname}, ${user.name})`,
       userImage: user.image,
       sakeId: sakes.id,
       sakeName: sakes.name,

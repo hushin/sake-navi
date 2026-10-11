@@ -5,6 +5,7 @@ import { user } from '../db/schema';
 export type Member = {
   id: string;
   name: string;
+  nickname: string | null;
   email: string;
   image: string | null;
   role: string;
@@ -17,6 +18,7 @@ export async function listMembers(db: Db): Promise<Member[]> {
     .select({
       id: user.id,
       name: user.name,
+      nickname: user.nickname,
       email: user.email,
       image: user.image,
       role: user.role,

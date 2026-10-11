@@ -12,6 +12,8 @@ export const signedInSession = {
     email: 'hanako@example.com',
     emailVerified: true,
     image: null,
+    // ニックネーム未登録の状態（表示は Google の名前になる）
+    nickname: null,
     role: 'owner',
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
@@ -26,9 +28,18 @@ export const signedInSession = {
   },
 } as const;
 
+/** ニックネーム登録済みの状態 */
+export const signedInSessionWithNickname = {
+  ...signedInSession,
+  user: { ...signedInSession.user, nickname: 'はなこ' },
+} as const;
+
 /** story から使うハンドラ一式 */
 export const sessionHandlers = {
   signedIn: [http.get('/api/auth/get-session', () => HttpResponse.json(signedInSession))],
+  signedInWithNickname: [
+    http.get('/api/auth/get-session', () => HttpResponse.json(signedInSessionWithNickname)),
+  ],
   // 未ログインのとき better-auth は 200 + null を返す
   signedOut: [http.get('/api/auth/get-session', () => HttpResponse.json(null))],
 } as const satisfies Record<string, RequestHandler[]>;

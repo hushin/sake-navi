@@ -29,7 +29,7 @@ export function Header() {
           {isPending ? null : session ? (
             <>
               <span className="hidden text-sm text-muted-foreground sm:inline">
-                {session.user.name}
+                {session.user.nickname ?? session.user.name}
               </span>
               <Button
                 variant="outline"

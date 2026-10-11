@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link } from '@tanstack/react-router';
 import type { InferResponseType } from 'hono/client';
 import { useState } from 'react';
 import { client, useSession } from '@/react-app/shared/api';
@@ -94,11 +95,16 @@ export function SettingsPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-1">
-          <p className="text-sm font-medium">{session?.user.name}</p>
+          <p className="text-sm font-medium">{session?.user.nickname ?? session?.user.name}</p>
           <p className="text-sm text-muted-foreground">{session?.user.email}</p>
           <p className="mt-2 text-sm text-muted-foreground">
             {me?.role === 'owner' ? 'オーナーとしてサインイン中' : 'メンバーとしてサインイン中'}
           </p>
+          <div className="mt-3">
+            <Button variant="outline" size="sm" render={<Link to="/welcome" />}>
+              ニックネームを変更
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -133,7 +139,7 @@ export function SettingsPage() {
               {data?.members.map((member) => (
                 <li key={member.id} className="flex items-center gap-3 py-3">
                   <div className="min-w-0">
-                    <p className="text-sm font-medium">{member.name}</p>
+                    <p className="text-sm font-medium">{member.nickname ?? member.name}</p>
                     <p className="truncate text-xs text-muted-foreground">{member.email}</p>
                   </div>
                   <div className="ml-auto shrink-0">
