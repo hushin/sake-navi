@@ -156,6 +156,9 @@ beforeEach(async () => {
 - `vitest/globals` → `describe` / `it` / `expect` 等のグローバル型
 - `@cloudflare/vitest-plugin/types` → `cloudflare:test` モジュールの型
 
+`*.test.ts` は `tsconfig.app.json` の `exclude` に入れてある（アプリ側のビルド対象から外すため）。
+`src/shared` や `src/react-app` に `*.test.ts` を足しても型は `tsconfig.worker.json` / `tsconfig.test.json` 側で付く。
+
 ## 実行
 
 ```bash
