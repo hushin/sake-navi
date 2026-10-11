@@ -16,6 +16,8 @@ export const user = sqliteTable('user', {
   email: text('email').notNull().unique(),
   emailVerified: integer('email_verified', { mode: 'boolean' }).default(false).notNull(),
   image: text('image'),
+  // アプリ内で表示する名前。Google のアカウント名とは別に、初回サインイン後に本人が決める
+  nickname: text('nickname'),
   // 最初にサインインしたユーザーが owner。オーナーだけがメンバーを追加できる
   role: text('role').default('member').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp_ms' })

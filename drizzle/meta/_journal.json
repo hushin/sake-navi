@@ -8,6 +8,13 @@
       "when": 1791699674041,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1791719850760,
+      "tag": "0001_add_nickname_and_paid_tasting_price",
+      "breakpoints": true
     }
   ]
 }

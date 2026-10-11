@@ -34,6 +34,11 @@ export const sakes = sqliteTable(
     type: text('type'),
     category: text('category').notNull().default('清酒'),
     isLimited: integer('is_limited', { mode: 'boolean' }).notNull().default(false),
+    /**
+     * 有料試飲の価格（円）。会場に行くまで分からないので未入力は null にしておき、
+     * 会場で手入力して直す。旧アプリの seed にあった 7 は金額として使えないため移行していない。
+     */
+    paidTastingPrice: integer('paid_tasting_price'),
     createdAt: integer('created_at', { mode: 'timestamp_ms' })
       .notNull()
       .default(currentTimestampMs),
