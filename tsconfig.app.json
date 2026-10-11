@@ -1,9 +1,12 @@
 {
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
-    "target": "ES2020",
+    // `import type { AppType } from '@/worker'` で worker の型を辿るため、worker 側が使う
+    // ES2022 の API（Array.prototype.at など）がこの project でも解決できる必要がある。
+    // 実際のトランスパイルは Vite が行うので、ここは型チェックの範囲を決めるだけ。
+    "target": "ES2022",
     "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
     "types": ["./worker-configuration.d.ts", "msw-storybook-addon/types"],
