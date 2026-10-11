@@ -85,6 +85,11 @@ src/
 - route の保護は `src/worker/auth/middleware.ts` の `sessionMiddleware` → `requireAuth` / `requireOwner`
   - middleware が返す 401 / 403 は Hono RPC の型に現れない。クライアントは `res.status` で分岐する
 - 自分のロールはセッションの型に載せていないので、`GET /api/members` が返す `canManage` とメンバー一覧を使う
+- 初回サインイン後は `/welcome` でニックネームを決める（`user.nickname`）。未登録のまま他の画面を開くと
+  `routes/__root.tsx` の `beforeLoad` が `/welcome` に飛ばす
+- アプリ内の表示名は **`nickname ?? name`**（worker 側は `coalesce(nickname, name)`）。Google の名前は表示に使わない
+- ニックネームの検証は `src/shared/schemas/profile.ts` の zod スキーマを、フォームと
+  `additionalFields.nickname.validator` の両方で使う（`input: true` なので `authClient.updateUser` で設定できる）
 
 ## データベース（D1 + Drizzle）
 
@@ -98,8 +103,10 @@ src/
 - `WHERE` / `ORDER BY` に使う列には `index()` を張る（D1 は読み取り行数で課金される）。一覧系には必ず `.limit()`
 - レビューは `UNIQUE(user_id, sake_id)` で 1 人 1 銘柄 1 件。重複投稿は 409 を返し、訂正は PUT で行う
 - タイムラインのカーソルは `<epoch ミリ秒>_<review id>` の複合（同一ミリ秒の取りこぼし防止）
+- **マスタ（銘柄）の編集はサインインしていれば誰でもできる**（`PUT /api/sakes/:id`。身内で使うアプリなので権限を分けない）
+- `sakes.paid_tasting_price` は会場で手入力する前提の nullable。未入力は `null`（「無料」とは区別しない）
 - マスタ（酒蔵 82・銘柄 563）は `db/seed-breweries.sql` / `db/seed-sakes.sql`。旧アプリの seed を移植したもので、
-  `paid_tasting_price` は出典 PDF の値（NULL / 7）が金額として使えなかったため移行していない
+  `paid_tasting_price` の値（NULL / 7）は金額として使えなかったため取り込んでいない
 
 ## テストの書き分け
 
@@ -128,6 +135,8 @@ src/
   `worker-configuration.d.ts` を壊す
 - story 間で better-auth のセッションが持ち越される（`useSession` の nanostore キャッシュ）。
   `loaders: [refetchSession]` で捨てる。セッション待ちの UI は `findBy*` で待つ（`getBy*` だとフレーキーになる）
+- `*.test.ts` は `tsconfig.app.json` の `exclude` に入れてある（vitest の型は `tsconfig.worker` /
+  `tsconfig.test` 側で付ける）。`src/shared` にテストを足すときも同じ扱い
 
 ## 詳細情報
 
@@ -139,3 +148,4 @@ src/
 | react-app のレイヤー構成（Feature-Sliced Design）       | `fsd` skill                                  |
 | UI コンポーネント追加                                   | `shadcn-ui` skill, `docs/shadcn-ui-setup.md` |
 | セットアップ（D1・Google OAuth・デプロイ）              | `README.md`                                  |
+| 残タスクの移行計画（新しいセッションで着手する）        | `ai-out/plans.md`                            |
