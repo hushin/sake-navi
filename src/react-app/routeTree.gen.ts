@@ -17,6 +17,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as TimelineRouteImport } from './routes/timeline'
 import { Route as WelcomeRouteImport } from './routes/welcome'
+import { Route as BreweriesBreweryIdRouteImport } from './routes/breweries.$breweryId'
 import { Route as SakesSakeIdRouteImport } from './routes/sakes.$sakeId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -59,6 +60,11 @@ const WelcomeRoute = WelcomeRouteImport.update({
   path: '/welcome',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BreweriesBreweryIdRoute = BreweriesBreweryIdRouteImport.update({
+  id: '/breweries/$breweryId',
+  path: '/breweries/$breweryId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SakesSakeIdRoute = SakesSakeIdRouteImport.update({
   id: '/$sakeId',
   path: '/$sakeId',
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof SignInRoute
   '/timeline': typeof TimelineRoute
   '/welcome': typeof WelcomeRoute
+  '/breweries/$breweryId': typeof BreweriesBreweryIdRoute
   '/sakes/$sakeId': typeof SakesSakeIdRoute
 }
 export interface FileRoutesByTo {
@@ -85,6 +92,7 @@ export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
   '/timeline': typeof TimelineRoute
   '/welcome': typeof WelcomeRoute
+  '/breweries/$breweryId': typeof BreweriesBreweryIdRoute
   '/sakes/$sakeId': typeof SakesSakeIdRoute
 }
 export interface FileRoutesById {
@@ -97,6 +105,7 @@ export interface FileRoutesById {
   '/sign-in': typeof SignInRoute
   '/timeline': typeof TimelineRoute
   '/welcome': typeof WelcomeRoute
+  '/breweries/$breweryId': typeof BreweriesBreweryIdRoute
   '/sakes/$sakeId': typeof SakesSakeIdRoute
 }
 export interface FileRouteTypes {
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/timeline'
     | '/welcome'
+    | '/breweries/$breweryId'
     | '/sakes/$sakeId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -121,6 +131,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/timeline'
     | '/welcome'
+    | '/breweries/$breweryId'
     | '/sakes/$sakeId'
   id:
     | '__root__'
@@ -132,6 +143,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/timeline'
     | '/welcome'
+    | '/breweries/$breweryId'
     | '/sakes/$sakeId'
   fileRoutesById: FileRoutesById
 }
@@ -144,6 +156,7 @@ export interface RootRouteChildren {
   SignInRoute: typeof SignInRoute
   TimelineRoute: typeof TimelineRoute
   WelcomeRoute: typeof WelcomeRoute
+  BreweriesBreweryIdRoute: typeof BreweriesBreweryIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -204,6 +217,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WelcomeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/breweries/$breweryId': {
+      id: '/breweries/$breweryId'
+      path: '/breweries/$breweryId'
+      fullPath: '/breweries/$breweryId'
+      preLoaderRoute: typeof BreweriesBreweryIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sakes/$sakeId': {
       id: '/sakes/$sakeId'
       path: '/$sakeId'
@@ -233,6 +253,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignInRoute: SignInRoute,
   TimelineRoute: TimelineRoute,
   WelcomeRoute: WelcomeRoute,
+  BreweriesBreweryIdRoute: BreweriesBreweryIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

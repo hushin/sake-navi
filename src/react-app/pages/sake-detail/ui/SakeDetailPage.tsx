@@ -157,7 +157,14 @@ export function SakeDetailPage({ sakeId }: { sakeId: number }) {
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 flex-col gap-1">
             <p className="text-sm text-muted-foreground">
-              No.{sake.brewery.id} {sake.brewery.name}
+              No.{sake.brewery.id}{' '}
+              <Link
+                to="/breweries/$breweryId"
+                params={{ breweryId: String(sake.brewery.id) }}
+                className="hover:text-foreground hover:underline"
+              >
+                {sake.brewery.name}
+              </Link>
             </p>
             <h1 className="text-2xl font-semibold tracking-tight break-words">{sake.name}</h1>
           </div>

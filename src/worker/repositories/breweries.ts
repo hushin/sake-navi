@@ -53,3 +53,81 @@ export async function listBreweries(
     hasUserReviewed: row.myReviewCount > 0,
   }));
 }
+
+export type BreweryDetail = {
+  id: number;
+  name: string;
+  mapColumn: number;
+  mapRow: number;
+  area: string | null;
+};
+
+/** 酒蔵詳細に並べる出品酒の 1 件 */
+export type BrewerySakeItem = {
+  id: number;
+  name: string;
+  type: string | null;
+  category: string;
+  isLimited: boolean;
+  paidTastingPrice: number | null;
+  reviewCount: number;
+  averageRating: number | null;
+  /** 自分が書いたレビューの id（未レビューなら null）。詳細への導線に使う */
+  myReviewId: string | null;
+};
+
+export async function findBreweryById(db: Db, breweryId: number): Promise<BreweryDetail | null> {
+  const [row] = await db
+    .select({
+      id: breweries.id,
+      name: breweries.name,
+      mapColumn: breweries.mapColumn,
+      mapRow: breweries.mapRow,
+      area: breweries.area,
+    })
+    .from(breweries)
+    .where(eq(breweries.id, breweryId));
+
+  return row ?? null;
+}
+
+/**
+ * 酒蔵の出品酒（銘柄）の一覧。レビュー件数・平均評価と、自分のレビューの有無を付ける。
+ *
+ * `myReviewId` は「1 人 1 銘柄 1 件」なので `max` でも実質その 1 件になる。
+ * `userId` が null（未サインイン）なら常に null。
+ */
+export async function listSakesForBrewery(
+  db: Db,
+  breweryId: number,
+  options: { userId: string | null },
+): Promise<BrewerySakeItem[]> {
+  const rows = await db
+    .select({
+      id: sakes.id,
+      name: sakes.name,
+      type: sakes.type,
+      category: sakes.category,
+      isLimited: sakes.isLimited,
+      paidTastingPrice: sakes.paidTastingPrice,
+      reviewCount: sql<number>`count(${reviews.id})`,
+      averageRating: sql<number | null>`avg(${reviews.rating})`,
+      myReviewId: sql<
+        string | null
+      >`max(case when ${reviews.userId} = ${options.userId} then ${reviews.id} end)`,
+    })
+    .from(sakes)
+    .leftJoin(reviews, eq(reviews.sakeId, sakes.id))
+    .where(eq(sakes.breweryId, breweryId))
+    .groupBy(
+      sakes.id,
+      sakes.name,
+      sakes.type,
+      sakes.category,
+      sakes.isLimited,
+      sakes.paidTastingPrice,
+    )
+    .orderBy(asc(sakes.id));
+
+  return rows;
+}

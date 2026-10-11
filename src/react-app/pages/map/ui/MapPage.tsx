@@ -109,8 +109,10 @@ export function MapPage({ breweryId }: { breweryId?: number }) {
               const isFocused = brewery.id === breweryId;
 
               return (
-                <div
+                <Link
                   key={brewery.id}
+                  to="/breweries/$breweryId"
+                  params={{ breweryId: String(brewery.id) }}
                   ref={(element) => {
                     if (element) {
                       breweryElements.current.set(brewery.id, element);
@@ -119,11 +121,9 @@ export function MapPage({ breweryId }: { breweryId?: number }) {
                     }
                   }}
                   // 強調中の 1 件だけが「表示中の酒蔵」として読み上げられる
-                  role="group"
                   aria-current={isFocused ? 'true' : undefined}
-                  aria-label={`No.${brewery.id} ${brewery.name}`}
                   className={cn(
-                    'absolute -translate-x-1/2 -translate-y-1/2 rounded-lg',
+                    'absolute -translate-x-1/2 -translate-y-1/2 rounded-lg transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
                     isFocused && 'z-10',
                   )}
                   style={{ left: point.x, top: point.y }}
@@ -154,7 +154,7 @@ export function MapPage({ breweryId }: { breweryId?: number }) {
                       </span>
                     )}
                   </span>
-                </div>
+                </Link>
               );
             })}
           </div>

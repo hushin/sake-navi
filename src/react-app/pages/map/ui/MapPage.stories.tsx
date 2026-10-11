@@ -18,12 +18,13 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   play: async ({ canvas }) => {
-    // 酒蔵名と平均評価がバッジに出る
-    const northSnow = await canvas.findByRole('group', { name: 'No.82 北雪酒造' });
+    // 酒蔵名と平均評価がバッジに出る（バッジは酒蔵詳細へのリンク）
+    const northSnow = await canvas.findByRole('link', { name: /北雪酒造/ });
     await expect(within(northSnow).getByText('4.5')).toBeVisible();
+    await expect(northSnow).toHaveAttribute('href', '/breweries/82');
 
     // 未評価の酒蔵は「未評価」
-    const sekihara = canvas.getByRole('group', { name: 'No.1 関原酒造' });
+    const sekihara = canvas.getByRole('link', { name: /関原酒造/ });
     await expect(within(sekihara).getByText('未評価')).toBeVisible();
 
     // 凡例
@@ -36,9 +37,9 @@ export const Focused: Story = {
   args: { breweryId: 1 },
   play: async ({ canvas }) => {
     // 指定した酒蔵だけが「表示中」になる
-    const sekihara = await canvas.findByRole('group', { name: 'No.1 関原酒造' });
+    const sekihara = await canvas.findByRole('link', { name: /関原酒造/ });
     await expect(sekihara).toHaveAttribute('aria-current', 'true');
-    await expect(canvas.getByRole('group', { name: 'No.82 北雪酒造' })).not.toHaveAttribute(
+    await expect(canvas.getByRole('link', { name: /北雪酒造/ })).not.toHaveAttribute(
       'aria-current',
     );
 

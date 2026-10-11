@@ -36,7 +36,12 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   play: async ({ canvas }) => {
     await expect(await canvas.findByRole('heading', { name: '八海山 純米大吟醸' })).toBeVisible();
-    await expect(canvas.getByText('No.3 八海醸造')).toBeVisible();
+    await expect(canvas.getByText('No.3')).toBeVisible();
+    // 酒蔵名から酒蔵詳細（出品酒一覧）へ行ける
+    await expect(canvas.getByRole('link', { name: '八海醸造' })).toHaveAttribute(
+      'href',
+      '/breweries/3',
+    );
     await expect(canvas.getByText('限定')).toBeVisible();
 
     // 自分はまだレビューしていないので投稿フォームが出る（セッションの取得を待つ）
