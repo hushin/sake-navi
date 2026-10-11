@@ -54,9 +54,8 @@ export const Default: Story = {
     // 未評価のものは「未評価」
     await expect(canvas.getByText('未評価')).toBeVisible();
     await expect(canvas.getByText('限定')).toBeVisible();
-    // 金額が分かっているものと、有料試飲とだけ分かっているもの
+    // 金額が分かっている有料試飲（金額未確認のものは 2 ページ目）
     await expect(canvas.getByText('有料試飲 ¥500')).toBeVisible();
-    await expect(canvas.getByText('有料試飲（金額未確認）')).toBeVisible();
     // 1 ページ 2 件なので 3 件目はまだ出ていない
     await expect(canvas.queryByText('杜氏の挑戦 シャルドネ')).not.toBeInTheDocument();
   },
@@ -69,6 +68,8 @@ export const LoadMore: Story = {
     await userEvent.click(canvas.getByRole('button', { name: 'もっと見る' }));
 
     await expect(await canvas.findByText('杜氏の挑戦 シャルドネ')).toBeVisible();
+    // 有料試飲とだけ分かっているものは「金額未確認」と出す
+    await expect(canvas.getByText('有料試飲（金額未確認）')).toBeVisible();
     // 最後まで読んだらボタンは消える
     await waitFor(() =>
       expect(canvas.queryByRole('button', { name: 'もっと見る' })).not.toBeInTheDocument(),
@@ -123,6 +124,33 @@ export const FilterByCategory: Story = {
 
     await userEvent.click(canvas.getByRole('button', { name: 'リキュール' }));
 
+    await expect(await canvas.findByText('杜氏の挑戦 シャルドネ')).toBeVisible();
+    await waitFor(() => expect(canvas.queryByText('八海山 純米大吟醸')).not.toBeInTheDocument());
+  },
+};
+
+export const FilterByPaidTasting: Story = {
+  render: (args) => <SakeListPageWithState {...args} />,
+  play: async ({ canvas, userEvent }) => {
+    await canvas.findByText('八海山 純米大吟醸');
+
+    await userEvent.click(canvas.getByRole('button', { name: '有料試飲あり' }));
+
+    // 金額が分かっているものも、金額未確認のものも残る
+    await expect(await canvas.findByText('杜氏の挑戦 シャルドネ')).toBeVisible();
+    await expect(canvas.getByText('有料試飲 ¥500')).toBeVisible();
+    await waitFor(() => expect(canvas.queryByText('北雪 大吟醸YK35')).not.toBeInTheDocument());
+  },
+};
+
+export const FilterByNeedsPrice: Story = {
+  render: (args) => <SakeListPageWithState {...args} />,
+  play: async ({ canvas, userEvent }) => {
+    await canvas.findByText('八海山 純米大吟醸');
+
+    await userEvent.click(canvas.getByRole('button', { name: '金額未入力' }));
+
+    // 有料試飲とだけ分かっているものだけが残る
     await expect(await canvas.findByText('杜氏の挑戦 シャルドネ')).toBeVisible();
     await waitFor(() => expect(canvas.queryByText('八海山 純米大吟醸')).not.toBeInTheDocument());
   },

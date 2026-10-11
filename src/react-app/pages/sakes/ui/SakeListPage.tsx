@@ -19,6 +19,10 @@ export type SakeListSearch = {
   /** URL に無いときは undefined（リンク側で search を省略できるようにする） */
   q?: string;
   category?: string;
+  /** 有料試飲あり（金額の有無を問わない） */
+  hasPaidTasting?: boolean;
+  /** 有料試飲とだけ分かっていて金額が未入力（会場で埋める用） */
+  needsPrice?: boolean;
 };
 
 type SakeListItem = InferResponseType<(typeof client.api.sakes)['$get'], 200>['items'][number];
@@ -45,12 +49,20 @@ export function SakeListPage({
   const category = SAKE_CATEGORIES.find((value) => value === search.category);
 
   const sakesQuery = useInfiniteQuery({
-    queryKey: ['sakes', keyword, search.category ?? ''],
+    queryKey: [
+      'sakes',
+      keyword,
+      search.category ?? '',
+      search.hasPaidTasting ? 'paid' : '',
+      search.needsPrice ? 'needs-price' : '',
+    ],
     queryFn: async ({ pageParam }) => {
       const res = await client.api.sakes.$get({
         query: {
           q: keyword.length > 0 ? keyword : undefined,
           category,
+          hasPaidTasting: search.hasPaidTasting ? 'true' : undefined,
+          needsPrice: search.needsPrice ? 'true' : undefined,
           cursor: pageParam === undefined ? undefined : String(pageParam),
         },
       });
@@ -94,21 +106,42 @@ export function SakeListPage({
           </Button>
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
-          <CategoryButton
+          <FilterButton
             isSelected={category === undefined}
             onClick={() => onSearchChange({ ...search, category: '' })}
           >
             すべて
-          </CategoryButton>
+          </FilterButton>
           {SAKE_CATEGORIES.map((value) => (
-            <CategoryButton
+            <FilterButton
               key={value}
               isSelected={category === value}
               onClick={() => onSearchChange({ ...search, category: value })}
             >
               {value}
-            </CategoryButton>
+            </FilterButton>
           ))}
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <FilterButton
+            isSelected={Boolean(search.hasPaidTasting)}
+            onClick={() =>
+              onSearchChange({
+                ...search,
+                hasPaidTasting: search.hasPaidTasting ? undefined : true,
+              })
+            }
+          >
+            有料試飲あり
+          </FilterButton>
+          <FilterButton
+            isSelected={Boolean(search.needsPrice)}
+            onClick={() =>
+              onSearchChange({ ...search, needsPrice: search.needsPrice ? undefined : true })
+            }
+          >
+            金額未入力
+          </FilterButton>
         </div>
       </form>
 
@@ -151,7 +184,7 @@ export function SakeListPage({
   );
 }
 
-function CategoryButton({
+function FilterButton({
   isSelected,
   onClick,
   children,

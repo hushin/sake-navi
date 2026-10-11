@@ -9,6 +9,8 @@ export const Route = createFileRoute('/sakes')({
       typeof search.category === 'string' && search.category.length > 0
         ? search.category
         : undefined,
+    hasPaidTasting: search.hasPaidTasting === 'true' || search.hasPaidTasting === true || undefined,
+    needsPrice: search.needsPrice === 'true' || search.needsPrice === true || undefined,
   }),
 });
 

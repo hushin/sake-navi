@@ -71,6 +71,8 @@ describe('sakes routes', () => {
         type: '純米酒',
         category: '清酒',
         isLimited: false,
+        // 金額まで分かっている有料試飲
+        paidTastingPrice: 500,
       },
       {
         id: 2,
@@ -79,6 +81,8 @@ describe('sakes routes', () => {
         type: 'リキュール',
         category: 'リキュール',
         isLimited: true,
+        // 有料試飲とだけ分かっていて金額が未入力（印の 7）
+        paidTastingPrice: 7,
       },
       {
         id: 3,
@@ -136,6 +140,18 @@ describe('sakes routes', () => {
 
     const limited = await app.request('/api/sakes?isLimited=true', {}, env);
     expect(listSchema.parse(await limited.json()).items.map((item) => item.id)).toEqual([2]);
+  });
+
+  it('GET /api/sakes?hasPaidTasting= と needsPrice= で絞り込める', async () => {
+    const paid = await app.request('/api/sakes?hasPaidTasting=true', {}, env);
+    expect(listSchema.parse(await paid.json()).items.map((item) => item.id)).toEqual([1, 2]);
+
+    // 金額が未入力（7）のものだけ。金額が分かっているものは含めない
+    const needsPrice = await app.request('/api/sakes?needsPrice=true', {}, env);
+    expect(listSchema.parse(await needsPrice.json()).items.map((item) => item.id)).toEqual([2]);
+
+    // `false` は「未入力も含む」ので意味がなく、受け付けない
+    expect((await app.request('/api/sakes?hasPaidTasting=false', {}, env)).status).toBe(400);
   });
 
   it('GET /api/sakes はカーソルで次ページを返す', async () => {

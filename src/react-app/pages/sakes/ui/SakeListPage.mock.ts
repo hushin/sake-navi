@@ -4,6 +4,7 @@ import { HttpResponse, http } from 'msw/http';
 import { delay } from 'msw/utils/delay';
 import { client } from '@/react-app/shared/api';
 import { createHandler } from '@/react-app/shared/lib';
+import { PAID_TASTING_PRICE_UNDETERMINED } from '@/shared/schemas/sake';
 
 export type SakeListItem = InferResponseType<
   (typeof client.api.sakes)['$get'],
@@ -29,7 +30,8 @@ export const sakeFixtures: SakeListItem[] = [
     type: '大吟醸',
     category: '清酒',
     isLimited: true,
-    paidTastingPrice: 7,
+    // 価格は未入力（有料試飲かどうかも分かっていない）
+    paidTastingPrice: null,
     breweryId: 82,
     breweryName: '北雪酒造',
     reviewCount: 0,
@@ -41,7 +43,8 @@ export const sakeFixtures: SakeListItem[] = [
     type: 'リキュール',
     category: 'リキュール',
     isLimited: false,
-    paidTastingPrice: null,
+    // 有料試飲とだけ分かっていて金額が未入力（印の 7）
+    paidTastingPrice: PAID_TASTING_PRICE_UNDETERMINED,
     breweryId: 1,
     breweryName: '関原酒造',
     reviewCount: 1,
@@ -61,7 +64,7 @@ export function resetSakes(initialSakes: SakeListItem[] = sakeFixtures): void {
 
 const successHandlers = [
   createHandler({ path: '/api/sakes', method: '$get' })(({ input }) => {
-    const { q, category, isLimited, cursor } = input.query;
+    const { q, category, isLimited, hasPaidTasting, needsPrice, cursor } = input.query;
     // クエリ文字列なのでカーソルも文字列で届く
     const cursorValue = Array.isArray(cursor) ? cursor[0] : cursor;
     const after = cursorValue === undefined ? 0 : Number(cursorValue);
@@ -74,6 +77,12 @@ const successHandlers = [
         return false;
       }
       if (isLimited === 'true' && !sake.isLimited) {
+        return false;
+      }
+      if (hasPaidTasting === 'true' && sake.paidTastingPrice === null) {
+        return false;
+      }
+      if (needsPrice === 'true' && sake.paidTastingPrice !== PAID_TASTING_PRICE_UNDETERMINED) {
         return false;
       }
       return sake.id > after;

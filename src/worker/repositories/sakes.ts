@@ -1,5 +1,9 @@
-import { and, asc, eq, gt, or, sql } from 'drizzle-orm';
-import type { SakeListQuery, SakeUpdateInput } from '@/shared/schemas/sake';
+import { and, asc, eq, gt, isNotNull, or, sql } from 'drizzle-orm';
+import {
+  PAID_TASTING_PRICE_UNDETERMINED,
+  type SakeListQuery,
+  type SakeUpdateInput,
+} from '@/shared/schemas/sake';
 import type { Db } from '../db';
 import { breweries, reviews, sakes } from '../db/schema';
 
@@ -57,6 +61,13 @@ export async function listSakes(
   }
   if (query.isLimited) {
     conditions.push(eq(sakes.isLimited, query.isLimited === 'true'));
+  }
+  if (query.hasPaidTasting === 'true') {
+    conditions.push(isNotNull(sakes.paidTastingPrice));
+  }
+  if (query.needsPrice === 'true') {
+    // 「7」は有料試飲とだけ分かっていて金額が未入力の印（詳細は `parsePaidTasting`）
+    conditions.push(eq(sakes.paidTastingPrice, PAID_TASTING_PRICE_UNDETERMINED));
   }
   if (query.cursor !== undefined) {
     conditions.push(gt(sakes.id, query.cursor));

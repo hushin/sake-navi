@@ -192,11 +192,19 @@ export type ReviewFormInput = z.infer<typeof reviewFormSchema>;
 
 /**
  * お酒一覧の検索条件。クエリ文字列なので数値・真偽値は文字列で受け取って変換する。
+ *
+ * 有料試飲の 2 つの絞り込みは `true` のときだけ効く。`paid_tasting_price` の `null` は
+ * 「有料試飲なし」ではなく「未入力（分かったら入れる）」なので、`false` 側に意味がない。
+ *
+ * - `hasPaidTasting` … 有料試飲がある（金額が分かっていてもいなくても）
+ * - `needsPrice` … 有料試飲とだけ分かっていて金額が未入力（会場で埋める作業用）
  */
 export const sakeListQuerySchema = z.object({
   q: z.string().trim().max(100).optional(),
   category: sakeCategorySchema.optional(),
   isLimited: z.enum(['true', 'false']).optional(),
+  hasPaidTasting: z.literal('true').optional(),
+  needsPrice: z.literal('true').optional(),
   cursor: z.coerce.number().int().positive().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(50),
 });
