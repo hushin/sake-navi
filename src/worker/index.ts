@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { createAuth } from './auth';
 import { type AuthEnv, sessionMiddleware } from './auth/middleware';
 import bookmarksRoute from './routes/bookmarks';
+import breweriesRoute from './routes/breweries';
 import membersRoute from './routes/members';
 import reviewsRoute from './routes/reviews';
 import sakesRoute from './routes/sakes';
@@ -14,6 +15,7 @@ const app = new Hono<AuthEnv>()
   .use('*', sessionMiddleware)
   .get('/health', (c) => c.json({ status: 'ok' }))
   .route('/sakes', sakesRoute)
+  .route('/breweries', breweriesRoute)
   .route('/reviews', reviewsRoute)
   .route('/timeline', timelineRoute)
   .route('/bookmarks', bookmarksRoute)

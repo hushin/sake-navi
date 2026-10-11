@@ -15,6 +15,9 @@ export function Header() {
           酒ナビ
         </Link>
         <nav className="flex items-center overflow-x-auto">
+          <Link to="/map" className={navLinkClass}>
+            マップ
+          </Link>
           <Link to="/sakes" className={navLinkClass}>
             お酒
           </Link>
