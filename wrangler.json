@@ -21,10 +21,7 @@
     {
       "binding": "DB",
       "database_name": "sake-navi-db",
-      // `wrangler d1 create sake-navi-db` の出力に置き換える（ローカル開発だけなら
-      // このままでも動く。`migrations_dir` は drizzle.config.ts の `out` と揃える）
-      "database_id": "00000000-0000-0000-0000-000000000000",
-      "migrations_dir": "drizzle"
+      "database_id": "d238fab4-7f05-4d5d-a482-a5beb20d8b46"
     }
   ],
   // 秘密ではないので vars に置く（`wrangler types` が .dev.vars 無しでも型を作れるようにするため）
