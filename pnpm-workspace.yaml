@@ -1,0 +1,8 @@
+# 親リポジトリ (renewal) の workspace に吸われないよう、この worktree を独立プロジェクトとして扱う
+packages: []
+
+allowBuilds:
+  esbuild: true
+  workerd: true
+  sharp: true
+  unrs-resolver: true
