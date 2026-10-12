@@ -79,6 +79,20 @@ export const AddSake: Story = {
   },
 };
 
+/** 名前を入れる前に「限定品」や区分を触っただけでは、名前のエラーは出ない（送信してから出す） */
+export const AddSakeNoErrorUntilSubmit: Story = {
+  play: async ({ canvas, userEvent }) => {
+    await canvas.findByText('出品酒（3）');
+
+    await userEvent.click(canvas.getByRole('button', { name: '酒を追加' }));
+    await userEvent.click(canvas.getByRole('button', { name: 'リキュール' }));
+    await userEvent.click(canvas.getByLabelText('限定品'));
+    await userEvent.click(canvas.getByLabelText('有料試飲あり'));
+
+    await expect(canvas.queryByText('お酒の名前を入力してください')).not.toBeInTheDocument();
+  },
+};
+
 export const AddSakeValidationError: Story = {
   play: async ({ canvas, userEvent }) => {
     await canvas.findByText('出品酒（3）');

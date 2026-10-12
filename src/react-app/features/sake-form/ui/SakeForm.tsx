@@ -1,4 +1,4 @@
-import { useForm } from '@tanstack/react-form';
+import { revalidateLogic, useForm } from '@tanstack/react-form';
 import { Button, Input, Label } from '@/react-app/shared/ui';
 import {
   SAKE_CATEGORIES,
@@ -62,8 +62,11 @@ export function SakeForm({
 }) {
   const form = useForm({
     defaultValues: sake ? toSakeEditInput(sake) : emptySakeEditInput,
+    // 送信するまでは検証しない。名前を入れる前に「限定品」や「有料試飲あり」を押しただけで
+    // 「お酒の名前を入力してください」が出てしまうのを防ぐ（送信後は直したそばから検証する）。
+    validationLogic: revalidateLogic(),
     validators: {
-      onChange: sakeEditSchema,
+      onDynamic: sakeEditSchema,
     },
     onSubmit: async ({ value }) => {
       await onSubmit(toSakeUpdateInput(value));
