@@ -11,3 +11,6 @@ export const authClient = createAuthClient({
 });
 
 export const { signIn, signOut, useSession } = authClient;
+
+/** `useSession()` の戻り値。router context に載せて beforeLoad のガードから読む */
+export type AuthState = ReturnType<typeof useSession>;

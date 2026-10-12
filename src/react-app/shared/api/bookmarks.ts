@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { client } from './client';
+import { throwApiError } from './errors';
 
 const BOOKMARKS_QUERY_KEY = ['bookmarks'] as const;
 
@@ -17,7 +18,7 @@ export function useBookmarks({ enabled = true }: { enabled?: boolean } = {}) {
     queryFn: async () => {
       const res = await client.api.bookmarks.$get();
       if (!res.ok) {
-        throw new Error('ブックマークを取得できませんでした');
+        throwApiError(res, 'ブックマークを取得できませんでした');
       }
       return res.json();
     },
@@ -44,7 +45,7 @@ export function useBookmarkToggle() {
       const res = await client.api.bookmarks.$post({ json: { sakeId } });
       // すでに登録済み（409）はこちらの状態が古いだけなので、成功と同じ扱いにする
       if (!res.ok && res.status !== 409) {
-        throw new Error('ブックマークに追加できませんでした');
+        throwApiError(res, 'ブックマークに追加できませんでした');
       }
     },
     onSuccess: invalidate,
@@ -57,7 +58,7 @@ export function useBookmarkToggle() {
       });
       // すでに解除済み（404）も同じ扱い
       if (!res.ok && res.status !== 404) {
-        throw new Error('ブックマークを解除できませんでした');
+        throwApiError(res, 'ブックマークを解除できませんでした');
       }
     },
     onSuccess: invalidate,

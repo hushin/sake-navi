@@ -1,7 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
-import { client, useBookmarkToggle, useBookmarks, useSession } from '@/react-app/shared/api';
+import {
+  client,
+  throwApiError,
+  useBookmarkToggle,
+  useBookmarks,
+  useSession,
+} from '@/react-app/shared/api';
 import { SakeForm } from '@/react-app/features/sake-form';
 import {
   Badge,
@@ -15,6 +21,7 @@ import {
   StarRating,
 } from '@/react-app/shared/ui';
 import { filterReviewTags, type ReviewInput, type SakeUpdateInput } from '@/shared/schemas/sake';
+import { sakeQuery } from '../api';
 import { ReviewForm } from './ReviewForm';
 import { ReviewList } from './ReviewList';
 
@@ -25,10 +32,10 @@ function ensureOk(
   conflictMessage: string,
 ): void {
   if (response.status === 409) {
-    throw new Error(conflictMessage);
+    throwApiError(response, conflictMessage);
   }
   if (!response.ok) {
-    throw new Error(message);
+    throwApiError(response, message);
   }
 }
 
@@ -46,19 +53,7 @@ export function SakeDetailPage({ sakeId }: { sakeId: number }) {
   const { toggle, pendingSakeId } = useBookmarkToggle();
   const isBookmarked = bookmarks.sakeIds.has(sakeId);
 
-  const sakeQuery = useQuery({
-    queryKey: ['sake', sakeId],
-    queryFn: async () => {
-      const res = await client.api.sakes[':id'].$get({ param: { id: String(sakeId) } });
-      if (res.status === 404) {
-        throw new Error('お酒が見つかりませんでした');
-      }
-      if (!res.ok) {
-        throw new Error('お酒の情報を取得できませんでした');
-      }
-      return res.json();
-    },
-  });
+  const sakeResult = useQuery(sakeQuery(sakeId));
 
   const saveReview = useMutation({
     mutationFn: async ({ reviewId, input }: { reviewId: string | null; input: ReviewInput }) => {
@@ -114,22 +109,22 @@ export function SakeDetailPage({ sakeId }: { sakeId: number }) {
     },
   });
 
-  if (sakeQuery.isPending) {
+  if (sakeResult.isPending) {
     return <SakeDetailSkeleton />;
   }
 
-  if (sakeQuery.isError) {
+  if (sakeResult.isError) {
     return (
       <div className="mx-auto flex w-full max-w-3xl flex-col items-start gap-4">
-        <p className="text-sm font-medium">{errorMessage(sakeQuery.error)}</p>
+        <p className="text-sm font-medium">{errorMessage(sakeResult.error)}</p>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => void sakeQuery.refetch()}
-            disabled={sakeQuery.isFetching}
+            onClick={() => void sakeResult.refetch()}
+            disabled={sakeResult.isFetching}
           >
-            {sakeQuery.isFetching ? '再試行中…' : '再試行'}
+            {sakeResult.isFetching ? '再試行中…' : '再試行'}
           </Button>
           <Button variant="ghost" size="sm" render={<Link to="/sakes" />}>
             お酒一覧へ
@@ -139,7 +134,7 @@ export function SakeDetailPage({ sakeId }: { sakeId: number }) {
     );
   }
 
-  const sake = sakeQuery.data;
+  const sake = sakeResult.data;
   const myReview = session
     ? (sake.reviews.find((review) => review.userId === session.user.id) ?? null)
     : null;

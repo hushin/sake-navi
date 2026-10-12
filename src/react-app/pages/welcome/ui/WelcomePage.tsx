@@ -20,7 +20,7 @@ import { NICKNAME_MAX_LENGTH, profileInputSchema } from '@/shared/schemas/profil
  * いまの表示名はセッションから読んで参考表示する。
  */
 export function WelcomePage({ onSaved }: { onSaved: () => void }) {
-  const { data: session } = useSession();
+  const { data: session, refetch } = useSession();
   const [nickname, setNickname] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -39,6 +39,8 @@ export function WelcomePage({ onSaved }: { onSaved: () => void }) {
       return;
     }
 
+    // ガード（router context の session）が同じ値を見るので、ストアの更新を待ってから遷移する
+    await refetch();
     onSaved();
   };
 

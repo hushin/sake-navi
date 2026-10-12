@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
-import { client, useSession } from '@/react-app/shared/api';
+import { client, throwApiError, useSession } from '@/react-app/shared/api';
 import { SakeForm } from '@/react-app/features/sake-form';
 import { Badge, Button, Card, PaidTastingBadge, StarRating } from '@/react-app/shared/ui';
 import type { SakeUpdateInput } from '@/shared/schemas/sake';
+import { breweryQuery } from '../api';
 import { BreweryNotes } from './BreweryNotes';
 
 /** 酒蔵の詳細。出品酒をまとめて見て、お酒詳細（レビュー）へ進む */
@@ -15,19 +16,7 @@ export function BreweryDetailPage({ breweryId }: { breweryId: number }) {
   /** 追加した銘柄。一覧に反映したあと、レビューへ進む導線を出す */
   const [createdSake, setCreatedSake] = useState<{ id: number; name: string } | null>(null);
 
-  const breweryQuery = useQuery({
-    queryKey: ['brewery', breweryId],
-    queryFn: async () => {
-      const res = await client.api.breweries[':id'].$get({ param: { id: String(breweryId) } });
-      if (res.status === 404) {
-        throw new Error('酒蔵が見つかりませんでした');
-      }
-      if (!res.ok) {
-        throw new Error('酒蔵の情報を取得できませんでした');
-      }
-      return res.json();
-    },
-  });
+  const breweryResult = useQuery(breweryQuery(breweryId));
 
   /** マスタに無い銘柄（当日の限定酒など）をその場で追加する */
   const createSake = useMutation({
@@ -37,7 +26,7 @@ export function BreweryDetailPage({ breweryId }: { breweryId: number }) {
         json: input,
       });
       if (!res.ok) {
-        throw new Error('お酒を追加できませんでした');
+        throwApiError(res, 'お酒を追加できませんでした');
       }
       return res.json();
     },
@@ -49,24 +38,24 @@ export function BreweryDetailPage({ breweryId }: { breweryId: number }) {
     },
   });
 
-  if (breweryQuery.isPending) {
+  if (breweryResult.isPending) {
     return <BreweryDetailSkeleton />;
   }
 
-  if (breweryQuery.isError) {
+  if (breweryResult.isError) {
     return (
       <div className="mx-auto flex w-full max-w-3xl flex-col items-start gap-4">
         <p className="text-sm font-medium">
-          {breweryQuery.error instanceof Error ? breweryQuery.error.message : ''}
+          {breweryResult.error instanceof Error ? breweryResult.error.message : ''}
         </p>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => void breweryQuery.refetch()}
-            disabled={breweryQuery.isFetching}
+            onClick={() => void breweryResult.refetch()}
+            disabled={breweryResult.isFetching}
           >
-            {breweryQuery.isFetching ? '再試行中…' : '再試行'}
+            {breweryResult.isFetching ? '再試行中…' : '再試行'}
           </Button>
           <Button variant="ghost" size="sm" render={<Link to="/map" />}>
             マップへ
@@ -76,7 +65,7 @@ export function BreweryDetailPage({ breweryId }: { breweryId: number }) {
     );
   }
 
-  const { brewery, sakes } = breweryQuery.data;
+  const { brewery, sakes } = breweryResult.data;
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
