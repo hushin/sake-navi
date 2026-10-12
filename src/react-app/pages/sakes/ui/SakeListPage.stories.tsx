@@ -48,8 +48,9 @@ export const Default: Story = {
   play: async ({ canvas }) => {
     await expect(await canvas.findByText('八海山 純米大吟醸')).toBeVisible();
     await expect(canvas.getByText('No.3 八海醸造')).toBeVisible();
-    // 平均評価があるものは星と数値が出る
-    await expect(canvas.getByLabelText('評価 5 / 5')).toBeVisible();
+    // 平均評価があるものは星と数値が出る（4.5 は星 4.5 で塗られる）
+    await expect(canvas.getByLabelText('評価 4.5 / 5')).toBeVisible();
+    await expect(canvas.getByText('4.5')).toBeVisible();
     await expect(canvas.getByText('北雪 大吟醸YK35')).toBeVisible();
     // 未評価のものは「未評価」
     await expect(canvas.getByText('未評価')).toBeVisible();

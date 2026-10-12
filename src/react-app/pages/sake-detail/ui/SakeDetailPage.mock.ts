@@ -55,7 +55,8 @@ const myReviewFixture: SakeReview = {
   id: 'review-1',
   userId: signedInSession.user.id,
   sakeId: 3,
-  rating: 4,
+  // 0.25 刻みの評価を保存済みの状態（編集でスライダーにそのまま入る）
+  rating: 4.25,
   tags: ['濃醇'],
   comment: '香りがしっかりしていて好み。',
   createdAt: '2026-10-11T06:00:00.000Z',

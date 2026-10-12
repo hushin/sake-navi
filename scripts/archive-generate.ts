@@ -19,7 +19,12 @@ import {
   mapSize,
 } from '../src/react-app/shared/lib/map-layout.ts';
 import { formatJstDateTime } from '../src/react-app/shared/lib/time.ts';
-import { parsePaidTasting } from '../src/shared/schemas/sake.ts';
+import {
+  formatRating,
+  parsePaidTasting,
+  RATING_MAX,
+  toRatingStep,
+} from '../src/shared/schemas/sake.ts';
 import { z } from 'zod';
 
 const DATA_DIR = join(process.cwd(), 'dist', 'archive');
@@ -170,8 +175,10 @@ function parseTags(raw: string | null): string[] {
   }
 }
 
+/** 端数の星は文字では出せないので、整数の星に数値を併記する（4.25 → 「★★★★☆ 4.25」） */
 function stars(rating: number): string {
-  return '★'.repeat(rating) + '☆'.repeat(5 - rating);
+  const full = Math.floor(toRatingStep(rating));
+  return `${'★'.repeat(full)}${'☆'.repeat(RATING_MAX - full)} ${formatRating(rating)}`;
 }
 
 const TAG_COLORS: Record<string, { bg: string; text: string; border: string }> = {

@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router';
 import type { InferResponseType } from 'hono/client';
 import { client } from '@/react-app/shared/api';
 import { formatRelativeTime } from '@/react-app/shared/lib';
+import { formatRating } from '@/shared/schemas/sake';
 import { StarRating, TagBadge } from '@/react-app/shared/ui';
 
 /** タイムラインとレビュー一覧が同じ形のフィードアイテムを返す */
@@ -22,7 +23,11 @@ export function ReviewCard({ item, now }: { item: ReviewCardItem; now: number })
         <span className="text-xs text-muted-foreground">
           {formatRelativeTime(item.createdAt, now)}
         </span>
-        <StarRating value={item.rating} size="sm" className="ml-auto" />
+        {/* 星だけだと 4.25 と 4.5 の区別が付かないので数値も出す */}
+        <span className="ml-auto flex items-center gap-1.5">
+          <StarRating value={item.rating} size="sm" />
+          <span className="text-sm tabular-nums">{formatRating(item.rating)}</span>
+        </span>
       </div>
       <div className="flex flex-col gap-0.5">
         <Link

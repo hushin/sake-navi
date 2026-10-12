@@ -103,6 +103,8 @@ export const LoadMore: Story = {
 
     await userEvent.click(canvas.getByRole('button', { name: 'もっと見る' }));
     await expect(await canvas.findByRole('link', { name: '北雪 大吟醸YK35' })).toBeVisible();
+    // 0.25 刻みの評価もそのまま出る。この値が次のページのカーソルになる
+    await expect(canvas.getByRole('img', { name: '評価 3.25 / 5' })).toBeVisible();
 
     await userEvent.click(canvas.getByRole('button', { name: 'もっと見る' }));
     await expect(await canvas.findByRole('link', { name: '越乃寒梅 特別本醸造' })).toBeVisible();

@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { index, integer, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 import type { ReviewTag } from '@/shared/schemas/sake';
 import { user } from './auth-schema';
 
@@ -68,7 +68,8 @@ export const reviews = sqliteTable(
     sakeId: integer('sake_id')
       .notNull()
       .references(() => sakes.id, { onDelete: 'cascade' }),
-    rating: integer('rating').notNull(),
+    /** 星 5 段階を 0.25 刻みで付ける（`RATING_STEP`）。REAL にしないと型が実態とズレる */
+    rating: real('rating').notNull(),
     // API の zod スキーマで `REVIEW_TAGS` に制限しているので、その型で扱う
     tags: text('tags', { mode: 'json' }).$type<ReviewTag[]>().notNull().default([]),
     comment: text('comment'),

@@ -47,7 +47,8 @@ export const reviewFixtures: ReviewFeedItem[] = [
   },
   {
     id: 'review-4',
-    rating: 3,
+    // 0.25 刻みの評価。カーソル（評価順は `<rating>_<epoch ms>_<id>`）も小数のまま往復する
+    rating: 3.25,
     tags: ['濃醇'],
     comment: null,
     createdAt: '2026-10-11T03:00:00.000Z',

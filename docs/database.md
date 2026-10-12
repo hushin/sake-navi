@@ -20,7 +20,9 @@ pnpm db:seed          # 本番 D1 にマスタを入れる（--remote）
 ## データモデルの約束
 
 - レビューは `UNIQUE(user_id, sake_id)` で 1 人 1 銘柄 1 件。重複投稿は 409 を返し、訂正は PUT で行う
+- `reviews.rating` は `real`（REAL）型で、1〜5 を 0.25 刻み（`RATING_MIN` / `RATING_MAX` / `RATING_STEP`）。`4.25` のような小数になる
 - タイムラインのカーソルは `<epoch ミリ秒>_<review id>` の複合（同一ミリ秒の取りこぼし防止）
+- 評価順（`sort=rating`）のカーソルは `<rating>_<epoch ミリ秒>_<review id>`。rating は小数を取り得るので整数前提で解釈しない
 - **マスタ（銘柄）の編集はサインインしていれば誰でもできる**（`PUT /api/sakes/:id`。身内で使うアプリなので権限を分けない）
 - `sakes.paid_tasting_price` の意味は 3 つ。`null` = 有料試飲なし / `7` = **有料試飲あり（金額は未確認）** /
   それ以外 = その金額。`7` は出典 PDF で「有料試飲」とだけ書かれていたものに付いていた印で、金額ではない

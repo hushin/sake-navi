@@ -43,6 +43,13 @@
       "when": 1791768664447,
       "tag": "0005_drop_brewery_area",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1791771670568,
+      "tag": "0006_chemical_thunderbolt_ross",
+      "breakpoints": true
     }
   ]
 }

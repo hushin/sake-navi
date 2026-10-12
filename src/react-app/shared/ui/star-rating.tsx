@@ -1,7 +1,8 @@
 import { Star } from 'lucide-react';
-import { useId } from 'react';
 import { cn } from '@/react-app/shared/lib';
+import { formatRating, RATING_MAX, toRatingStep } from '@/shared/schemas/sake';
 
+/** 星の位置（1 つ目〜5 つ目）。塗る割合は値から計算する */
 const RATINGS = [1, 2, 3, 4, 5] as const;
 
 const sizeClasses = {
@@ -12,72 +13,51 @@ const sizeClasses = {
 } as const;
 
 type StarRatingProps = {
-  /** 1〜5。0 は未評価 */
+  /** 0〜5。0.25 刻みに丸めて塗る（平均評価のような端数も渡せる） */
   value: number;
-  /** 渡すと入力になる。省略すると読み取り専用の表示 */
-  onChange?: (rating: number) => void;
   size?: keyof typeof sizeClasses;
   label?: string;
   className?: string;
 };
 
 /**
- * 星 5 段階の評価。入力時はネイティブの radio を使うので、
- * キーボードの矢印キーでも選べる（`role="radiogroup"` を自前で作るより扱いが単純）。
+ * 星 5 段階の表示。4.25 なら 4 つと 5 つ目の 1/4 が塗られる。
+ * 入力には使わない（0.25 刻みの入力は `RatingInput` のスライダー）。
  */
-export function StarRating({
-  value,
-  onChange,
-  size = 'md',
-  label = '評価',
-  className,
-}: StarRatingProps) {
-  const name = useId();
-
-  if (!onChange) {
-    return (
-      <span
-        role="img"
-        aria-label={`${label} ${value} / 5`}
-        className={cn('inline-flex items-center gap-0.5', className)}
-      >
-        {RATINGS.map((rating) => (
-          <Star
-            key={rating}
-            aria-hidden="true"
-            className={cn(
-              sizeClasses[size],
-              rating <= value ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/40',
-            )}
-          />
-        ))}
-      </span>
-    );
-  }
+export function StarRating({ value, size = 'md', label = '評価', className }: StarRatingProps) {
+  const filled = toRatingStep(value);
 
   return (
-    <fieldset className={cn('inline-flex items-center', className)}>
-      <legend className="sr-only">{label}</legend>
-      {RATINGS.map((rating) => (
-        <label
-          key={rating}
-          className="cursor-pointer rounded-md p-0.5 text-muted-foreground/40 transition-colors hover:text-amber-400 has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50"
-        >
-          <input
-            type="radio"
-            name={name}
-            value={rating}
-            checked={value === rating}
-            onChange={() => onChange(rating)}
-            className="sr-only"
-          />
-          <span className="sr-only">星{rating}</span>
-          <Star
-            aria-hidden="true"
-            className={cn(sizeClasses[size], rating <= value && 'fill-amber-400 text-amber-400')}
-          />
-        </label>
-      ))}
-    </fieldset>
+    <span
+      role="img"
+      aria-label={`${label} ${formatRating(value)} / ${RATING_MAX}`}
+      className={cn('inline-flex items-center gap-0.5', className)}
+    >
+      {RATINGS.map((position) => {
+        // その星が塗られる割合（例: 4.25 なら 5 つ目が 0.25）
+        const fraction = Math.min(Math.max(filled - (position - 1), 0), 1);
+
+        return (
+          <span key={position} className="relative inline-flex">
+            <Star
+              aria-hidden="true"
+              className={cn(sizeClasses[size], 'text-muted-foreground/40')}
+            />
+            {fraction > 0 && (
+              // 塗った星を重ねて幅で切り取る（半分の星のアイコンを持たずに端数を出す）
+              <span
+                className="absolute inset-y-0 left-0 overflow-hidden"
+                style={{ width: `${fraction * 100}%` }}
+              >
+                <Star
+                  aria-hidden="true"
+                  className={cn(sizeClasses[size], 'fill-amber-400 text-amber-400')}
+                />
+              </span>
+            )}
+          </span>
+        );
+      })}
+    </span>
   );
 }

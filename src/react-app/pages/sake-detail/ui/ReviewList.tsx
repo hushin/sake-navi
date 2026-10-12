@@ -1,5 +1,6 @@
 import { formatJstDateTime } from '@/react-app/shared/lib';
 import { StarRating, TagBadge } from '@/react-app/shared/ui';
+import { formatRating } from '@/shared/schemas/sake';
 
 export type ReviewListItem = {
   id: string;
@@ -26,7 +27,11 @@ export function ReviewList({ reviews }: { reviews: ReviewListItem[] }) {
         <li key={review.id} className="flex flex-col gap-1.5 py-4">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm font-medium">{review.userName}</span>
-            <StarRating value={review.rating} size="sm" />
+            {/* 星だけだと 4.25 と 4.5 の区別が付かないので数値も出す */}
+            <span className="flex items-center gap-1.5">
+              <StarRating value={review.rating} size="sm" />
+              <span className="text-sm tabular-nums">{formatRating(review.rating)}</span>
+            </span>
             <span className="ml-auto shrink-0 text-xs text-muted-foreground">
               {formatJstDateTime(review.createdAt)}
             </span>

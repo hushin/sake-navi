@@ -1,5 +1,11 @@
 import { and, desc, eq, lt, or, sql } from 'drizzle-orm';
-import { parseReviewTags, type ReviewInput, type ReviewListQuery } from '@/shared/schemas/sake';
+import {
+  parseReviewTags,
+  RATING_MAX,
+  RATING_MIN,
+  type ReviewInput,
+  type ReviewListQuery,
+} from '@/shared/schemas/sake';
 import type { Db } from '../db';
 import { breweries, reviews, sakes, user } from '../db/schema';
 
@@ -201,7 +207,8 @@ function latestCursorCondition(cursor: { createdAt: Date; id: string }) {
 
 /**
  * 評価順のカーソルは `rating DESC, created_at DESC, id DESC` に合わせた
- * `<rating>_<epoch ミリ秒>_<review id>`。旧実装は評価順でも created_at だけを見ていて
+ * `<rating>_<epoch ミリ秒>_<review id>`。rating は 0.25 刻みなので `4.25_...` のように小数になる
+ * （旧データの整数もそのまま読める）。旧実装は評価順でも created_at だけを見ていて
  * 2 ページ目以降が壊れていたので、ソートごとにカーソルの持ち方を変えている。
  */
 function encodeRatingCursor(item: { rating: number; createdAt: Date; id: string }): string {
@@ -218,7 +225,14 @@ function parseRatingCursor(cursor: string): { rating: number; createdAt: Date; i
   const rating = Number(cursor.slice(0, firstSeparator));
   const milliseconds = Number(cursor.slice(firstSeparator + 1, secondSeparator));
   const id = cursor.slice(secondSeparator + 1);
-  if (!Number.isInteger(rating) || !Number.isInteger(milliseconds) || id.length === 0) {
+  // 整数に限らない（0.25 刻み）ので、有限の数で範囲内なら受け付ける
+  if (
+    !Number.isFinite(rating) ||
+    rating < RATING_MIN ||
+    rating > RATING_MAX ||
+    !Number.isInteger(milliseconds) ||
+    id.length === 0
+  ) {
     return null;
   }
 

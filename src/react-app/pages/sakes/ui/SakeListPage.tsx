@@ -238,7 +238,7 @@ function SakeListItemCard({
               <span className="text-xs text-muted-foreground">未評価</span>
             ) : (
               <span className="flex items-center gap-1.5">
-                <StarRating value={Math.round(sake.averageRating)} size="sm" />
+                <StarRating value={sake.averageRating} size="sm" />
                 <span className="text-sm tabular-nums">{sake.averageRating.toFixed(1)}</span>
               </span>
             )}

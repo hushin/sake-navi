@@ -228,6 +228,64 @@ describe('sakes routes', () => {
     expect(detail.reviews).toHaveLength(1);
   });
 
+  it('POST /api/sakes/:id/reviews は 0.25 刻みの小数評価を受け付ける', async () => {
+    const res = await authedApp(owner).request(
+      '/sakes/1/reviews',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating: 4.25, tags: ['甘口'], comment: '華やか' }),
+      },
+      env,
+    );
+
+    expect(res.status).toBe(201);
+    expect(reviewSchema.parse(await res.json())).toMatchObject({
+      userId: 'user-owner',
+      sakeId: 1,
+      rating: 4.25,
+    });
+  });
+
+  it('POST /api/sakes/:id/reviews は 0.25 刻みでない評価を 400 で弾く', async () => {
+    const res = await authedApp(owner).request(
+      '/sakes/1/reviews',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating: 4.3 }),
+      },
+      env,
+    );
+
+    expect(res.status).toBe(400);
+    const body = z
+      .object({ success: z.literal(false), error: z.object({ message: z.string() }) })
+      .parse(await res.json());
+    expect(body.error.message).toContain('評価は 0.25 刻みで選んでください');
+  });
+
+  it('GET /api/sakes/:id の平均評価に小数の評価が反映される', async () => {
+    const headers = { 'Content-Type': 'application/json' };
+    const first = await authedApp(owner).request(
+      '/sakes/1/reviews',
+      { method: 'POST', headers, body: JSON.stringify({ rating: 4.25 }) },
+      env,
+    );
+    expect(first.status).toBe(201);
+
+    const second = await authedApp(member).request(
+      '/sakes/1/reviews',
+      { method: 'POST', headers, body: JSON.stringify({ rating: 4.5 }) },
+      env,
+    );
+    expect(second.status).toBe(201);
+
+    const detail = detailSchema.parse(await (await app.request('/api/sakes/1', {}, env)).json());
+    expect(detail.reviewCount).toBe(2);
+    expect(detail.averageRating).toBe(4.375);
+  });
+
   it('POST /api/sakes/:id/reviews は入力を検証し、未知の銘柄は 404', async () => {
     const invalid = await authedApp(owner).request(
       '/sakes/1/reviews',
@@ -279,7 +337,7 @@ describe('sakes routes', () => {
     expect(content).toContain(owner.name);
     expect(content).toContain('雪中貯蔵 純米生原酒');
     expect(content).toContain('No.1 関原酒造');
-    expect(content).toContain('⭐⭐⭐⭐⭐');
+    expect(content).toContain('⭐ 5 / 5');
     expect(content).toContain('http://localhost:5173/map?brewery=1');
 
     // 既定（チェックなし）では通知しない

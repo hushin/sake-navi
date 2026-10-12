@@ -49,9 +49,10 @@ const data = await res.json(); // キャスト不要
 ```typescript
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
+import { RATING_MAX, RATING_MIN, RATING_STEP } from '@/shared/schemas/sake';
 
 const postBodySchema = z.object({
-  rating: z.number().int().min(1).max(5),
+  rating: z.number().min(RATING_MIN).max(RATING_MAX).multipleOf(RATING_STEP),
   comment: z.string().optional(),
 });
 
@@ -61,6 +62,8 @@ app.post('/', zValidator('json', postBodySchema), (c) => {
 });
 ```
 
+- 実装では範囲と刻みを `src/shared/schemas/sake.ts` の定数（`RATING_MIN` / `RATING_MAX` / `RATING_STEP`）
+  に揃える（レビューは `reviewInputSchema` をそのまま使う）
 - バリデーションルールと型定義が一元管理され、`hc` クライアントにもリクエストボディの型が伝播する
 - zod の `.email()` / `.enum()` / `.refine()` などで詳細な検証ができる
 - バリデーションエラー時は `{ success: false, error: { issues: [...] } }` 形式のレスポンスが自動で返る。

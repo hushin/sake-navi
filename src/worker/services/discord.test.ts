@@ -61,7 +61,7 @@ describe('discord service', () => {
     expect(body).toContain('はなこ');
     expect(body).toContain('八海山 純米大吟醸');
     expect(body).toContain('No.3 八海醸造');
-    expect(body).toContain('⭐⭐⭐⭐⭐');
+    expect(body).toContain('⭐ 5 / 5');
     expect(body).toContain('甘口 フルーティ');
     expect(body).toContain('華やかで飲みやすい。');
     expect(body).toContain('https://sake.example/map?brewery=3');
@@ -73,8 +73,16 @@ describe('discord service', () => {
     await sendReviewNotification(env, { ...review, comment: null, tags: [] });
 
     const body = sentBody(fetchMock);
-    expect(body).toContain('⭐⭐⭐⭐⭐');
+    expect(body).toContain('⭐ 5 / 5');
     expect(body).toContain('https://sake.example/map?brewery=3');
+  });
+
+  it('レビュー通知の本文は 0.25 刻みの小数の評価をそのまま出す', async () => {
+    const fetchMock = stubFetch();
+
+    await sendReviewNotification(env, { ...review, rating: 4.25 });
+
+    expect(sentBody(fetchMock)).toContain('⭐ 4.25 / 5');
   });
 
   it('酒蔵ノートの通知の本文にコメントとマップ URL を入れる', async () => {

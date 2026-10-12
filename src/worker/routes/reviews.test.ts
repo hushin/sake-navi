@@ -264,6 +264,86 @@ describe('reviews routes', () => {
       expect(second.nextCursor).toBeNull();
     });
 
+    it('小数の評価でも評価順のカーソルで 2 ページ目以降を取りこぼさない', async () => {
+      const extra = await insertTestUser(testDb(), {
+        id: 'user-extra',
+        name: '魚沼 次郎',
+        email: 'jiro@example.com',
+      });
+      const sameRatingAt = new Date('2026-10-11T03:00:00Z');
+      await testDb()
+        .insert(reviews)
+        .values([
+          {
+            id: 'review-475',
+            userId: other.id,
+            sakeId: 2,
+            rating: 4.75,
+            tags: [],
+            createdAt: new Date('2026-10-11T04:00:00Z'),
+          },
+          {
+            id: 'review-425b',
+            userId: owner.id,
+            sakeId: 2,
+            rating: 4.25,
+            tags: [],
+            createdAt: sameRatingAt,
+          },
+          {
+            id: 'review-425a',
+            userId: extra.id,
+            sakeId: 2,
+            rating: 4.25,
+            tags: [],
+            createdAt: sameRatingAt,
+          },
+          {
+            id: 'review-425-old',
+            userId: other.id,
+            sakeId: 1,
+            rating: 4.25,
+            tags: [],
+            createdAt: new Date('2026-10-11T02:00:00Z'),
+          },
+        ]);
+
+      const first = reviewFeedSchema.parse(
+        await (await app.request('/api/reviews?sort=rating&limit=2', {}, env)).json(),
+      );
+      expect(first.items.map((item) => [item.id, item.rating])).toEqual([
+        ['review-475', 4.75],
+        ['review-425b', 4.25],
+      ]);
+      // カーソルにも小数の評価が入る（整数だけを受け付ける旧実装では壊れていた）
+      expect(first.nextCursor).toMatch(/^4\.25_\d+_review-425b$/);
+
+      const second = reviewFeedSchema.parse(
+        await (
+          await app.request(
+            `/api/reviews?sort=rating&limit=2&cursor=${encodeURIComponent(first.nextCursor ?? '')}`,
+            {},
+            env,
+          )
+        ).json(),
+      );
+      // 同じ 4.25 は created_at → id の順で続きを返す（1 ページ目の繰り返しにならない）
+      expect(second.items.map((item) => item.id)).toEqual(['review-425a', 'review-425-old']);
+      expect(second.items.map((item) => item.id)).not.toEqual(first.items.map((item) => item.id));
+
+      const third = reviewFeedSchema.parse(
+        await (
+          await app.request(
+            `/api/reviews?sort=rating&limit=2&cursor=${encodeURIComponent(second.nextCursor ?? '')}`,
+            {},
+            env,
+          )
+        ).json(),
+      );
+      expect(third.items.map((item) => item.id)).toEqual(['review-owner']);
+      expect(third.nextCursor).toBeNull();
+    });
+
     it('タグは AND で絞り込み、未知のタグは無視する', async () => {
       await insertExtraReviews();
 

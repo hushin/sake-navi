@@ -1,10 +1,12 @@
 import { revalidateLogic, useForm } from '@tanstack/react-form';
 import type { ReviewTag } from '@/shared/schemas/sake';
 import { REVIEW_COMMENT_MAX_LENGTH, reviewFormSchema } from '@/shared/schemas/sake';
-import { Button, Label, StarRating, Textarea } from '@/react-app/shared/ui';
+import { Button, Label, Textarea } from '@/react-app/shared/ui';
+import { RatingInput } from './RatingInput';
 import { TagSelector } from './TagSelector';
 
 export type ReviewFormValues = {
+  /** 0 は未入力。スライダーを動かすと 0.25 刻みの値が入る */
   rating: number;
   tags: ReviewTag[];
   /** 未入力は undefined（zod スキーマの input 型に合わせる） */
@@ -77,11 +79,9 @@ export function ReviewForm({
 
           return (
             <div className="flex flex-col gap-2">
-              <span className="text-sm font-medium">評価</span>
-              <StarRating
+              <RatingInput
                 value={field.state.value}
                 onChange={(rating) => field.handleChange(rating)}
-                size="xl"
               />
               {error.length > 0 && <p className="text-sm text-destructive">{error}</p>}
             </div>

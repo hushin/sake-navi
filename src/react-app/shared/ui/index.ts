@@ -15,5 +15,6 @@ export { Label } from './label';
 export { PaidTastingBadge } from './paid-tasting-badge';
 export { TagBadge, TagToggle } from './review-tag';
 export { Separator } from './separator';
+export { Slider } from './slider';
 export { StarRating } from './star-rating';
 export { Textarea } from './textarea';

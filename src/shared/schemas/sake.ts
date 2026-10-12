@@ -173,6 +173,27 @@ export function toSakeUpdateInput(value: SakeEditInput): SakeUpdateInput {
 }
 
 /**
+ * 評価の範囲と刻み。星 5 段階を 0.25 刻みで付ける。
+ *
+ * 0.25 は 2 進小数で正確に表せるので、`value * 4` のような計算をしても誤差が出ない
+ * （0.1 刻みだと `multipleOf` が丸め誤差で揺れる）。入力のスライダー（`step`）と
+ * API の検証が同じ定数を参照する。
+ */
+export const RATING_MIN = 1;
+export const RATING_MAX = 5;
+export const RATING_STEP = 0.25;
+
+/** 表示用に 0.25 刻みへ丸める（平均評価 4.37 → 4.25） */
+export function toRatingStep(value: number): number {
+  return Math.round(value / RATING_STEP) * RATING_STEP;
+}
+
+/** 評価の表示用の文字列（4 → `4`、4.25 → `4.25`） */
+export function formatRating(value: number): string {
+  return String(toRatingStep(value));
+}
+
+/**
  * レビュー入力の形。タグは配列を省略できる（API 用）。
  *
  * フォームの検証には `reviewFormSchema` を使う。`.default([])` があると
@@ -180,7 +201,11 @@ export function toSakeUpdateInput(value: SakeEditInput): SakeUpdateInput {
  * Standard Schema 検証（input と form の型が一致している必要がある）で弾かれるため。
  */
 export const reviewInputSchema = z.object({
-  rating: z.number().int().min(1, '評価を選んでください').max(5, '評価は 5 までです'),
+  rating: z
+    .number()
+    .min(RATING_MIN, '評価を選んでください')
+    .max(RATING_MAX, '評価は 5 までです')
+    .multipleOf(RATING_STEP, `評価は ${RATING_STEP} 刻みで選んでください`),
   tags: z.array(reviewTagSchema).max(REVIEW_TAGS.length).default([]),
   comment: z
     .string()

@@ -65,8 +65,12 @@ export const MyReviewExists: Story = {
   },
   play: async ({ canvas }) => {
     await expect(await canvas.findByRole('heading', { name: 'あなたのレビュー' })).toBeVisible();
-    // 既存の内容が入った状態で編集できる
-    await expect(canvas.getByRole('radio', { name: '星4' })).toBeChecked();
+    // 既存の内容が入った状態で編集できる（0.25 刻みの評価もそのまま入る）
+    const slider = canvas.getByRole('slider', { name: '評価' });
+    await expect(slider).toHaveValue('4.25');
+    await expect(slider).toHaveAttribute('aria-valuetext', '4.25 / 5');
+    // 数値は右上に出る。一覧の星の隣にも同じ 4.25 が出るので、フォームの中に限定して探す
+    await expect(within(slider.closest('form')!).getByText('4.25')).toBeVisible();
     await expect(canvas.getByLabelText('コメント（任意）')).toHaveValue(
       '香りがしっかりしていて好み。',
     );
@@ -74,6 +78,28 @@ export const MyReviewExists: Story = {
     await expect(canvas.getByRole('button', { name: 'レビューを削除' })).toBeVisible();
     // 編集では通知しないのでチェックを出さない
     await expect(canvas.queryByLabelText('Discord に通知する')).not.toBeInTheDocument();
+  },
+};
+
+/** 保存済みの評価をスライダーで動かして更新する（更新の body も 0.25 刻みの値になる） */
+export const UpdateReview: Story = {
+  beforeEach: () => {
+    includeMyReview();
+  },
+  play: async ({ canvas, userEvent }) => {
+    await canvas.findByRole('heading', { name: 'あなたのレビュー' });
+
+    // 4.25 から → を 2 回押して 4.75 にする
+    const slider = canvas.getByRole('slider', { name: '評価' });
+    slider.focus();
+    await userEvent.keyboard('{ArrowRight>2/}');
+    await expect(slider).toHaveAttribute('aria-valuetext', '4.75 / 5');
+
+    await userEvent.click(canvas.getByRole('button', { name: '更新する' }));
+
+    // 更新した 4.75 が一覧の星に出る（平均は (4.75 + 5 + 4) / 3 = 4.58… なので 4.6）
+    await expect(await canvas.findByRole('img', { name: '評価 4.75 / 5' })).toBeVisible();
+    await expect(canvas.getByText('4.6（3 件）')).toBeVisible();
   },
 };
 
@@ -124,7 +150,15 @@ export const PostReview: Story = {
   play: async ({ canvas, userEvent }) => {
     await canvas.findByRole('heading', { name: 'レビューを投稿' });
 
-    await userEvent.click(canvas.getByRole('radio', { name: '星5' }));
+    // 未入力のうちは「—」。スライダーを 1.0 から 4.25 までキーボードで上げる
+    await expect(canvas.getByText('—')).toBeVisible();
+    const slider = canvas.getByRole('slider', { name: '評価' });
+    slider.focus();
+    await userEvent.keyboard('{PageUp>3/}');
+    await userEvent.keyboard('{ArrowRight}');
+    await expect(slider).toHaveAttribute('aria-valuetext', '4.25 / 5');
+    await expect(canvas.getByText('4.25')).toBeVisible();
+
     await userEvent.click(canvas.getByRole('button', { name: '辛口' }));
     await userEvent.type(canvas.getByLabelText('コメント（任意）'), 'キレがあって美味しい');
     // 通知は既定 OFF。チェックを入れると投稿時に Discord へ流す
@@ -134,12 +168,19 @@ export const PostReview: Story = {
 
     // 投稿後は自分のレビューとして編集モードに切り替わる
     await expect(await canvas.findByRole('heading', { name: 'あなたのレビュー' })).toBeVisible();
-    await expect(canvas.getByRole('radio', { name: '星5' })).toBeChecked();
+    await expect(canvas.getByRole('slider', { name: '評価' })).toHaveAttribute(
+      'aria-valuetext',
+      '4.25 / 5',
+    );
+    // 0.25 刻みの値がそのまま保存され、一覧の星にも出る
+    await expect(await canvas.findByRole('img', { name: '評価 4.25 / 5' })).toBeVisible();
     // 入力欄にも同じ文字列があるので、レビュー一覧の中にあることを確かめる
     await waitFor(() =>
       expect(within(canvas.getByRole('list')).getByText('キレがあって美味しい')).toBeVisible(),
     );
     await expect(canvas.getByText('みんなのレビュー（3）')).toBeVisible();
+    // 平均は (4.25 + 5 + 4) / 3 = 4.41… なので 4.4（星は 0.25 刻みに丸めて 4.5）
+    await expect(canvas.getByText('4.4（3 件）')).toBeVisible();
   },
 };
 

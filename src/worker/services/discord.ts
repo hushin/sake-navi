@@ -1,3 +1,5 @@
+import { formatRating, RATING_MAX } from '@/shared/schemas/sake';
+
 /**
  * Discord Webhook への通知。
  *
@@ -58,7 +60,7 @@ export async function sendReviewNotification(
   data: ReviewNotification,
 ): Promise<void> {
   const lines = [
-    `🍶 **${data.userName}** さんが **No.${data.breweryId} ${data.breweryName}** の **${data.sakeName}** をレビューしました ${'⭐'.repeat(data.rating)}`,
+    `🍶 **${data.userName}** さんが **No.${data.breweryId} ${data.breweryName}** の **${data.sakeName}** をレビューしました ⭐ ${formatRating(data.rating)} / ${RATING_MAX}`,
   ];
   if (data.tags.length > 0) {
     lines.push(data.tags.join(' '));
