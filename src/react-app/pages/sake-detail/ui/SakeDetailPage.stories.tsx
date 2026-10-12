@@ -182,6 +182,21 @@ export const SelectExclusiveTags: Story = {
   },
 };
 
+/** タグや通知を押しただけでは、まだ選んでいない評価のエラーは出ない（送信してから出す） */
+export const NoRatingErrorUntilSubmit: Story = {
+  play: async ({ canvas, userEvent }) => {
+    await canvas.findByRole('heading', { name: 'レビューを投稿' });
+
+    await userEvent.click(canvas.getByRole('button', { name: '甘口' }));
+    await userEvent.click(canvas.getByLabelText('Discord に通知する'));
+    await expect(canvas.queryByText('評価を選んでください')).not.toBeInTheDocument();
+
+    // 送信すれば、選び忘れはここで気づける
+    await userEvent.click(canvas.getByRole('button', { name: '投稿する' }));
+    await expect(await canvas.findByText('評価を選んでください')).toBeVisible();
+  },
+};
+
 export const ValidationError: Story = {
   play: async ({ canvas, userEvent }) => {
     const comment = await canvas.findByLabelText('コメント（任意）');

@@ -1,4 +1,4 @@
-import { useForm } from '@tanstack/react-form';
+import { revalidateLogic, useForm } from '@tanstack/react-form';
 import type { ReviewTag } from '@/shared/schemas/sake';
 import { REVIEW_COMMENT_MAX_LENGTH, reviewFormSchema } from '@/shared/schemas/sake';
 import { Button, Label, StarRating, Textarea } from '@/react-app/shared/ui';
@@ -45,8 +45,11 @@ export function ReviewForm({
 }) {
   const form = useForm({
     defaultValues: initialValues,
+    // 送信するまでは検証しない。タグや通知のチェックを押しただけで「評価を選んでください」が
+    // 出てしまうのを防ぐ（送信に失敗したあとは、直したそばから検証する）。
+    validationLogic: revalidateLogic(),
     validators: {
-      onChange: reviewFormSchema,
+      onDynamic: reviewFormSchema,
     },
     onSubmit: async ({ value }) => {
       const comment = (value.comment ?? '').trim();
