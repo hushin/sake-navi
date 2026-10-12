@@ -139,7 +139,7 @@ pnpm wrangler secret put ALLOWED_EMAILS
 pnpm wrangler secret put DISCORD_WEBHOOK_URL
 
 # 4. デプロイ（Google 側に本番のリダイレクト URI を追加しておく）
-pnpm build && pnpm deploy
+pnpm build && pnpm run deploy
 ```
 
 ## メンバーを増やす
