@@ -16,7 +16,6 @@ export const breweries = sqliteTable('breweries', {
   mapColumn: integer('map_column').notNull().default(0),
   /** 会場マップのグリッド行（1 始まり） */
   mapRow: integer('map_row').notNull().default(0),
-  area: text('area'),
 });
 
 /**

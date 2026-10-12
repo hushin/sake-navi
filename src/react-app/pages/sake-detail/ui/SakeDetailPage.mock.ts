@@ -20,7 +20,7 @@ const sakeBase = {
   category: '清酒',
   isLimited: true,
   paidTastingPrice: PAID_TASTING_PRICE_UNDETERMINED,
-  brewery: { id: 3, name: '八海醸造', mapColumn: 12, mapRow: 6, area: 'Lower Green' },
+  brewery: { id: 3, name: '八海醸造', mapColumn: 12, mapRow: 6 },
 };
 
 /** 自分（user-1）以外のレビュー。自分のレビューがある状態は story 側で足す */

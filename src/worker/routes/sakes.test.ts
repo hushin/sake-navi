@@ -61,8 +61,8 @@ describe('sakes routes', () => {
     await resetDatabase();
     const db = testDb();
     await db.insert(breweries).values([
-      { id: 1, name: '関原酒造', mapColumn: 14, mapRow: 6, area: 'Lower Green' },
-      { id: 82, name: '北雪酒造', mapColumn: 1, mapRow: 1, area: 'Upper Pink' },
+      { id: 1, name: '関原酒造', mapColumn: 14, mapRow: 6 },
+      { id: 82, name: '北雪酒造', mapColumn: 1, mapRow: 1 },
     ]);
     await db.insert(sakes).values([
       {

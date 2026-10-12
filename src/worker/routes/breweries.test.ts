@@ -17,7 +17,6 @@ const listSchema = z.object({
       name: z.string(),
       mapColumn: z.number(),
       mapRow: z.number(),
-      area: z.string().nullable(),
       reviewCount: z.number(),
       averageRating: z.number().nullable(),
       hasUserReviewed: z.boolean(),
@@ -35,7 +34,6 @@ const detailSchema = z.object({
     name: z.string(),
     mapColumn: z.number(),
     mapRow: z.number(),
-    area: z.string().nullable(),
   }),
   sakes: z.array(
     z.object({
@@ -87,10 +85,10 @@ describe('breweries routes', () => {
     await resetDatabase();
     const db = testDb();
     await db.insert(breweries).values([
-      { id: 1, name: '関原酒造', mapColumn: 14, mapRow: 6, area: 'Lower Green' },
+      { id: 1, name: '関原酒造', mapColumn: 14, mapRow: 6 },
       // 出品酒が 1 件も無い酒蔵（集計が null になる）
-      { id: 5, name: '休憩所', mapColumn: 7, mapRow: 3, area: null },
-      { id: 82, name: '北雪酒造', mapColumn: 1, mapRow: 1, area: 'Upper Pink' },
+      { id: 5, name: '休憩所', mapColumn: 7, mapRow: 3 },
+      { id: 82, name: '北雪酒造', mapColumn: 1, mapRow: 1 },
     ]);
     await db.insert(sakes).values([
       { id: 1, breweryId: 1, name: '雪中貯蔵 純米生原酒', type: '純米酒', category: '清酒' },
@@ -148,7 +146,6 @@ describe('breweries routes', () => {
       name: '関原酒造',
       mapColumn: 14,
       mapRow: 6,
-      area: 'Lower Green',
       reviewCount: 2,
       averageRating: 4,
       hasUserReviewed: false,
@@ -160,7 +157,6 @@ describe('breweries routes', () => {
     expect(body.items[1]).toMatchObject({
       id: 5,
       name: '休憩所',
-      area: null,
       reviewCount: 0,
       averageRating: null,
       hasUserReviewed: false,
@@ -197,7 +193,6 @@ describe('breweries routes', () => {
       name: '関原酒造',
       mapColumn: 14,
       mapRow: 6,
-      area: 'Lower Green',
     });
     expect(
       body.sakes.map((sake) => [

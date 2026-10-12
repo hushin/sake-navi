@@ -38,7 +38,6 @@ const brewerySchema = z.object({
   name: z.string(),
   map_column: z.number(),
   map_row: z.number(),
-  area: z.string().nullable(),
 });
 
 const sakeSchema = z.object({

@@ -8,7 +8,6 @@ export type BreweryListItem = {
   name: string;
   mapColumn: number;
   mapRow: number;
-  area: string | null;
   reviewCount: number;
   averageRating: number | null;
   hasUserReviewed: boolean;
@@ -30,7 +29,6 @@ export async function listBreweries(
       name: breweries.name,
       mapColumn: breweries.mapColumn,
       mapRow: breweries.mapRow,
-      area: breweries.area,
       reviewCount: sql<number>`count(${reviews.id})`,
       averageRating: sql<number | null>`avg(${reviews.rating})`,
       // 自分のレビューだけを数える。未サインイン（null）は 1 件も一致しない
@@ -39,7 +37,7 @@ export async function listBreweries(
     .from(breweries)
     .leftJoin(sakes, eq(sakes.breweryId, breweries.id))
     .leftJoin(reviews, eq(reviews.sakeId, sakes.id))
-    .groupBy(breweries.id, breweries.name, breweries.mapColumn, breweries.mapRow, breweries.area)
+    .groupBy(breweries.id, breweries.name, breweries.mapColumn, breweries.mapRow)
     .orderBy(asc(breweries.id));
 
   return rows.map((row) => ({
@@ -47,7 +45,6 @@ export async function listBreweries(
     name: row.name,
     mapColumn: row.mapColumn,
     mapRow: row.mapRow,
-    area: row.area,
     reviewCount: row.reviewCount,
     averageRating: row.averageRating,
     hasUserReviewed: row.myReviewCount > 0,
@@ -59,7 +56,6 @@ export type BreweryDetail = {
   name: string;
   mapColumn: number;
   mapRow: number;
-  area: string | null;
 };
 
 /** 酒蔵詳細に並べる出品酒の 1 件 */
@@ -83,7 +79,6 @@ export async function findBreweryById(db: Db, breweryId: number): Promise<Brewer
       name: breweries.name,
       mapColumn: breweries.mapColumn,
       mapRow: breweries.mapRow,
-      area: breweries.area,
     })
     .from(breweries)
     .where(eq(breweries.id, breweryId));

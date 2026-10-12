@@ -104,7 +104,6 @@ export type Brewery = {
   name: string;
   mapColumn: number;
   mapRow: number;
-  area: string | null;
 };
 
 export type SakeDetail = {
@@ -132,7 +131,6 @@ export async function findSakeById(db: Db, sakeId: number): Promise<SakeDetail |
       breweryName: breweries.name,
       breweryMapColumn: breweries.mapColumn,
       breweryMapRow: breweries.mapRow,
-      breweryArea: breweries.area,
       reviewCount: sql<number>`count(${reviews.id})`,
       averageRating: sql<number | null>`avg(${reviews.rating})`,
     })
@@ -151,7 +149,6 @@ export async function findSakeById(db: Db, sakeId: number): Promise<SakeDetail |
       breweries.name,
       breweries.mapColumn,
       breweries.mapRow,
-      breweries.area,
     );
 
   if (!row) {
@@ -170,7 +167,6 @@ export async function findSakeById(db: Db, sakeId: number): Promise<SakeDetail |
       name: row.breweryName,
       mapColumn: row.breweryMapColumn,
       mapRow: row.breweryMapRow,
-      area: row.breweryArea,
     },
     reviewCount: row.reviewCount,
     averageRating: row.averageRating,

@@ -54,9 +54,7 @@ describe('bookmarks routes', () => {
   beforeEach(async () => {
     await resetDatabase();
     const db = testDb();
-    await db
-      .insert(breweries)
-      .values({ id: 1, name: '関原酒造', mapColumn: 14, mapRow: 6, area: 'Lower Green' });
+    await db.insert(breweries).values({ id: 1, name: '関原酒造', mapColumn: 14, mapRow: 6 });
     await db.insert(sakes).values([
       {
         id: 1,

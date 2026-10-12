@@ -92,11 +92,6 @@ export function BreweryDetailPage({ breweryId }: { breweryId: number }) {
         <div className="flex min-w-0 flex-col gap-1.5">
           <p className="text-sm text-muted-foreground">No.{brewery.id}</p>
           <h1 className="text-2xl font-semibold tracking-tight break-words">{brewery.name}</h1>
-          {brewery.area && (
-            <div>
-              <Badge variant="outline">{brewery.area}</Badge>
-            </div>
-          )}
         </div>
         <Button
           variant="outline"

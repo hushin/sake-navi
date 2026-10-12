@@ -21,7 +21,6 @@ const brewery = {
   name: '八海醸造',
   mapColumn: 5,
   mapRow: 3,
-  area: 'Lower Green',
 };
 
 export const sakeFixtures: BrewerySake[] = [
