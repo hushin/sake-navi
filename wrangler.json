@@ -27,7 +27,7 @@
   // 秘密ではないので vars に置く（`wrangler types` が .dev.vars 無しでも型を作れるようにするため）
   // 本番のドメインに書き換える。ローカルは .dev.vars の値が優先される
   "vars": {
-    "BETTER_AUTH_URL": "http://localhost:5173"
+    "BETTER_AUTH_URL": "https://sake-navi.hushin.workers.dev"
   }
   /**
    * Smart Placement
