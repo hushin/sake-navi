@@ -1,7 +1,7 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { client, useSession } from '@/react-app/shared/api';
-import { Button } from '@/react-app/shared/ui';
+import { Button, TagToggle } from '@/react-app/shared/ui';
 import { ReviewCard } from '@/react-app/widgets/review-card';
 import { REVIEW_TAGS, type ReviewSort } from '@/shared/schemas/sake';
 
@@ -98,13 +98,13 @@ export function ReviewsPage({
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="mr-1 text-sm font-medium">タグ</span>
           {REVIEW_TAGS.map((tag) => (
-            <FilterButton
+            <TagToggle
               key={tag}
+              tag={tag}
+              size="sm"
               isSelected={selectedTags.includes(tag)}
               onClick={() => toggleTag(tag)}
-            >
-              {tag}
-            </FilterButton>
+            />
           ))}
           {hasFilters && (
             <Button variant="ghost" size="xs" onClick={() => onSearchChange({ sort: search.sort })}>

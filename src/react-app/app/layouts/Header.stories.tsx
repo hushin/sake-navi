@@ -19,7 +19,7 @@ type Story = StoryObj<typeof meta>;
 
 export const SignedIn: Story = {
   play: async ({ canvas }) => {
-    await expect(canvas.getByRole('link', { name: '酒ナビ' })).toHaveAttribute('href', '/sakes');
+    await expect(canvas.getByRole('link', { name: '酒ナビ' })).toHaveAttribute('href', '/map');
     await expect(canvas.getByRole('link', { name: 'マップ' })).toHaveAttribute('href', '/map');
     await expect(canvas.getByRole('link', { name: 'お酒' })).toHaveAttribute('href', '/sakes');
     await expect(canvas.getByRole('link', { name: 'タイムライン' })).toHaveAttribute(

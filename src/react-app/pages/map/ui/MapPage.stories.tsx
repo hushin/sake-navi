@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/tanstack-react';
-import { expect, within } from 'storybook/test';
+import { expect, waitFor, within } from 'storybook/test';
 import { MapPage } from './MapPage';
 import { mapHandlers } from './MapPage.mock';
 
@@ -45,6 +45,25 @@ export const Focused: Story = {
 
     // 強調を解除できる
     await expect(canvas.getByRole('link', { name: '強調を解除' })).toBeVisible();
+  },
+};
+
+/** 狭い画面では、強調した酒蔵が見えるところまで横スクロールする */
+export const FocusedOnNarrowScreen: Story = {
+  args: { breweryId: 1 },
+  render: (args) => (
+    <div className="w-80">
+      <MapPage {...args} />
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const badge = await canvas.findByRole('link', { name: /関原酒造/ });
+    // バッジ → 酒蔵を並べている面 → 横スクロールする枠
+    const scroller = badge.parentElement?.parentElement;
+
+    await waitFor(() =>
+      expect(scroller?.scrollLeft ?? 0, '強調した酒蔵まで横スクロールする').toBeGreaterThan(0),
+    );
   },
 };
 

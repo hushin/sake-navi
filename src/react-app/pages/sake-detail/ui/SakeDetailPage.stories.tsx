@@ -143,6 +143,45 @@ export const PostReview: Story = {
   },
 };
 
+/** タグは仲間ごとに並び、甘辛・濃淡は同時に選べない（その他は複数選択できる） */
+export const SelectExclusiveTags: Story = {
+  play: async ({ canvas, userEvent }) => {
+    await canvas.findByRole('heading', { name: 'レビューを投稿' });
+
+    await expect(canvas.getByText('甘辛（どちらか一方）')).toBeVisible();
+    await expect(canvas.getByText('濃淡（どちらか一方）')).toBeVisible();
+    await expect(canvas.getByText('その他の特徴（複数選択可）')).toBeVisible();
+
+    // 同じグループのタグを押すと、あとから押した方だけが残る
+    await userEvent.click(canvas.getByRole('button', { name: '甘口' }));
+    await expect(canvas.getByRole('button', { name: '甘口' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await userEvent.click(canvas.getByRole('button', { name: '辛口' }));
+    await expect(canvas.getByRole('button', { name: '辛口' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await expect(canvas.getByRole('button', { name: '甘口' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+
+    // その他の特徴は複数選べる
+    await userEvent.click(canvas.getByRole('button', { name: '酸味' }));
+    await userEvent.click(canvas.getByRole('button', { name: 'フルーティ' }));
+    await expect(canvas.getByRole('button', { name: '酸味' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await expect(canvas.getByRole('button', { name: 'フルーティ' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+  },
+};
+
 export const ValidationError: Story = {
   play: async ({ canvas, userEvent }) => {
     const comment = await canvas.findByLabelText('コメント（任意）');

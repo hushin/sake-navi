@@ -11,7 +11,7 @@ function WelcomeRoute() {
   return (
     <WelcomePage
       onSaved={() => {
-        void navigate({ to: '/sakes' });
+        void navigate({ to: '/map' });
       }}
     />
   );

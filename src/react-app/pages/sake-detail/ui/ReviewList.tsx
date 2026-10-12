@@ -1,5 +1,5 @@
 import { formatJstDateTime } from '@/react-app/shared/lib';
-import { Badge, StarRating } from '@/react-app/shared/ui';
+import { StarRating, TagBadge } from '@/react-app/shared/ui';
 
 export type ReviewListItem = {
   id: string;
@@ -34,9 +34,7 @@ export function ReviewList({ reviews }: { reviews: ReviewListItem[] }) {
           {review.tags.length > 0 && (
             <div className="flex flex-wrap gap-1">
               {review.tags.map((tag) => (
-                <Badge key={tag} variant="secondary">
-                  {tag}
-                </Badge>
+                <TagBadge key={tag} tag={tag} />
               ))}
             </div>
           )}

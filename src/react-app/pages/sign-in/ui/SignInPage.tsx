@@ -40,7 +40,7 @@ export function SignInPage({ error }: { error?: string }) {
             onClick={() => {
               void signIn.social({
                 provider: 'google',
-                callbackURL: '/sakes',
+                callbackURL: '/map',
                 errorCallbackURL: '/sign-in',
               });
             }}

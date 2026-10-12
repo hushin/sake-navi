@@ -2,7 +2,7 @@ import { Link } from '@tanstack/react-router';
 import type { InferResponseType } from 'hono/client';
 import { client } from '@/react-app/shared/api';
 import { formatRelativeTime } from '@/react-app/shared/lib';
-import { Badge, StarRating } from '@/react-app/shared/ui';
+import { StarRating, TagBadge } from '@/react-app/shared/ui';
 
 /** タイムラインとレビュー一覧が同じ形のフィードアイテムを返す */
 export type ReviewCardItem = InferResponseType<
@@ -39,9 +39,7 @@ export function ReviewCard({ item, now }: { item: ReviewCardItem; now: number })
       {item.tags.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {item.tags.map((tag) => (
-            <Badge key={tag} variant="secondary">
-              {tag}
-            </Badge>
+            <TagBadge key={tag} tag={tag} />
           ))}
         </div>
       )}

@@ -17,7 +17,6 @@ const MAP_SCROLL_STORAGE_KEY = 'map-scroll-x';
  */
 export function MapPage({ breweryId }: { breweryId?: number }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const breweryElements = useRef(new Map<number, HTMLElement>());
 
   const breweriesQuery = useQuery({
     queryKey: ['breweries'],
@@ -39,8 +38,9 @@ export function MapPage({ breweryId }: { breweryId?: number }) {
     if (breweryId === undefined || items === undefined) {
       return;
     }
-    breweryElements.current
-      .get(breweryId)
+    // TanStack Router の Link は ref を転送しないので、DOM から直接引く
+    containerRef.current
+      ?.querySelector<HTMLElement>(`[data-map-brewery="${breweryId}"]`)
       ?.scrollIntoView({ behavior: 'instant', block: 'center', inline: 'center' });
   }, [breweryId, items]);
 
@@ -72,7 +72,7 @@ export function MapPage({ breweryId }: { breweryId?: number }) {
   }, [breweryId, items]);
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
+    <div className="flex w-full flex-col gap-6">
       <header className="flex flex-col gap-2">
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-col gap-1">
@@ -103,7 +103,7 @@ export function MapPage({ breweryId }: { breweryId?: number }) {
           ref={containerRef}
           className="overflow-x-auto overscroll-x-contain rounded-xl border border-border bg-muted/30"
         >
-          <div className="relative" style={{ width: size.width, height: size.height }}>
+          <div className="relative mx-auto" style={{ width: size.width, height: size.height }}>
             {items.map((brewery) => {
               const point = mapPointFor(brewery.mapColumn, brewery.mapRow);
               const isFocused = brewery.id === breweryId;
@@ -113,13 +113,8 @@ export function MapPage({ breweryId }: { breweryId?: number }) {
                   key={brewery.id}
                   to="/breweries/$breweryId"
                   params={{ breweryId: String(brewery.id) }}
-                  ref={(element) => {
-                    if (element) {
-                      breweryElements.current.set(brewery.id, element);
-                    } else {
-                      breweryElements.current.delete(brewery.id);
-                    }
-                  }}
+                  // 強調のスクロール先を DOM から探せるようにする
+                  data-map-brewery={brewery.id}
                   // 強調中の 1 件だけが「表示中の酒蔵」として読み上げられる
                   aria-current={isFocused ? 'true' : undefined}
                   className={cn(
@@ -130,15 +125,22 @@ export function MapPage({ breweryId }: { breweryId?: number }) {
                 >
                   <span
                     className={cn(
-                      'flex flex-col items-center justify-center gap-0.5 rounded-lg border-2 px-1 text-center',
+                      'relative flex flex-col items-center justify-center gap-0.5 rounded-lg border-2 px-1 text-center transition-transform',
                       isFocused
-                        ? 'border-emerald-500 bg-emerald-50 shadow-lg dark:bg-emerald-950'
+                        ? 'scale-110 border-emerald-500 bg-emerald-50 shadow-lg shadow-emerald-500/30 dark:bg-emerald-950'
                         : brewery.hasUserReviewed
                           ? 'border-primary/60 bg-primary/5'
                           : 'border-border bg-card',
                     )}
                     style={{ width: CELL_WIDTH, height: CELL_HEIGHT }}
                   >
+                    {/* 強調中の 1 件は波紋を出して、マップのどこにいるか目で追えるようにする */}
+                    {isFocused && (
+                      <span
+                        aria-hidden="true"
+                        className="pointer-events-none absolute inset-0 animate-ping rounded-lg border-2 border-emerald-500 opacity-75 motion-reduce:animate-none"
+                      />
+                    )}
                     <span className="text-[9px] leading-none text-muted-foreground">
                       No.{brewery.id}
                     </span>
