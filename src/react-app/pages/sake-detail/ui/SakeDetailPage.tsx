@@ -29,7 +29,7 @@ import { ReviewList } from './ReviewList';
 function ensureOk(
   response: { ok: boolean; status: number },
   message: string,
-  conflictMessage: string,
+  conflictMessage = message,
 ): void {
   if (response.status === 409) {
     throwApiError(response, conflictMessage);
@@ -98,7 +98,7 @@ export function SakeDetailPage({ sakeId }: { sakeId: number }) {
         param: { id: String(sakeId) },
         json: input,
       });
-      ensureOk(res, 'お酒の情報を保存できませんでした', 'お酒の情報を保存できませんでした');
+      ensureOk(res, 'お酒の情報を保存できませんでした');
       return res.json();
     },
     onSuccess: (updated) => {
@@ -276,7 +276,7 @@ export function SakeDetailPage({ sakeId }: { sakeId: number }) {
   );
 }
 
-function SakeDetailSkeleton() {
+export function SakeDetailSkeleton() {
   return (
     <div
       role="status"

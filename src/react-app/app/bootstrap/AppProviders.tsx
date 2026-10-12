@@ -9,12 +9,18 @@ export function AppProviders() {
   // session は better-auth のストアを唯一の出所にする（beforeLoad のガードも context 経由でここから読む）
   const auth = useSession();
 
-  // ストアが解決・更新したら beforeLoad を評価し直す（context が変わっただけでは再実行されない）
+  // 「中身」が変わったときだけ beforeLoad を評価し直す。ストアは refetch のたびに新しい
+  // オブジェクトを作るので、依存に object を置くと値が同じでも invalidate が走ってしまう
+  const sessionKey = auth.isPending
+    ? 'pending'
+    : `${auth.data?.user.id ?? ''}:${auth.data?.user.nickname ?? ''}`;
+
   useEffect(() => {
-    if (!auth.isPending) {
-      void router.invalidate();
+    if (sessionKey === 'pending') {
+      return;
     }
-  }, [auth]);
+    void router.invalidate();
+  }, [sessionKey]);
 
   return (
     <QueryClientProvider client={queryClient}>

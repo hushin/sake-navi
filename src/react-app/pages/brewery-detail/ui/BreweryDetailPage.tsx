@@ -188,7 +188,7 @@ export function BreweryDetailPage({ breweryId }: { breweryId: number }) {
   );
 }
 
-function BreweryDetailSkeleton() {
+export function BreweryDetailSkeleton() {
   return (
     <div
       role="status"

@@ -1,2 +1,2 @@
 export { breweryQuery } from './api';
-export { BreweryDetailPage } from './ui/BreweryDetailPage';
+export { BreweryDetailPage, BreweryDetailSkeleton } from './ui/BreweryDetailPage';
