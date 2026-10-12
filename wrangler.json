@@ -21,7 +21,9 @@
     {
       "binding": "DB",
       "database_name": "sake-navi-db",
-      "database_id": "d238fab4-7f05-4d5d-a482-a5beb20d8b46"
+      "database_id": "d238fab4-7f05-4d5d-a482-a5beb20d8b46",
+      // 省略すると wrangler は ./migrations を見に行く。drizzle.config.ts の `out` と必ず揃える
+      "migrations_dir": "drizzle"
     }
   ],
   // 秘密ではないので vars に置く（`wrangler types` が .dev.vars 無しでも型を作れるようにするため）
