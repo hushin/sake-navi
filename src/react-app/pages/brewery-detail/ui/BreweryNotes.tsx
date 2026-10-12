@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
-import { client, useSession } from '@/react-app/shared/api';
+import { client, throwApiError, useSession } from '@/react-app/shared/api';
 import { formatRelativeTime } from '@/react-app/shared/lib';
 import { Button, Card } from '@/react-app/shared/ui';
 import type { BreweryNoteFormInput } from '@/shared/schemas/brewery-note';
@@ -27,7 +27,7 @@ export function BreweryNotes({ breweryId }: { breweryId: number }) {
         param: { id: String(breweryId) },
       });
       if (!res.ok) {
-        throw new Error('酒蔵ノートを取得できませんでした');
+        throwApiError(res, '酒蔵ノートを取得できませんでした');
       }
       return res.json();
     },
@@ -43,7 +43,7 @@ export function BreweryNotes({ breweryId }: { breweryId: number }) {
         json: input,
       });
       if (!res.ok) {
-        throw new Error('ノートを投稿できませんでした');
+        throwApiError(res, 'ノートを投稿できませんでした');
       }
       return res.json();
     },
@@ -60,7 +60,7 @@ export function BreweryNotes({ breweryId }: { breweryId: number }) {
         json: input,
       });
       if (!res.ok) {
-        throw new Error('ノートを保存できませんでした');
+        throwApiError(res, 'ノートを保存できませんでした');
       }
       return res.json();
     },
@@ -76,7 +76,7 @@ export function BreweryNotes({ breweryId }: { breweryId: number }) {
         param: { id: String(breweryId), noteId: String(noteId) },
       });
       if (!res.ok) {
-        throw new Error('ノートを削除できませんでした');
+        throwApiError(res, 'ノートを削除できませんでした');
       }
       return res.json();
     },

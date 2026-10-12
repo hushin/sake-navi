@@ -2,7 +2,13 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import type { InferResponseType } from 'hono/client';
 import { type ReactNode, useRef } from 'react';
-import { client, useBookmarkToggle, useBookmarks, useSession } from '@/react-app/shared/api';
+import {
+  client,
+  throwApiError,
+  useBookmarkToggle,
+  useBookmarks,
+  useSession,
+} from '@/react-app/shared/api';
 import { cn } from '@/react-app/shared/lib';
 import {
   Badge,
@@ -67,7 +73,7 @@ export function SakeListPage({
         },
       });
       if (!res.ok) {
-        throw new Error('お酒の一覧を取得できませんでした');
+        throwApiError(res, 'お酒の一覧を取得できませんでした');
       }
       return res.json();
     },

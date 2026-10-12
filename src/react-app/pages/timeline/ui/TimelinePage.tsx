@@ -1,5 +1,5 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { client } from '@/react-app/shared/api';
+import { client, throwApiError } from '@/react-app/shared/api';
 import { Button } from '@/react-app/shared/ui';
 import { ReviewCard } from '@/react-app/widgets/review-card';
 
@@ -9,7 +9,7 @@ export function TimelinePage() {
     queryFn: async ({ pageParam }) => {
       const res = await client.api.timeline.$get({ query: { cursor: pageParam } });
       if (!res.ok) {
-        throw new Error('タイムラインを取得できませんでした');
+        throwApiError(res, 'タイムラインを取得できませんでした');
       }
       return res.json();
     },

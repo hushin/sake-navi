@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import type { InferResponseType } from 'hono/client';
 import { useState } from 'react';
-import { client, useSession } from '@/react-app/shared/api';
+import { client, throwApiError, useSession } from '@/react-app/shared/api';
 import { formatJstDateTime } from '@/react-app/shared/lib';
 import {
   Badge,
@@ -35,7 +35,7 @@ export function SettingsPage() {
     queryFn: async () => {
       const res = await client.api.members.$get();
       if (!res.ok) {
-        throw new Error('メンバーを取得できませんでした');
+        throwApiError(res, 'メンバーを取得できませんでした');
       }
       return res.json();
     },
@@ -50,7 +50,7 @@ export function SettingsPage() {
         throw new Error('このアカウントはすでに追加されています');
       }
       if (!res.ok) {
-        throw new Error('メンバーを追加できませんでした');
+        throwApiError(res, 'メンバーを追加できませんでした');
       }
       return res.json();
     },
@@ -64,7 +64,7 @@ export function SettingsPage() {
     mutationFn: async (value: string) => {
       const res = await client.api.members[':email'].$delete({ param: { email: value } });
       if (!res.ok) {
-        throw new Error('招待を取り消せませんでした');
+        throwApiError(res, '招待を取り消せませんでした');
       }
       return res.json();
     },

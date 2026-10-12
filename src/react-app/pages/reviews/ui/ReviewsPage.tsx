@@ -1,6 +1,6 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
-import { client, useSession } from '@/react-app/shared/api';
+import { client, throwApiError, useSession } from '@/react-app/shared/api';
 import { Button, TagToggle } from '@/react-app/shared/ui';
 import { ReviewCard } from '@/react-app/widgets/review-card';
 import { REVIEW_TAGS, type ReviewSort } from '@/shared/schemas/sake';
@@ -42,7 +42,7 @@ export function ReviewsPage({
         },
       });
       if (!res.ok) {
-        throw new Error('レビューを取得できませんでした');
+        throwApiError(res, 'レビューを取得できませんでした');
       }
       return res.json();
     },

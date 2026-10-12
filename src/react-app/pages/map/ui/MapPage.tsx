@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { Star } from 'lucide-react';
 import { useEffect, useRef } from 'react';
-import { client } from '@/react-app/shared/api';
+import { client, throwApiError } from '@/react-app/shared/api';
 import { CELL_HEIGHT, CELL_WIDTH, cn, mapPointFor, mapSize } from '@/react-app/shared/lib';
 import { Button, Card } from '@/react-app/shared/ui';
 
@@ -23,7 +23,7 @@ export function MapPage({ breweryId }: { breweryId?: number }) {
     queryFn: async () => {
       const res = await client.api.breweries.$get();
       if (!res.ok) {
-        throw new Error('酒蔵の一覧を取得できませんでした');
+        throwApiError(res, '酒蔵の一覧を取得できませんでした');
       }
       return res.json();
     },
