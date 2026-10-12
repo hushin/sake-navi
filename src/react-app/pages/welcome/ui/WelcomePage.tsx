@@ -39,7 +39,8 @@ export function WelcomePage({ onSaved }: { onSaved: () => void }) {
       return;
     }
 
-    // ガード（router context の session）が同じ値を見るので、ストアの更新を待ってから遷移する
+    // セッションを先に更新しておく。ただしこの refetch は better-auth 自身の再取得に
+    // abort されて更新前の値のまま返ることがあるので、遷移は route 側がストアの反映を見て行う
     await refetch();
     onSaved();
   };
