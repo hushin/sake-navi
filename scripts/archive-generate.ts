@@ -6,7 +6,6 @@
  * - 入力は `pnpm archive:dump` が作る dist/archive/*.json
  * - 出力は dist/archive/<実行年>.html（`dist` は gitignore 済み）
  * - マップの配置計算は src/react-app/shared/lib/map-layout.ts を共用する
- *   （旧実装は画面とアーカイブに同じ計算をコピーしていて二重管理になっていた）
  *
  * 生成物はサーバを立てずにブラウザで開ける 1 ファイル完結の HTML（CSS / JS を埋め込む）。
  */

@@ -19,7 +19,7 @@
 - 📊 **レビュー一覧**（新着順／評価順の並び替え、タグの AND 絞り込み、自分のレビューだけ）
 - 🔔 **Discord 通知**（レビューは既定 OFF、酒蔵ノートは既定 ON。Webhook を設定したときだけ送る）
 - 👥 **メンバー管理**（オーナーが Google アカウントを追加・削除）
-- 📚 **酒蔵・銘柄マスタ**（旧アプリの seed を移植。`pnpm db:seed:local` で投入）
+- 📚 **酒蔵・銘柄マスタ**（`pnpm db:seed:local` で投入）
 - 📦 **静的 HTML アーカイブ**（イベント後にレビューを 1 枚の HTML に固めて共有）
 
 ## 技術スタック
@@ -76,10 +76,6 @@ pnpm wrangler d1 create sake-navi-db
 ```
 
 出力された `database_id` を `wrangler.json` の `d1_databases[0].database_id` に貼る。
-
-> 旧アプリの `sake-navi-db` が残っている場合は、名前がぶつかる。旧 DB を消すか
-> （`pnpm wrangler d1 delete sake-navi-db`）、`database_name` を `sake-navi-db-v2` などに変える
-> （コードは binding 名 `DB` しか見ていないので、名前は自由）。
 
 ### 4. シークレットを書く
 
@@ -209,8 +205,7 @@ pnpm archive:generate      # JSON → dist/archive/{実行年}.html
 pnpm archive:dump --local  # ローカルの D1 で試す
 ```
 
-マップの配置計算は画面と共通の `src/react-app/shared/lib/map-layout.ts` を使う
-（旧実装は画面とアーカイブに同じ計算をコピーしていて二重管理になっていた）。
+マップの配置計算は画面と共通の `src/react-app/shared/lib/map-layout.ts` を使う。
 出力先の `dist/` は gitignore 済み。
 
 ## Discord 通知

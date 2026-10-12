@@ -208,8 +208,7 @@ function latestCursorCondition(cursor: { createdAt: Date; id: string }) {
 /**
  * 評価順のカーソルは `rating DESC, created_at DESC, id DESC` に合わせた
  * `<rating>_<epoch ミリ秒>_<review id>`。rating は 0.25 刻みなので `4.25_...` のように小数になる
- * （旧データの整数もそのまま読める）。旧実装は評価順でも created_at だけを見ていて
- * 2 ページ目以降が壊れていたので、ソートごとにカーソルの持ち方を変えている。
+ * （整数の rating もそのまま読める）。ソートごとにカーソルの持ち方を変えている。
  */
 function encodeRatingCursor(item: { rating: number; createdAt: Date; id: string }): string {
   return `${item.rating}_${item.createdAt.getTime()}_${item.id}`;

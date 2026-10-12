@@ -12,7 +12,7 @@ Workers 1 つに Hono API と React SPA を同居させている。`src/` は 3 
 - SQL（データアクセス） → `src/worker/repositories/` に閉じ込める
 - 新しい画面 → `src/react-app/pages/<slice>/ui/` に実装し、`src/react-app/routes/` に薄い route 定義を足す（詳細は `fsd` skill）
 - UI キット・共通ユーティリティ・API クライアント → `src/react-app/shared/` に置き、`index.ts`（public API）経由で import する
-- タグ（`REVIEW_TAGS`）や区分（`SAKE_CATEGORIES`） → `src/shared/schemas/sake.ts` **だけ**に定義する（旧実装は 3 箇所に散ってドリフトしていた）
+- タグ（`REVIEW_TAGS`）や区分（`SAKE_CATEGORIES`） → `src/shared/schemas/sake.ts` **だけ**に定義する
 - story / MSW モック → 画面本体の隣（`pages/<slice>/ui/`）に `*.stories.tsx` / `*.mock.ts`
 
 ## worker のディレクトリ

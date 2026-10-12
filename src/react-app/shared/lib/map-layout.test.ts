@@ -31,7 +31,7 @@ describe('mapPointFor', () => {
 
 describe('mapSize', () => {
   it('最後の列・行のバッジが収まる大きさになる', () => {
-    // seed の酒蔵（14 列 6 行）で、旧実装が固定していた 1640 x 450 と一致する
+    // seed の酒蔵（14 列 6 行）は 1640 x 450 になる
     expect(mapSize([{ mapColumn: 14, mapRow: 6 }])).toEqual({ width: 1640, height: 450 });
   });
 

@@ -1,4 +1,4 @@
--- 酒蔵マスタ（にいがた酒の陣のブース）。旧アプリの db/seed.sql から移植
+-- 酒蔵マスタ（にいがた酒の陣のブース）
 -- id は会場のブース番号、map_column / map_row はマップのグリッド列・行（1 始まり）
 INSERT INTO breweries (id, name, map_column, map_row) VALUES
 -- ■ 最下段 (緑エリア)

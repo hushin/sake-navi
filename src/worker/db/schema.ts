@@ -35,7 +35,7 @@ export const sakes = sqliteTable(
     isLimited: integer('is_limited', { mode: 'boolean' }).notNull().default(false),
     /**
      * 有料試飲の価格（円）。会場に行くまで分からないので未入力は null にしておき、
-     * 会場で手入力して直す。旧アプリの seed にあった 7 は金額として使えないため移行していない。
+     * 会場で手入力して直す。
      */
     paidTastingPrice: integer('paid_tasting_price'),
     /** マスタの seed に無く、ユーザーが会場で追加した銘柄（当日の限定酒など） */
@@ -53,8 +53,7 @@ export const sakes = sqliteTable(
 );
 
 /**
- * レビュー。1 人 1 銘柄 1 件に制約する（旧実装は重複投稿できてしまっていた）。
- * 訂正は編集（PUT）で行う。
+ * レビュー。1 人 1 銘柄 1 件に制約する。訂正は編集（PUT）で行う。
  */
 export const reviews = sqliteTable(
   'reviews',

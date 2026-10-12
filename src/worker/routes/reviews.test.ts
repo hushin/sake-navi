@@ -315,7 +315,7 @@ describe('reviews routes', () => {
         ['review-475', 4.75],
         ['review-425b', 4.25],
       ]);
-      // カーソルにも小数の評価が入る（整数だけを受け付ける旧実装では壊れていた）
+      // カーソルにも小数の評価が入る
       expect(first.nextCursor).toMatch(/^4\.25_\d+_review-425b$/);
 
       const second = reviewFeedSchema.parse(

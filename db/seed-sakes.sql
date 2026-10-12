@@ -1,4 +1,4 @@
--- にいがた酒の陣2026 蔵元別出品予定銘柄。旧アプリの db/seed-sakes.sql から移植
+-- にいがた酒の陣2026 蔵元別出品予定銘柄
 -- paid_tasting_price は出典 PDF の値のまま投入する（NULL = 記載なし / 7 = PDF に記載があったもの）
 -- 実際の金額は会場に行くまで分からないので、当日アプリ内から手入力して直す
 INSERT INTO sakes (brewery_id, name, type, is_limited, category, paid_tasting_price) VALUES

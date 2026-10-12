@@ -30,7 +30,7 @@ pnpm db:seed          # 本番 D1 にマスタを入れる（--remote）
     画面のバッジは `PaidTastingBadge`（`src/react-app/shared/ui`）に集約してある
   - 編集フォームは「有料試飲あり」のチェックと金額を分けて入力し、チェックだけなら `7` を保存する
     （`toSakeEditInput` / `toSakeUpdateInput`）
-- マスタ（酒蔵 82・銘柄 563）は `db/seed-breweries.sql` / `db/seed-sakes.sql`。旧アプリの seed を丸ごと移植したもの
+- マスタ（酒蔵 82・銘柄 563）は `db/seed-breweries.sql` / `db/seed-sakes.sql`
 
 ## ハマりどころ
 
