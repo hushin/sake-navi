@@ -14,7 +14,7 @@
 
 ## 作業のルール
 
-- パッケージマネージャは **pnpm**（npm ではない）。ツールは mise 管理（Node 24 / pnpm 12）
+- パッケージマネージャは **pnpm**（npm ではない）。ツールは mise 管理（Node 26 / pnpm 12）
 - **変更が一区切りしたら `pnpm check` と `pnpm test` を通す**（oxlint が型チェックも行うので型エラーまで拾える）
 - lint / format は lefthook が pre-commit で回す。コミットメッセージは Conventional Commits
 - 生成物（`worker-configuration.d.ts` / `routeTree.gen.ts` / `drizzle/`）は手で編集しない
