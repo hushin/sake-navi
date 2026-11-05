@@ -43,7 +43,7 @@
 
 ## セットアップ
 
-前提: **Node 24 / pnpm 12**（`mise install` で入る）、Cloudflare アカウント。
+前提: **Node 26 / pnpm 12**（`mise install` で入る）、Cloudflare アカウント。
 
 ### 1. 依存を入れる
 
